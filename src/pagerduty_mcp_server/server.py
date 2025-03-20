@@ -131,15 +131,13 @@ def list_incidents(*,
         elif not isinstance(statuses, list):
             raise ValueError("statuses must be a list of strings or a single string.")
 
-    results = incidents.list_incidents(
+    return incidents.list_incidents(
         service_ids=service_ids,
         team_ids=team_ids,
         statuses=statuses,
         since=since,
         until=until
     )
-
-    return utils.api_response_handler(results=results, resource_name='incidents')
 
 @server.tool()
 def show_incident(*,
@@ -188,15 +186,13 @@ def list_oncalls(*,
     elif not (user_ids or escalation_policy_ids):
         raise ValueError("Must specify at least user_ids or escalation_policy_ids when current_user_context is False.")
 
-    results = oncalls.list_oncalls(
+    return oncalls.list_oncalls(
         user_ids=user_ids,
         schedule_ids=schedule_ids,
         escalation_policy_ids=escalation_policy_ids,
         since=since,
         until=until
     )
-
-    return utils.api_response_handler(results=results, resource_name='oncalls')
 
 """
 Schedules Tools
@@ -212,9 +208,7 @@ def list_schedules(*,
     Returns:
         Dict[str, Any]: Dictionary containing metadata (count, description) and a list of schedules matching the specified criteria
     """
-    results = schedules.list_schedules(query=query)
-
-    return utils.api_response_handler(results=results, resource_name='schedules')
+    return schedules.list_schedules(query=query)
 
 @server.tool()
 def show_schedule(*,
@@ -263,12 +257,11 @@ def list_services(*,
     elif not team_ids:
         raise ValueError("Must specify at least team_ids when current_user_context is False.")
 
-    results = services.list_services(
+    return services.list_services(
         team_ids=team_ids,
         query=query
     )
 
-    return utils.api_response_handler(results=results, resource_name='services')
 
 @server.tool()
 def show_service(*,
@@ -298,9 +291,7 @@ def list_teams(*,
     Returns:
         Dict[str, Any]: Dictionary containing metadata (count, description) and a list of teams matching the specified criteria
     """
-    results = teams.list_teams(query=query)
-
-    return utils.api_response_handler(results=results, resource_name='teams')
+    return teams.list_teams(query=query)
 
 @server.tool()
 def show_team(*,
@@ -380,12 +371,10 @@ def list_users(*,
     elif not team_ids:
         raise ValueError("Must specify at least team_ids when current_user_context is False.")
 
-    results = users.list_users(
+    return users.list_users(
         team_ids=team_ids,
         query=query
     )
-
-    return utils.api_response_handler(results=results, resource_name='users')
 
 @server.tool()
 def show_user(*,

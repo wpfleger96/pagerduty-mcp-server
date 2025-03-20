@@ -84,14 +84,16 @@ def build_user_context() -> Dict[str, Any]:
 def api_response_handler(*,
                         results: Union[Dict[str, Any], List[Dict[str, Any]]],
                         resource_name: str,
-                        limit: Optional[int] = 100) -> Dict[str, Any]:
+                        limit: Optional[int] = 100,
+                        additional_metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """Process API response and return a standardized format.
     
     Example response:
     {
         "metadata": {
             "count": 2,
-            "description": "Found 2 results for resource type escalation_policies"
+            "description": "Found 2 results for resource type escalation_policies",
+            # Additional metadata fields can be included here
         },
         "escalation_policies": [
             ...
@@ -103,6 +105,7 @@ def api_response_handler(*,
         resource_name (str): The name of the resource (e.g., 'services', 'incidents').
             Use plural form for list operations, singular for single-item operations.
         limit (int): The maximum number of results allowed (optional, default is 100)
+        additional_metadata (Dict[str, Any]): Optional additional metadata to include in the response
     
     Returns:
         Dict[str, Any]: A dictionary containing:
@@ -128,10 +131,15 @@ def api_response_handler(*,
             }
         }
     
+    metadata = {
+        "count": len(results),
+        "description": f"Found {len(results)} {'result' if len(results) == 1 else 'results'} for resource type {resource_name}"
+    }
+
+    if additional_metadata:
+        metadata.update(additional_metadata)
+
     return {
-        "metadata": {
-            "count": len(results),
-            "description": f"Found {len(results)} {'result' if len(results) == 1 else 'results'} for resource type {resource_name}"
-        },
+        "metadata": metadata,
         f"{resource_name}": results
     }
