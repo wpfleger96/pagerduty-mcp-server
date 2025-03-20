@@ -1,0 +1,72 @@
+[
+    {
+        "description": null,
+        "escalation_policies": [
+            {
+                "html_url": "https://pagerduty.com/escalation_policies/67863e198e",
+                "id": "67863e198e",
+                "self": "https://api.pagerduty.com/escalation_policies/67863e198e",
+                "summary": "Anonymized Policy",
+                "type": "escalation_policy_reference"
+            }
+        ],
+        "final_schedule": {
+            "name": "Final Schedule",
+            "rendered_coverage_percentage": null,
+            "rendered_schedule_entries": []
+        },
+        "html_url": "https://pagerduty.com/schedules/66c19f3b01",
+        "http_cal_url": "https://square.pagerduty.com/private/1e6b6c717275435833cddaaecc33dbdb56b98956bd4eaf45f78338cbfc23b660/feed/PB80OV7",
+        "id": "66c19f3b01",
+        "name": "Anonymized Schedule",
+        "overrides_subschedule": {
+            "name": "Overrides",
+            "rendered_coverage_percentage": null,
+            "rendered_schedule_entries": []
+        },
+        "schedule_layers": [
+            {
+                "end": "2021-11-08T09:58:35-08:00",
+                "id": "03a1c6f864",
+                "name": "Anonymized Layer",
+                "rendered_coverage_percentage": null,
+                "rendered_schedule_entries": [],
+                "restrictions": [],
+                "rotation_turn_length_seconds": 604800,
+                "rotation_virtual_start": "2021-11-01T14:00:00-07:00",
+                "start": "2021-11-08T09:58:35-08:00",
+                "users": [
+                    {
+                        "user": {
+                            "html_url": "https://pagerduty.com/users/c46a8c13b7",
+                            "id": "c46a8c13b7",
+                            "self": "https://api.pagerduty.com/users/c46a8c13b7",
+                            "summary": "Anonymized User",
+                            "type": "user_reference"
+                        }
+                    }
+                ]
+            }
+        ],
+        "self": "https://api.pagerduty.com/schedules/66c19f3b01",
+        "summary": "Anonymized Schedule",
+        "teams": [
+            {
+                "html_url": "https://pagerduty.com/teams/5fc61f8dfd",
+                "id": "5fc61f8dfd",
+                "self": "https://api.pagerduty.com/teams/5fc61f8dfd",
+                "summary": "Anonymized Team",
+                "type": "team_reference"
+            },
+            {
+                "html_url": "https://pagerduty.com/teams/ac7ae09a2a",
+                "id": "ac7ae09a2a",
+                "self": "https://api.pagerduty.com/teams/ac7ae09a2a",
+                "summary": "Anonymized Team",
+                "type": "team_reference"
+            }
+        ],
+        "time_zone": "America/Los_Angeles",
+        "type": "schedule"
+    }
+]

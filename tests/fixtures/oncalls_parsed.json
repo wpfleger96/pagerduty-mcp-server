@@ -1,0 +1,19 @@
+[
+    {
+        "escalation_policy": {
+            "id": "EP123456",
+            "summary": "Test - Security Team"
+        },
+        "escalation_level": 1,
+        "schedule": {
+            "id": "SCH123456",
+            "summary": "SecurityOps-Primary"
+        },
+        "user": {
+            "id": "USR123456",
+            "summary": "User Test"
+        },
+        "start": "2025-03-17T18:00:00Z",
+        "end": "2025-03-24T18:00:00Z"
+    }
+] 

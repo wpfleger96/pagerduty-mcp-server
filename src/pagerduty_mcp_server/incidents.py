@@ -3,9 +3,9 @@
 from typing import List, Dict, Any, Optional, Union
 import logging
 
-from .client import get_api_client
-from .users import get_user_context
-from . import incident_processor
+from . import client
+from . import utils
+from .parsers import parse_incident
 
 logger = logging.getLogger(__name__)
 
@@ -13,38 +13,46 @@ INCIDENTS_URL = '/incidents'
 
 VALID_STATUSES = ['triggered', 'acknowledged', 'resolved']
 DEFAULT_STATUSES = ['triggered', 'acknowledged']
+VALID_URGENCIES = ['high', 'low']
+DEFAULT_URGENCIES = ['high', 'low']
+
+"""
+Incidents API Helpers
+"""
 
 def list_incidents(*, 
-                  service_ids: List[str] = None, 
-                  team_ids: List[str] = None, 
-                  statuses: List[str] = None, 
-                  use_my_teams: bool = True,
-                  date_range: Optional[str] = None,
+                  service_ids: Optional[List[str]] = None, 
+                  team_ids: Optional[List[str]] = None, 
+                  statuses: Optional[List[str]] = None,
+                  urgencies: Optional[List[str]] = None,
                   since: Optional[str] = None,
-                  until: Optional[str] = None) -> List[Dict[str, Any]]:
+                  until: Optional[str] = None) -> Dict[str, Any]:
     """List PagerDuty incidents based on specified filters.
     
-    Provides a flexible interface for querying PagerDuty incidents with support
-    for filtering by teams, services, status, and date ranges. When use_my_teams
-    is True (default), automatically uses the current user's team context.
-    
     Args:
-        service_ids: Optional list of service IDs to filter by
-        team_ids: Optional list of team IDs to filter by
-        statuses: Optional list of status values to filter by
-        use_my_teams: Whether to use the current user's teams/services context (default: True)
-        date_range: When set to "all", the since and until parameters are ignored
-        since: Start of date range (ISO8601 format). Default is 1 month ago
-        until: End of date range (ISO8601 format). Default is now
+        service_ids (List[str]): List of PagerDuty service IDs to filter by (optional)
+        team_ids (List[str]): List of PagerDuty team IDs to filter by (optional)
+        statuses (List[str]): List of status values to filter by (optional). Valid values are:
+            - 'triggered' - The incident is currently active (included by default)
+            - 'acknowledged' - The incident has been acknowledged by a user (included by default)
+            - 'resolved' - The incident has been resolved (excluded by default)
+        urgencies (List[str]): List of urgency values to filter by (optional). Valid values are:
+            - 'high' - High urgency incidents (included by default)
+            - 'low' - Low urgency incidents (included by default)
+        since (str): Start of date range in ISO8601 format (optional). Default is 1 month ago
+        until (str): End of date range in ISO8601 format (optional). Default is now
     
     Returns:
-        List[Dict[str, Any]]: List of incident objects matching the specified criteria
+        Dict[str, Any]: A dictionary containing:
+            - incidents (List[Dict[str, Any]]): List of incident objects matching the specified criteria
+            - metadata (Dict[str, Any]): Metadata about the response including total count and pagination info
     
     Raises:
-        ValueError: If the parameter combination is invalid or if status values are invalid
+        ValueError: If invalid status or urgency values are provided
+        RuntimeError: If the API request fails or response processing fails
     """
 
-    client = get_api_client()
+    pd_client = client.get_api_client()
     
     if statuses is None:
         statuses = DEFAULT_STATUSES
@@ -52,63 +60,57 @@ def list_incidents(*,
         invalid_statuses = [s for s in statuses if s not in VALID_STATUSES]
         if invalid_statuses:
             raise ValueError(f"Invalid status values: {invalid_statuses}. Valid values are: {VALID_STATUSES}")
-    
-    if use_my_teams:
-        if service_ids is not None or team_ids is not None:
-            raise ValueError(
-                "Cannot specify service_ids or team_ids when use_my_teams is True. "
-                "Either set use_my_teams=False or remove service_ids/team_ids parameters."
-            )
-        team_ids, service_ids = get_user_context()
+        
+    if urgencies is None:
+        urgencies = DEFAULT_URGENCIES
     else:
-        if service_ids is None and team_ids is None:
-            raise ValueError(
-                "Must specify at least service_ids or team_ids when use_my_teams is False."
-            )
+        invalid_urgencies = [u for u in urgencies if u not in VALID_URGENCIES]
+        if invalid_urgencies:
+            raise ValueError(f"Invalid urgency values: {invalid_urgencies}. Valid values are: {VALID_URGENCIES}")
     
-    params = {'statuses': statuses}
+    params = {'statuses': statuses, 'urgencies': urgencies}
     if service_ids:
         params['service_ids'] = service_ids
     if team_ids:
         params['team_ids'] = team_ids
-        
-    if date_range == 'all':
-        pass
-    else:
-        if since is not None:
-            params['since'] = since
-        if until is not None:
-            params['until'] = until
+    if since is not None:
+        params['since'] = since
+    if until is not None:
+        params['until'] = until
     
     try:
-        incidents = client.list_all(INCIDENTS_URL, params=params)
-        return incident_processor.process_incidents(incidents)
+        response = pd_client.list_all(INCIDENTS_URL, params=params)
+        parsed_response = [parse_incident(result=result) for result in response]
+        return utils.api_response_handler(results=parsed_response, resource_name='incidents')
     except Exception as e:
         logger.error(f"Failed to fetch or process incidents: {e}")
         raise RuntimeError(f"Failed to fetch or process incidents: {e}") from e
 
-def get_incident(*,
-                 id: Union[str, int]) -> Dict[str, Any]:
+def show_incident(*,
+                 incident_id: str) -> Dict[str, Any]:
     """Get detailed information about a given incident.
 
     Args:
-        id: The ID or number of the incident to get
+        incident_id (str): The ID or number of the incident to get
 
     Returns:
-        Dict[str, Any]: Incident object with detailed information
+        Dict[str, Any]: A dictionary containing:
+            - incident (Dict[str, Any]): Incident object with detailed information
+            - metadata (Dict[str, Any]): Metadata about the response
+    
+    Raises:
+        ValueError: If incident_id is None or empty
+        RuntimeError: If the API request fails or response processing fails
     """
 
-    if id is None:
-        raise ValueError("Incident ID is required")
+    if not incident_id:
+        raise ValueError("incident_id cannot be empty")
 
-    client = get_api_client()
-
-    params = {}
+    pd_client = client.get_api_client()
     
     try:
-        incident_str = str(id)
-        incident = client.jget(f"{INCIDENTS_URL}/{incident_str}", params=params)["incident"]
-        return incident_processor.process_incident(incident)
+        response = pd_client.jget(f"{INCIDENTS_URL}/{incident_id}")['incident']
+        return utils.api_response_handler(results=parse_incident(result=response), resource_name='incident')
     except Exception as e:
-        logger.error(f"Failed to fetch or process incident {id}: {e}")
-        raise RuntimeError(f"Failed to fetch or process incident {id}: {e}") from e
+        logger.error(f"Failed to fetch or process incident {incident_id}: {e}")
+        raise RuntimeError(f"Failed to fetch or process incident {incident_id}: {e}") from e

@@ -3,93 +3,79 @@
 from typing import List, Dict, Any, Optional
 import logging
 
-from .client import get_api_client
+from . import client
+from .parsers import parse_schedule
+from . import utils
 
 logger = logging.getLogger(__name__)
 
-ONCALLS_URL = '/oncalls'
 SCHEDULES_URL = '/schedules'
 
-VALID_SCHEDULE_INCLUDES = ['teams', 'users', 'escalation_policies', 'schedule_layers']
+"""
+Schedules API Helpers
+"""
 
-def list_schedules(*, 
-                  query: Optional[str] = None,
-                  include: List[str] = None) -> List[Dict[str, Any]]:
-    """List the on-call schedules.
+def list_schedules(*, query: Optional[str] = None) -> Dict[str, Any]:
+    """List existing PagerDuty schedules.
     
     Args:
-        query: Filter schedules whose names contain the search query
-        include: Array of additional details to include. Options: teams,users,escalation_policies,schedule_layers
+        query (str): Filter schedules whose names contain the search query (optional)
     
     Returns:
-        List[Dict[str, Any]]: List of schedule objects
-        
+        Dict[str, Any]: A dictionary containing:
+            - schedules (List[Dict[str, Any]]): List of schedule objects matching the specified criteria
+            - metadata (Dict[str, Any]): Metadata about the response including total count and pagination info
+    
     Raises:
-        ValueError: If include contains invalid values
+        RuntimeError: If the API request fails or response processing fails
     """
 
-    client = get_api_client()
-    
-    if include:
-        invalid_includes = [i for i in include if i not in VALID_SCHEDULE_INCLUDES]
-        if invalid_includes:
-            raise ValueError(
-                f"Invalid include values: {invalid_includes}. "
-                f"Valid values are: {VALID_SCHEDULE_INCLUDES}"
-            )
+    pd_client = client.get_api_client()
     
     params = {}
     if query:
         params['query'] = query
-    if include:
-        params['include[]'] = include
         
     try:
-        response = client.list_all(SCHEDULES_URL, params=params)
-        return [schedule['schedule'] for schedule in response]
+        response = pd_client.list_all(SCHEDULES_URL, params=params)
+        parsed_response = [parse_schedule(result=result) for result in response]
+        return utils.api_response_handler(results=parsed_response, resource_name='schedules')
     except Exception as e:
         logger.error(f"Failed to fetch schedules: {e}")
         raise RuntimeError(f"Failed to fetch schedules: {e}") from e
 
-def get_schedule(schedule_id: str, *,
-                since: Optional[str] = None,
-                until: Optional[str] = None,
-                include: List[str] = None) -> Dict[str, Any]:
+def show_schedule(*,
+                 schedule_id: str,
+                 since: Optional[str] = None,
+                 until: Optional[str] = None) -> Dict[str, Any]:
     """Get detailed information about a given schedule.
     
     Args:
-        schedule_id: The ID of the schedule to get
-        since: The start of the time range over which you want to search
-        until: The end of the time range over which you want to search
-        include: Array of additional details to include. Options: teams,users,escalation_policies,schedule_layers
+        schedule_id (str): The ID of the schedule to get
+        since (str): Start of date range in ISO8601 format (optional). Default is 1 month ago
+        until (str): End of date range in ISO8601 format (optional). Default is now
     
     Returns:
-        Dict[str, Any]: Schedule object with detailed information
-        
+        Dict[str, Any]: A dictionary containing:
+            - schedule (Dict[str, Any]): Schedule object with detailed information
+            - metadata (Dict[str, Any]): Metadata about the response
+    
     Raises:
-        ValueError: If include contains invalid values
+        ValueError: If schedule_id is None
+        RuntimeError: If the API request fails or response processing fails
     """
 
-    client = get_api_client()
-    
-    if include:
-        invalid_includes = [i for i in include if i not in VALID_SCHEDULE_INCLUDES]
-        if invalid_includes:
-            raise ValueError(
-                f"Invalid include values: {invalid_includes}. "
-                f"Valid values are: {VALID_SCHEDULE_INCLUDES}"
-            )
+    pd_client = client.get_api_client()
     
     params = {}
     if since:
         params['since'] = since
     if until:
         params['until'] = until
-    if include:
-        params['include[]'] = include
         
     try:
-        return client.jget(f"{SCHEDULES_URL}/{schedule_id}", params=params)['schedule']
+        response = pd_client.jget(f"{SCHEDULES_URL}/{schedule_id}", params=params)['schedule']
+        return utils.api_response_handler(results=parse_schedule(result=response), resource_name='schedule')
     except Exception as e:
         logger.error(f"Failed to fetch schedule {schedule_id}: {e}")
         raise RuntimeError(f"Failed to fetch schedule {schedule_id}: {e}") from e

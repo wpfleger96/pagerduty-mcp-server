@@ -1,14 +1,41 @@
+"""Main entry point for the PagerDuty MCP Server."""
+
 import sys
 import signal
 import argparse
 import logging
+import atexit
 
 from .client import get_api_client
 from .server import server, logger
 
-def main():
-    """PagerDuty MCP Server"""
+def handle_shutdown(signum, frame):
+    """Handle shutdown signals gracefully.
+    
+    This function is called when the server receives a shutdown signal (SIGINT or SIGTERM).
+    It logs the shutdown message and ensures clean exit.
+    
+    Args:
+        signum (int): The signal number
+        frame (frame): The current stack frame
+    """
+    logger.info("Received shutdown signal, stopping server...")
+    try:
+        server.stop()
+    except Exception as e:
+        logger.error(f"Error during server shutdown: {e}")
+    finally:
+        sys.exit(0)
 
+def main():
+    """PagerDuty MCP Server entry point.
+    
+    This function initializes the server, sets up signal handlers, and starts the server.
+    It handles various error conditions and ensures proper cleanup.
+    
+    Returns:
+        int: Exit code (0 for success, 1 for failure)
+    """
     parser = argparse.ArgumentParser(description="PagerDuty MCP Server")
     parser.parse_args()
 
@@ -17,13 +44,12 @@ def main():
     except SystemExit:
         return 1
 
-    def handle_shutdown(signum, frame):
-        logger.info("Received shutdown signal, stopping server...")
-        sys.exit(0)
-
+    # Set up signal handlers
     signal.signal(signal.SIGINT, handle_shutdown)
     signal.signal(signal.SIGTERM, handle_shutdown)
-
+    
+    # Register cleanup function
+    atexit.register(handle_shutdown, None, None)
 
     logger.info("Starting PagerDuty MCP Server...")
     try:

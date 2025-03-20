@@ -1,0 +1,33 @@
+[
+    {
+      "id": "EP123456",
+      "summary": "Test Escalation Policy",
+      "name": "Test Escalation Policy",
+      "escalation_rules": [
+        {
+          "id": "ER789012",
+          "escalation_delay_in_minutes": 60,
+          "targets": [
+            {
+              "id": "SCH345678",
+              "summary": "Primary On-Call"
+            }
+          ]
+        }
+      ],
+      "services": [
+        {
+          "id": "SRV567890",
+          "summary": "Test Service"
+        }
+      ],
+      "num_loops": 3,
+      "teams": [
+        {
+          "id": "TM112233",
+          "summary": "Engineering Team"
+        }
+      ],
+      "description": "Test escalation policy."
+    }
+]

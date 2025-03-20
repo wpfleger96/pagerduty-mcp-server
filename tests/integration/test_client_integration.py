@@ -1,6 +1,11 @@
-from pagerduty_mcp_server import client
-from conftest import skip_if_no_pagerduty_key
+import pagerduty
+import pytest
 
+from conftest import skip_if_no_pagerduty_key
+from pagerduty_mcp_server import client
+
+@pytest.mark.integration
+@pytest.mark.client
 @skip_if_no_pagerduty_key
 def test_get_api_client():
     """Test that the API client is created correctly."""

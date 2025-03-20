@@ -1,0 +1,265 @@
+[
+    {
+        "acknowledgements": [],
+        "alert_counts": {
+            "all": 1,
+            "resolved": 1,
+            "triggered": 0
+        },
+        "alert_grouping": null,
+        "assigned_via": "escalation_policy",
+        "assignments": [],
+        "basic_alert_grouping": null,
+        "created_at": "2025-02-17T23:19:05Z",
+        "description": "REDACTED",
+        "escalation_policy": {
+            "html_url": "https://pagerduty.com/123",
+            "id": "Escalation policy 123",
+            "self": "https://api.pagerduty.com/escalation_policies/123",
+            "summary": "REDACTED",
+            "type": "escalation_policy_reference"
+        },
+        "first_trigger_log_entry": {
+            "html_url": "https://pagerduty.com/123",
+            "id": "Log Entry 123",
+            "self": "https://api.pagerduty.com/log_entries/123",
+            "summary": "Triggered through the API.",
+            "type": "trigger_log_entry_reference"
+        },
+        "html_url": "https://pagerduty.com/123",
+        "id": "123",
+        "incident_key": null,
+        "incident_number": 123,
+        "incident_type": {
+            "name": "incident_default"
+        },
+        "incidents_responders": [],
+        "is_mergeable": true,
+        "last_status_change_at": "2025-02-17T23:27:00Z",
+        "last_status_change_by": {
+            "html_url": "https://pagerduty.com/123",
+            "id": "123",
+            "self": "https://api.pagerduty.com/services/123",
+            "summary": "Service 123",
+            "type": "service_reference"
+        },
+        "pending_actions": [],
+        "priority": null,
+        "resolve_reason": null,
+        "resolved_at": "2025-02-17T23:27:00Z",
+        "responder_requests": [],
+        "self": "https://api.pagerduty.com/incidents/123",
+        "service": {
+            "html_url": "https://pagerduty.com/123",
+            "id": "123",
+            "self": "https://api.pagerduty.com/services/123",
+            "summary": "Service 123",
+            "type": "service_reference"
+        },
+        "status": "resolved",
+        "subscriber_requests": [],
+        "summary": "REDACTED",
+        "teams": [
+            {
+                "html_url": "https://pagerduty.com/123",
+                "id": "PX4X5QR",
+                "self": "https://api.pagerduty.com/teams/123",
+                "summary": "Team 123",
+                "type": "team_reference"
+            }
+        ],
+        "title": "Incident 123",
+        "type": "incident",
+        "updated_at": "2025-02-17T23:27:00Z",
+        "urgency": "high"
+    },
+    {
+        "acknowledgements": [],
+        "alert_counts": {
+            "all": 1,
+            "resolved": 0,
+            "triggered": 1
+        },
+        "alert_grouping": {
+            "alert_grouping_active": false,
+            "ended_at": null,
+            "grouping_type": "advanced",
+            "started_at": "2025-02-18T00:31:12Z"
+        },
+        "assigned_via": "escalation_policy",
+        "assignments": [
+            {
+                "assignee": {
+                    "html_url": "https://square.pagerduty.com/users/456",
+                    "id": "456",
+                    "self": "https://api.pagerduty.com/users/456",
+                    "summary": "User 456",
+                    "type": "user_reference"
+                },
+                "at": "2025-02-18T00:31:12Z"
+            }
+        ],
+        "basic_alert_grouping": null,
+        "created_at": "2025-02-18T00:31:12Z",
+        "description": "REDACTED",
+        "escalation_policy": {
+            "html_url": "https://square.pagerduty.com/escalation_policies/456",
+            "id": "456",
+            "self": "https://api.pagerduty.com/escalation_policies/456",
+            "summary": "Escalation Policy 456",
+            "type": "escalation_policy_reference"
+        },
+        "first_trigger_log_entry": {
+            "html_url": "https://square.pagerduty.com/incidents/456/log_entries/456",
+            "id": "456",
+            "self": "https://api.pagerduty.com/log_entries/456",
+            "summary": "Log entry 456",
+            "type": "trigger_log_entry_reference"
+        },
+        "html_url": "https://square.pagerduty.com/incidents/456",
+        "id": "456",
+        "incident_key": null,
+        "incident_number": 456,
+        "incident_type": {
+            "name": "incident_default"
+        },
+        "incidents_responders": [],
+        "is_mergeable": true,
+        "last_status_change_at": "2025-02-18T00:31:12Z",
+        "last_status_change_by": {
+            "html_url": "https://square.pagerduty.com/service-directory/456",
+            "id": "456",
+            "self": "https://api.pagerduty.com/services/456",
+            "summary": "Service 456",
+            "type": "service_reference"
+        },
+        "pending_actions": [],
+        "priority": null,
+        "resolved_at": null,
+        "responder_requests": [],
+        "self": "https://api.pagerduty.com/incidents/456",
+        "service": {
+            "html_url": "https://square.pagerduty.com/service-directory/456",
+            "id": "456",
+            "self": "https://api.pagerduty.com/services/456",
+            "summary": "Service 456",
+            "type": "service_reference"
+        },
+        "status": "triggered",
+        "subscriber_requests": [],
+        "summary": "REDACTED",
+        "teams": [
+            {
+                "html_url": "https://square.pagerduty.com/teams/456",
+                "id": "456",
+                "self": "https://api.pagerduty.com/teams/456",
+                "summary": "Team 456",
+                "type": "team_reference"
+            }
+        ],
+        "title": "Incident 456",
+        "type": "incident",
+        "updated_at": "2025-02-18T00:31:12Z",
+        "urgency": "high"
+    },
+    {
+        "acknowledgements": [
+            {
+                "acknowledger": {
+                    "html_url": "https://square.pagerduty.com/users/789",
+                    "id": "789",
+                    "self": "https://api.pagerduty.com/users/789",
+                    "summary": "User 789",
+                    "type": "user_reference"
+                },
+                "at": "2025-02-18T00:54:51Z"
+            }
+        ],
+        "alert_counts": {
+            "all": 1,
+            "resolved": 0,
+            "triggered": 1
+        },
+        "alert_grouping": {
+            "alert_grouping_active": false,
+            "ended_at": null,
+            "grouping_type": "advanced",
+            "started_at": "2025-02-18T00:24:36Z"
+        },
+        "assigned_via": "escalation_policy",
+        "assignments": [
+            {
+                "assignee": {
+                    "html_url": "https://square.pagerduty.com/users/789",
+                    "id": "789",
+                    "self": "https://api.pagerduty.com/users/789",
+                    "summary": "User 789",
+                    "type": "user_reference"
+                },
+                "at": "2025-02-18T00:39:37Z"
+            }
+        ],
+        "basic_alert_grouping": null,
+        "created_at": "2025-02-18T00:24:36Z",
+        "description": "REDACTED",
+        "escalation_policy": {
+            "html_url": "https://square.pagerduty.com/escalation_policies/789",
+            "id": "789",
+            "self": "https://api.pagerduty.com/escalation_policies/789",
+            "summary": "Escalation Policy 789",
+            "type": "escalation_policy_reference"
+        },
+        "first_trigger_log_entry": {
+            "html_url": "https://square.pagerduty.com/incidents/789/log_entries/789",
+            "id": "789",
+            "self": "https://api.pagerduty.com/log_entries/789",
+            "summary": "Log entry 789",
+            "type": "trigger_log_entry_reference"
+        },
+        "html_url": "https://square.pagerduty.com/incidents/789",
+        "id": "789",
+        "incident_key": null,
+        "incident_number": 789,
+        "incident_type": {
+            "name": "incident_default"
+        },
+        "incidents_responders": [],
+        "is_mergeable": true,
+        "last_status_change_at": "2025-02-18T00:54:51Z",
+        "last_status_change_by": {
+            "html_url": "https://square.pagerduty.com/users/789",
+            "id": "789",
+            "self": "https://api.pagerduty.com/users/789",
+            "summary": "User 789",
+            "type": "user_reference"
+        },
+        "pending_actions": [],
+        "priority": null,
+        "resolved_at": null,
+        "responder_requests": [],
+        "self": "https://api.pagerduty.com/incidents/789",
+        "service": {
+            "html_url": "https://square.pagerduty.com/service-directory/789",
+            "id": "789",
+            "self": "https://api.pagerduty.com/services/789",
+            "summary": "Service 789",
+            "type": "service_reference"
+        },
+        "status": "acknowledged",
+        "subscriber_requests": [],
+        "summary": "REDACTED",
+        "teams": [
+            {
+                "html_url": "https://square.pagerduty.com/teams/789",
+                "id": "789",
+                "self": "https://api.pagerduty.com/teams/789",
+                "summary": "Team 789",
+                "type": "team_reference"
+            }
+        ],
+        "title": "Incident 789",
+        "type": "incident",
+        "updated_at": "2025-02-18T00:54:52Z",
+        "urgency": "high"
+    }
+]

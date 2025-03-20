@@ -1,0 +1,39 @@
+[
+    {
+        "id": "66c19f3b01",
+        "name": "Anonymized Schedule",
+        "summary": "Anonymized Schedule",
+        "description": null,
+        "time_zone": "America/Los_Angeles",
+        "escalation_policies": [
+            {
+                "id": "67863e198e",
+                "summary": "Anonymized Policy"
+            }
+        ],
+        "teams": [
+            {
+                "id": "5fc61f8dfd",
+                "summary": "Anonymized Team"
+            },
+            {
+                "id": "ac7ae09a2a",
+                "summary": "Anonymized Team"
+            }
+        ],
+        "schedule_layers": [
+            {
+                "id": "03a1c6f864",
+                "name": "Anonymized Layer",
+                "start": "2021-11-08T09:58:35-08:00",
+                "end": "2021-11-08T09:58:35-08:00",
+                "users": [
+                    {
+                        "id": "c46a8c13b7",
+                        "summary": "Anonymized User"
+                    }
+                ]
+            }
+        ]
+    }
+]
