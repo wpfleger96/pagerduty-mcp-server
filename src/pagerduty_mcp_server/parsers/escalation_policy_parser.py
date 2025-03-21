@@ -12,15 +12,16 @@ def parse_escalation_policy(*,
     Returns:
         Dict[str, Any]: A dictionary containing:
             - id (str): The policy ID
+            - html_url (str): URL to view the policy in PagerDuty
             - summary (str): The policy summary
             - name (str): The policy name
             - escalation_rules (List[Dict]): List of escalation rules, each containing:
                 - id (str): Rule ID
                 - escalation_delay_in_minutes (int): Delay before escalation
-                - targets (List[Dict]): List of targets with id and summary
-            - services (List[Dict]): List of services with id and summary
+                - targets (List[Dict]): List of targets with id, summary, and html_url
+            - services (List[Dict]): List of services with id, summary, and html_url
             - num_loops (int): Number of times to loop through the policy (defaults to 1)
-            - teams (List[Dict]): List of teams with id and summary
+            - teams (List[Dict]): List of teams with id, summary, and html_url
             - description (str): Policy description
     
     Note:
@@ -33,6 +34,7 @@ def parse_escalation_policy(*,
     
     return {
         "id": result.get("id"),
+        "html_url": result.get("html_url"),
         "summary": result.get("summary"),
         "name": result.get("name"),
         "escalation_rules": [
@@ -42,7 +44,8 @@ def parse_escalation_policy(*,
                 "targets": [
                     {
                         "id": target.get("id"),
-                        "summary": target.get("summary")
+                        "summary": target.get("summary"),
+                        "html_url": target.get("html_url")
                     }
                     for target in rule.get("targets", [])
                 ]
@@ -52,7 +55,8 @@ def parse_escalation_policy(*,
         "services": [
             {
                 "id": service.get("id"),
-                "summary": service.get("summary")
+                "summary": service.get("summary"),
+                "html_url": service.get("html_url")
             }
             for service in result.get("services", [])
         ],
@@ -60,7 +64,8 @@ def parse_escalation_policy(*,
         "teams": [
             {
                 "id": team.get("id"),
-                "summary": team.get("summary")
+                "summary": team.get("summary"),
+                "html_url": team.get("html_url")
             }
             for team in result.get("teams", [])
         ],

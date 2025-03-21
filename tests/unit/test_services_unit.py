@@ -29,6 +29,7 @@ def test_fetch_service_ids(mock_get_api_client, mock_team_ids, mock_service_ids,
     assert set(service_ids) == set(mock_service_ids)
 
 @pytest.mark.unit
+@pytest.mark.parsers
 @pytest.mark.services
 def test_parse_service(mock_services, mock_services_parsed):
     """Test that parse_service correctly parses raw service data."""

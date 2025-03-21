@@ -19,6 +19,7 @@ def test_list_schedules(mock_get_api_client, mock_schedules, mock_schedules_pars
     assert schedules_list == utils.api_response_handler(results=[parse_schedule(result=schedule) for schedule in mock_schedules], resource_name='schedules')
 
 @pytest.mark.unit
+@pytest.mark.parsers
 @pytest.mark.schedules
 def test_parse_schedule(mock_schedules, mock_schedules_parsed):
     """Test that schedule parsing works correctly."""

@@ -2,9 +2,6 @@
 
 import asyncio
 import logging
-import logging.handlers
-import os
-import sys
 from typing import List, Dict, Any, Optional, Union
 from datetime import datetime, timedelta, timezone
 
@@ -20,24 +17,7 @@ from . import teams
 from . import users
 from . import utils
 
-os.makedirs('./log', exist_ok=True)
-
-# Configure log rotation - 1MB files, keep 50 backups
-file_handler = logging.handlers.RotatingFileHandler(
-    filename='./log/pagerduty-mcp-server.log',
-    maxBytes=1024*1024,  # 1MB
-    backupCount=50
-)
-stdout_handler = logging.StreamHandler(sys.stdout)
-handlers = [file_handler, stdout_handler]
-
-logging.basicConfig(
-    level=logging.INFO, 
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=handlers
-)
-logger = logging.getLogger("pagerduty-mcp-server")
-
+logger = logging.getLogger(__name__)
 server = FastMCP("pagerduty_mcp_server")
 
 """
@@ -379,7 +359,7 @@ def list_users(*,
 @server.tool()
 def show_user(*,
             user_id: str) -> Dict[str, Any]:
-    """Get detailed information about a given user."
+    """Get detailed information about a given user.
     Args:
         user_id (str): The ID of the user to get
 

@@ -4,14 +4,61 @@ A server that exposes PagerDuty API functionality to LLMs. This server is design
 ## Overview
 The PagerDuty MCP Server provides a set of tools for interacting with the PagerDuty API. These tools are designed to be used by LLMs to perform various operations on PagerDuty resources such as incidents, services, teams, and users.
 
-## Features
-- List and show incidents
-- List and show services
-- List and show teams
-- List and show users
-- List and show schedules
-- List and show escalation policies
-- List and show on-calls
+## Installation
+### From PyPI
+```bash
+pip install pagerduty-mcp-server
+```
+
+### From Source
+```sh
+# Clone the repository
+git clone https://github.com/wpfleger96/pagerduty-mcp-server.git
+cd pagerduty-mcp-server
+
+# Install dependencies
+brew install uv
+uv sync
+```
+
+## Requirements
+- Python 3.13 or higher
+- PagerDuty API key
+
+## Configuration
+The PagerDuty MCP Server requires a PagerDuty API key to be set in the environment:
+```bash
+PAGERDUTY_API_KEY=your_api_key_here
+```
+
+## Usage
+### As Goose Extension
+```json
+{
+  "type": "stdio",
+  "enabled": true,
+  "args": [
+    "run",
+    "python",
+    "-m",
+    "pagerduty_mcp_server"
+  ],
+  "commandInput": "uv run python -m pagerduty_mcp_server",
+  "timeout": 300,
+  "id": "pagerduty-mcp-server",
+  "name": "pagerduty-mcp-server",
+  "description": "pagerduty-mcp-server",
+  "env_keys": [
+    "PAGERDUTY_API_KEY"
+  ],
+  "cmd": "uv"
+}
+```
+
+### As Standalone Server
+```sh
+uv run python -m pagerduty_mcp_server
+```
 
 ## Response Format
 All API responses follow a consistent format:
@@ -21,7 +68,7 @@ All API responses follow a consistent format:
     "count": <int>,  // Number of results
     "description": "<str>"  // A short summary of the results
   },
-  <resource_type>: [ // Always pluralized for consistency, even if only one result is returned
+  <resource_type>: [ // Always pluralized for consistency, even if one result is returned
     {
       ...
     },
@@ -65,44 +112,31 @@ Common error scenarios include:
 - For `statuses` in `list_incidents`, only `triggered`, `acknowledged`, and `resolved` are valid values
 - For `urgency` in incidents, only `high` and `low` are valid values
 
-## Example Usage
-Here's an example of how to use the PagerDuty MCP Server to list incidents:
+### Rate Limiting and Pagination
+- The server respects PagerDuty's rate limits
+- The server automatically handles pagination for you
 
+### Example Usage
 ```python
-from pagerduty_mcp_server import list_incidents
+from pagerduty_mcp_server import incidents
 
-# List all active incidents for the current user's teams
-response = list_incidents()
+# List all incidents (including resolved) for the current user's teams
+incidents_list = incidents.list_incidents()
 
-# Get all incidents (including resolved) from the last week
-response = list_incidents(
-    statuses=["triggered", "acknowledged", "resolved"],
-    since="2024-03-07T00:00:00Z"
+# List only active incidents
+active_incidents = incidents.list_incidents(statuses=['triggered', 'acknowledged'])
+
+# List incidents for specific services
+service_incidents = incidents.list_incidents(service_ids=['SERVICE-1', 'SERVICE-2'])
+
+# List incidents for specific teams
+team_incidents = incidents.list_incidents(team_ids=['TEAM-1', 'TEAM-2'])
+
+# List incidents within a date range
+date_range_incidents = incidents.list_incidents(
+    since='2024-03-01T00:00:00Z',
+    until='2024-03-14T23:59:59Z'
 )
-
-# Get incidents for specific services
-response = list_incidents(
-    current_user_context=False,
-    service_ids=["SERVICE_123"],  # Example PagerDuty service ID
-    statuses=["triggered", "acknowledged"]
-)
-```
-
-## Installation
-```sh
-# Clone the repository
-git clone https://github.com/wpfleger96/pagerduty-mcp-server.git
-cd pagerduty-mcp-server
-
-# Install dependencies
-brew install uv
-uv sync
-```
-
-## Configuration
-The PagerDuty MCP Server requires a PagerDuty API token to be set in the environment:
-```bash
-PAGERDUTY_API_TOKEN=your_api_token_here
 ```
 
 ## User Context
@@ -114,38 +148,9 @@ Many functions support automatic filtering based on the current user's context. 
 
 When using `current_user_context=True` (default), you cannot use `user_ids`, `team_ids`, or `service_ids` parameters as they would conflict with the automatic filtering.
 
-## Usage
-### As Goose Extension
-```json
-{
-  "type": "stdio",
-  "enabled": true,
-  "args": [
-    "run",
-    "python",
-    "-m",
-    "pagerduty_mcp_server"
-  ],
-  "commandInput": "uv run python -m pagerduty_mcp_server",
-  "timeout": 300,
-  "id": "pagerduty-mcp-server",
-  "name": "pagerduty-mcp-server",
-  "description": "pagerduty-mcp-server",
-  "env_keys": [
-    "PAGERDUTY_API_KEY"
-  ],
-  "cmd": "uv"
-}
-```
-
-### As Standalone Server
-```sh
-uv run python -m pagerduty_mcp_server
-```
-
 ## Development
 ### Running Tests
-Note that most tests require a real connection to PagerDuty API, so you'll need to set `PAGERDUTY_API_TOKEN` in the environment before running the full test suite.
+Note that most tests require a real connection to PagerDuty API, so you'll need to set `PAGERDUTY_API_KEY` in the environment before running the full test suite.
 
 ```bash
 uv run pytest
@@ -161,6 +166,11 @@ To run only integration tests:
 uv run python -m integration
 ```
 
+To run only parser tests:
+```bash
+uv run python -m parsers
+```
+
 To run only tests related to a specific submodule:
 ```bash
 uv run python -m <client|escalation_policies|...>
@@ -172,44 +182,6 @@ npx @modelcontextprotocol/inspector uv run python -m pagerduty_mcp_server
 ```
 
 ## Reference
-### Project Structure
-```
-pagerduty-mcp-server/
-├─ docs/                    # Documentation files
-│  ├─ tools.md             # Detailed tool documentation
-├─ src/                    # Source code
-│  ├─ pagerduty_mcp_server/
-│  │  ├─ parsers/         # Response parsing modules
-│  │  │  ├─ escalation_policy_parser.py
-│  │  │  ├─ incident_parser.py
-│  │  │  ├─ oncall_parser.py
-│  │  │  ├─ schedule_parser.py
-│  │  │  ├─ service_parser.py
-│  │  │  ├─ team_parser.py
-│  │  │  ├─ user_parser.py
-│  │  ├─ __init__.py
-│  │  ├─ __main__.py      # Server entry point
-│  │  ├─ client.py        # PagerDuty API client
-│  │  ├─ escalation_policies.py
-│  │  ├─ incident_processor.py
-│  │  ├─ incidents.py
-│  │  ├─ oncalls.py
-│  │  ├─ schedules.py
-│  │  ├─ server.py        # MCP server implementation
-│  │  ├─ services.py
-│  │  ├─ teams.py
-│  │  ├─ users.py
-│  │  ├─ utils.py         # Utility functions
-├─ tests/                  # Test files
-│  ├─ fixtures/           # Test fixtures
-│  ├─ integration/        # Integration tests
-│  ├─ unit/              # Unit tests
-│  ├─ conftest.py        # Pytest configuration
-├─ .gitignore
-├─ pyproject.toml         # Project configuration
-├─ uv.lock               # Dependency lock file
-├─ README.md
-```
 
 ### Documentation
 [Tool Documentation](./docs/tools.md) - Detailed information about available tools including parameters, return types, and example queries
@@ -220,3 +192,4 @@ pagerduty-mcp-server/
 - All functions that return a single item still return a list with one element
 - Error responses include both a message and a code
 - All timestamps are in ISO8601 format
+- Tests are marked with pytest markers to indicate their type (unit/integration), the resource they test (incidents, teams, etc.), and whether they test parsing functionality ("parsers" marker)

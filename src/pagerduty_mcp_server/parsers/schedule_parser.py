@@ -10,7 +10,24 @@ def parse_schedule(*,
         result (Dict[str, Any]): The raw schedule API response
 
     Returns:
-        Dict[str, Any]: The parsed schedule
+        Dict[str, Any]: A dictionary containing:
+            - id (str): The schedule ID
+            - html_url (str): URL to view the schedule in PagerDuty
+            - name (str): The schedule name
+            - summary (str): The schedule summary
+            - description (str): The schedule description
+            - time_zone (str): The schedule's time zone
+            - escalation_policies (List[Dict]): List of escalation policies with id, summary, and html_url
+            - teams (List[Dict]): List of teams with id, summary, and html_url
+            - schedule_layers (List[Dict]): List of schedule layers, each containing:
+                - id (str): Layer ID
+                - name (str): Layer name
+                - start (str): Start time
+                - end (str): End time
+                - users (List[Dict]): List of users with id, summary, and html_url
+
+    Note:
+        Returns an empty dictionary if the input is None or not a dictionary
     """
 
     if not result:
@@ -18,6 +35,7 @@ def parse_schedule(*,
     
     return {
         "id": result.get("id"),
+        "html_url": result.get("html_url"),
         "name": result.get("name"),
         "summary": result.get("summary"),
         "description": result.get("description"),
@@ -25,14 +43,16 @@ def parse_schedule(*,
         "escalation_policies": [
             {
                 "id": policy.get("id"),
-                "summary": policy.get("summary")
+                "summary": policy.get("summary"),
+                "html_url": policy.get("html_url")
             }
             for policy in result.get("escalation_policies", [])
         ],
         "teams": [
             {
                 "id": team.get("id"),
-                "summary": team.get("summary")
+                "summary": team.get("summary"),
+                "html_url": team.get("html_url")
             }
             for team in result.get("teams", [])
         ],
@@ -45,7 +65,8 @@ def parse_schedule(*,
                 "users": [
                     {
                         "id": user.get("user", {}).get("id"),
-                        "summary": user.get("user", {}).get("summary")
+                        "summary": user.get("user", {}).get("summary"),
+                        "html_url": user.get("user", {}).get("html_url")
                     }
                     for user in layer.get("users", [])
                 ]

@@ -221,13 +221,16 @@ List existing incidents.
 | **current_user_context** | `bool` | No | If `True`, filters incidents to those associated with the current user's teams and services. Cannot be used with `team_ids` or `service_ids`. |
 | **service_ids** | `List[str]` | No | Filter incidents by specific service IDs. Cannot be used with `current_user_context`. |
 | **team_ids** | `List[str]` | No | Filter incidents by specific team IDs. Cannot be used with `current_user_context`. |
-| **statuses** | `List[str]` | No | Filter incidents by status. Valid values are: `triggered`, `acknowledged`, `resolved`. Defaults to `["triggered", "acknowledged"]`. |
+| **statuses** | `List[str]` | No | Filter incidents by status. Valid values are: `triggered`, `acknowledged`, `resolved`. Defaults to `["triggered", "acknowledged", "resolved"]`. |
 | **since** | `str` | No | Start of date range in ISO8601 format. Default is 1 month ago. Must be a valid ISO8601 timestamp. |
 | **until** | `str` | No | End of date range in ISO8601 format. Default is now. Must be a valid ISO8601 timestamp. |
 
 #### Returns
 Dict[str, Any]: A dictionary containing metadata and a list of incidents in the following format:
-- `metadata` (Dict): Contains result count and a description of the query results.
+- `metadata` (Dict): Contains result count and a description of the query results, plus:
+    - `status_counts` (Dict[str, int]): Dictionary mapping each status to its count
+    - `autoresolve_count` (int): Number of incidents that were auto-resolved (status='resolved' and last_status_change_by.type='service_reference')
+    - `no_data_count` (int): Number of incidents with titles starting with "No Data:"
 - `incidents` (List[Dict]): A list of parsed incident objects.
 
 Each incident object contains:
@@ -248,7 +251,14 @@ Each incident object contains:
 {
     "metadata": {
         "count": 2,
-        "description": "Found 2 results for resource type incidents"
+        "description": "Found 2 results for resource type incidents",
+        "status_counts": {
+            "triggered": 1,
+            "acknowledged": 0,
+            "resolved": 1
+        },
+        "autoresolve_count": 0,
+        "no_data_count": 1
     },
     "incidents": [
         {
@@ -271,9 +281,9 @@ Each incident object contains:
 #### Example Queries
 Here are common ways an LLM might want to query incidents:
 
-1. List all active incidents for the current user's teams:
+1. List all incidents for the current user's teams (including resolved):
 ```python
-list_incidents()  # Uses defaults: current_user_context=True, statuses=["triggered", "acknowledged"]
+list_incidents()  # Uses defaults: current_user_context=True, statuses=["triggered", "acknowledged", "resolved"]
 ```
 
 2. Get all incidents (including resolved) from the last week:
@@ -816,8 +826,7 @@ Dict[str, Any]: A dictionary containing metadata and a list of users in the foll
 - `users` (List[Dict]): A list of parsed user objects.
 
 Each user object contains:
-- `id` (str): The unique identifier for the user.
-- `summary` (str): Summary of the user.
+- `id` (str): The unique identifier for the user.- `summary` (str): Summary of the user.
 - `name` (str): The user's full name.
 - `email` (str): The user's email address.
 - `role` (str): The user's role in PagerDuty.

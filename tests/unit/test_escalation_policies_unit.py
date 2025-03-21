@@ -37,6 +37,7 @@ def test_show_escalation_policy(mock_get_api_client, mock_escalation_policies):
     assert policy == utils.api_response_handler(results=parse_escalation_policy(result=mock_escalation_policies[0]), resource_name='escalation_policy')
 
 @pytest.mark.unit
+@pytest.mark.parsers
 @pytest.mark.escalation_policies
 def test_parse_escalation_policy(mock_escalation_policies, mock_escalation_policies_parsed):
     """Test that an escalation policy is parsed correctly."""

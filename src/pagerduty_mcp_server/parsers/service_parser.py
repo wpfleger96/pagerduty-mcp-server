@@ -12,13 +12,14 @@ def parse_service(*,
     Returns:
         Dict[str, Any]: A dictionary containing:
             - id (str): The service ID
+            - html_url (str): URL to view the service in PagerDuty
             - name (str): The service name
             - description (str): The service description
             - status (str): Current status of the service
             - created_at (str): Creation timestamp
             - updated_at (str): Last update timestamp
-            - teams (List[Dict]): List of teams with id and summary
-            - integrations (List[Dict]): List of integrations with id and summary
+            - teams (List[Dict]): List of teams with id, summary, and html_url
+            - integrations (List[Dict]): List of integrations with id, summary, and html_url
     
     Note:
         Returns an empty dictionary if the input is None or not a dictionary
@@ -29,6 +30,7 @@ def parse_service(*,
     
     return {
         "id": result.get("id"),
+        "html_url": result.get("html_url"),
         "name": result.get("name"),
         "description": result.get("description"),
         "status": result.get("status"),
@@ -37,14 +39,16 @@ def parse_service(*,
         "teams": [
             {
                 "id": team.get("id"),
-                "summary": team.get("summary")
+                "summary": team.get("summary"),
+                "html_url": team.get("html_url")
             }
             for team in result.get("teams", [])
         ],
         "integrations": [
             {
                 "id": integration.get("id"),
-                "summary": integration.get("summary")
+                "summary": integration.get("summary"),
+                "html_url": integration.get("html_url")
             }
             for integration in result.get("integrations", [])
         ]

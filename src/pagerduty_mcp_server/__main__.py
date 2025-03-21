@@ -1,13 +1,33 @@
 """Main entry point for the PagerDuty MCP Server."""
 
+import os
 import sys
 import signal
 import argparse
 import logging
+import logging.handlers
 import atexit
 
+os.makedirs('./log', exist_ok=True)
+
+file_handler = logging.handlers.RotatingFileHandler(
+    filename='./log/pagerduty-mcp-server.log',
+    maxBytes=1024*1024,  # 1MB
+    backupCount=50
+)
+stdout_handler = logging.StreamHandler(sys.stdout)
+handlers = [file_handler, stdout_handler]
+
+logging.basicConfig(
+    level=logging.INFO, 
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=handlers
+)
+
 from .client import get_api_client
-from .server import server, logger
+from .server import server
+
+logger = logging.getLogger(__name__)
 
 def handle_shutdown(signum, frame):
     """Handle shutdown signals gracefully.

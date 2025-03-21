@@ -1,6 +1,7 @@
 [
     {
       "id": "EP123456",
+      "html_url": "https://pagerduty.com/escalation_policies/EP123456",
       "summary": "Test Escalation Policy",
       "name": "Test Escalation Policy",
       "escalation_rules": [
@@ -10,7 +11,8 @@
           "targets": [
             {
               "id": "SCH345678",
-              "summary": "Primary On-Call"
+              "summary": "Primary On-Call",
+              "html_url": "https://pagerduty.com/schedules/SCH345678"
             }
           ]
         }
@@ -18,14 +20,16 @@
       "services": [
         {
           "id": "SRV567890",
-          "summary": "Test Service"
+          "summary": "Test Service",
+          "html_url": "https://pagerduty.com/service-directory/SRV567890"
         }
       ],
       "num_loops": 3,
       "teams": [
         {
           "id": "TM112233",
-          "summary": "Engineering Team"
+          "summary": "Engineering Team",
+          "html_url": "https://pagerduty.com/teams/TM112233"
         }
       ],
       "description": "Test escalation policy."

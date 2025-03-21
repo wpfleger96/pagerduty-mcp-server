@@ -12,12 +12,17 @@ def parse_team(*,
     Returns:
         Dict[str, Any]: A dictionary containing:
             - id (str): The team ID
+            - html_url (str): URL to view the team in PagerDuty
             - name (str): The team name
             - description (str): The team description
             - type (str): The team type
             - summary (str): The team summary
             - default_role (str): Default role for team members
-            - parent (Dict): Parent team information if this is a sub-team
+            - parent (Dict): Parent team information if this is a sub-team, containing:
+                - id (str): Parent team ID
+                - type (str): Parent team type
+                - summary (str): Parent team summary
+                - html_url (str): URL to view the parent team in PagerDuty
     
     Note:
         Returns an empty dictionary if the input is None or not a dictionary
@@ -28,10 +33,16 @@ def parse_team(*,
     
     return {
         "id": result.get("id"),
+        "html_url": result.get("html_url"),
         "name": result.get("name"),
         "description": result.get("description"),
         "type": result.get("type"),
         "summary": result.get("summary"),
         "default_role": result.get("default_role"),
-        "parent": result.get("parent")
+        "parent": {
+            "id": result.get("parent", {}).get("id"),
+            "type": result.get("parent", {}).get("type"),
+            "summary": result.get("parent", {}).get("summary"),
+            "html_url": result.get("parent", {}).get("html_url")
+        } if result.get("parent") else None
     }

@@ -11,10 +11,10 @@ def parse_oncall(*,
 
     Returns:
         Dict[str, Any]: A dictionary containing:
-            - escalation_policy (Optional[Dict]): Policy information with id and summary
+            - escalation_policy (Optional[Dict]): Policy information with id, summary, and html_url
             - escalation_level (Optional[int]): Level in the escalation policy
-            - schedule (Optional[Dict]): Schedule information with id and summary
-            - user (Optional[Dict]): User information with id and summary
+            - schedule (Optional[Dict]): Schedule information with id, summary, and html_url
+            - user (Optional[Dict]): User information with id, summary, and html_url
             - start (Optional[str]): Start time in ISO 8601 format
             - end (Optional[str]): End time in ISO 8601 format
     
@@ -29,16 +29,19 @@ def parse_oncall(*,
     return {
         "escalation_policy": {
             "id": result.get("escalation_policy", {}).get("id"),
-            "summary": result.get("escalation_policy", {}).get("summary")
+            "summary": result.get("escalation_policy", {}).get("summary"),
+            "html_url": result.get("escalation_policy", {}).get("html_url")
         } if result.get("escalation_policy") else None,
         "escalation_level": result.get("escalation_level"),
         "schedule": {
             "id": result.get("schedule", {}).get("id"),
-            "summary": result.get("schedule", {}).get("summary")
+            "summary": result.get("schedule", {}).get("summary"),
+            "html_url": result.get("schedule", {}).get("html_url")
         } if result.get("schedule") else None,
         "user": {
             "id": result.get("user", {}).get("id"),
-            "summary": result.get("user", {}).get("summary")
+            "summary": result.get("user", {}).get("summary"),
+            "html_url": result.get("user", {}).get("html_url")
         } if result.get("user") else None,
         "start": result.get("start"),
         "end": result.get("end")

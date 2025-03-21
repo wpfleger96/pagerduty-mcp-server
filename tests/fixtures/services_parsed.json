@@ -1,6 +1,7 @@
 [
     {
         "id": "6619236c",
+        "html_url": "https://pagerduty.com/service-directory/6619236c",
         "name": "Service-1",
         "description": null,
         "status": "critical",
@@ -9,22 +10,26 @@
         "teams": [
             {
                 "id": "c697d1e1",
-                "summary": "Team-1-1"
+                "summary": "Team-1-1",
+                "html_url": "https://pagerduty.com/teams/c697d1e1"
             }
         ],
         "integrations": [
             {
                 "id": "41df2811",
-                "summary": "Integration-1-1"
+                "summary": "Integration-1-1",
+                "html_url": "https://pagerduty.com/services/6619236c/integrations/41df2811"
             },
             {
                 "id": "3bb46819",
-                "summary": "Integration-1-2"
+                "summary": "Integration-1-2",
+                "html_url": "https://pagerduty.com/services/6619236c/integrations/3bb46819"
             }
         ]
     },
     {
         "id": "adb170ed",
+        "html_url": "https://pagerduty.com/service-directory/adb170ed",
         "name": "Service-2",
         "description": "Description-2",
         "status": "warning",
@@ -33,18 +38,21 @@
         "teams": [
             {
                 "id": "5b038964",
-                "summary": "Team-2-1"
+                "summary": "Team-2-1",
+                "html_url": "https://pagerduty.com/teams/5b038964"
             }
         ],
         "integrations": [
             {
                 "id": "25aeec25",
-                "summary": "Integration-2-1"
+                "summary": "Integration-2-1",
+                "html_url": "https://pagerduty.com/services/adb170ed/integrations/25aeec25"
             }
         ]
     },
     {
         "id": "ea8db66e",
+        "html_url": "https://pagerduty.com/service-directory/ea8db66e",
         "name": "Service-3",
         "description": null,
         "status": "active",
@@ -53,18 +61,21 @@
         "teams": [
             {
                 "id": "188e5085",
-                "summary": "Team-3-1"
+                "summary": "Team-3-1",
+                "html_url": "https://pagerduty.com/teams/188e5085"
             }
         ],
         "integrations": [
             {
                 "id": "4bb05b5b",
-                "summary": "Integration-3-1"
+                "summary": "Integration-3-1",
+                "html_url": "https://pagerduty.com/services/ea8db66e/integrations/4bb05b5b"
             }
         ]
     },
     {
         "id": "18215721",
+        "html_url": "https://pagerduty.com/service-directory/18215721",
         "name": "Service-4",
         "description": null,
         "status": "active",
@@ -73,13 +84,15 @@
         "teams": [
             {
                 "id": "1c2c79a3",
-                "summary": "Team-4-1"
+                "summary": "Team-4-1",
+                "html_url": "https://pagerduty.com/teams/1c2c79a3"
             }
         ],
         "integrations": [
             {
                 "id": "894278ee",
-                "summary": "Integration-4-1"
+                "summary": "Integration-4-1",
+                "html_url": "https://pagerduty.com/services/18215721/integrations/894278ee"
             }
         ]
     }

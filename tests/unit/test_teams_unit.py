@@ -26,6 +26,7 @@ def test_fetch_team_ids(mock_team_ids, mock_user):
     assert set(team_ids) == set(mock_team_ids)
 
 @pytest.mark.unit
+@pytest.mark.parsers
 @pytest.mark.teams
 def test_parse_team(mock_teams, mock_teams_parsed):
     """Test that parse_team correctly parses raw team data."""

@@ -19,6 +19,7 @@ def test_list_oncalls(mock_get_api_client, mock_oncalls, mock_oncalls_parsed):
     assert oncalls_list == utils.api_response_handler(results=[parse_oncall(result=oncall) for oncall in mock_oncalls], resource_name='oncalls')
 
 @pytest.mark.unit
+@pytest.mark.parsers
 @pytest.mark.oncalls
 def test_parse_oncall(mock_oncalls, mock_oncalls_parsed):
     """Test that oncall parsing works correctly."""
