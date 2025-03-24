@@ -36,8 +36,9 @@ build-backend = "setuptools.build_meta"
 [tool.semantic_release]
 version_source = "tag"
 branch = "main"
+commit_parser = "conventional"
 
-[tool.semantic_release.commit_parser]
+[tool.semantic_release.commit_parser_opts]
 allowed_types = ["feat", "fix", "chore", "ci", "docs", "style", "refactor", "test"]
 
 [tool.semantic_release.commit_type_map]
