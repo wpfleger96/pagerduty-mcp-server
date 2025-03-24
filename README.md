@@ -1,6 +1,12 @@
 # PagerDuty MCP Server
 A server that exposes PagerDuty API functionality to LLMs. This server is designed to be used programmatically, with structured inputs and outputs.
 
+[![PyPI Downloads](https://img.shields.io/pypi/dm/pagerduty-mcp-server.svg)](https://pypi.org/project/pagerduty-mcp-server/)
+[![Python Versions](https://img.shields.io/pypi/pyversions/pagerduty-mcp-server.svg)](https://pypi.org/project/pagerduty-mcp-server/)
+[![GitHub Contributors](https://img.shields.io/github/contributors/wpfleger96/pagerduty-mcp-server.svg)](https://github.com/wpfleger96/pagerduty-mcp-server/graphs/contributors)
+[![PyPI version](https://img.shields.io/pypi/v/pagerduty-mcp-server.svg)](https://pypi.org/project/pagerduty-mcp-server/)
+[![License](https://img.shields.io/github/license/wpfleger96/pagerduty-mcp-server.svg)](https://github.com/wpfleger96/pagerduty-mcp-server/blob/main/LICENSE)
+
 ## Overview
 The PagerDuty MCP Server provides a set of tools for interacting with the PagerDuty API. These tools are designed to be used by LLMs to perform various operations on PagerDuty resources such as incidents, services, teams, and users.
 
