@@ -32,3 +32,18 @@ pagerduty-mcp-server = "pagerduty_mcp_server:main"
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.semantic_release]
+version_source = "tag"
+branch = "main"
+
+[tool.semantic_release.commit_parser]
+allowed_types = ["feat", "fix", "chore", "ci", "docs", "style", "refactor", "test"]
+
+[tool.semantic_release.commit_type_map]
+chore = "patch"
+ci = "patch"
+docs = "patch"
+style = "patch"
+refactor = "patch"
+test = "patch"
