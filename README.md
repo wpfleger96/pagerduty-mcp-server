@@ -187,7 +187,15 @@ uv run python -m <client|escalation_policies|...>
 npx @modelcontextprotocol/inspector uv run python -m pagerduty_mcp_server
 ```
 
-## Reference
+## Contributions
+
+### Releases
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) for automated releases. Commit messages determine version bumps:
+- `feat:` → minor version (1.0.0 → 1.1.0)
+- `fix:` → patch version (1.0.0 → 1.0.1)
+- `BREAKING CHANGE:` → major version (1.0.0 → 2.0.0)
+
+The CHANGELOG.md, GitHub releases, and PyPI packages are updated automatically.
 
 ### Documentation
 [Tool Documentation](./docs/tools.md) - Detailed information about available tools including parameters, return types, and example queries
