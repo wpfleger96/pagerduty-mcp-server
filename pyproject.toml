@@ -34,10 +34,11 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.semantic_release]
-version_toml = ["pyproject.toml:project.version"]
+version_toml = ["pyproject.toml:project.version:tf"]
 tag_format = "v{version}"
 branch = "main"
 commit_parser = "conventional"
+commit_message = "chore(release): {version}"
 
 [tool.semantic_release.commit_parser_opts]
 allowed_types = ["feat", "fix", "chore", "ci", "docs", "style", "refactor", "test"]
