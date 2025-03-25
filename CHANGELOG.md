@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v1.3.0 (2025-03-25)
+
+### Features
+
+- Only run publish workflow when a new tag is actually released
+  ([`95231ac`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/95231ac2da36b7bd616e650b55a1eeac684234b3))
+
+
 ## v1.2.0 (2025-03-25)
 
 ### Features
