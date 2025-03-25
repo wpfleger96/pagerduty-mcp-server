@@ -1,6 +1,6 @@
 [project]
 name = "pagerduty_mcp_server"
-version = "1.0.1"
+version = "1.1.0"
 description = "MCP server for LLM agents to interact with PagerDuty SaaS"
 readme = "README.md"
 requires-python = ">=3.13"
