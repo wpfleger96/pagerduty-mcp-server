@@ -1,6 +1,6 @@
 [project]
 name = "pagerduty_mcp_server"
-version = "1.0.0"
+version = "1.0.1"
 description = "MCP server for LLM agents to interact with PagerDuty SaaS"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -34,7 +34,8 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.semantic_release]
-version_source = "tag"
+version_toml = ["pyproject.toml:project.version"]
+tag_format = "v{version}"
 branch = "main"
 commit_parser = "conventional"
 
