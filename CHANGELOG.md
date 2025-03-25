@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v1.2.0 (2025-03-25)
+
+### Features
+
+- Make sure new releases publish to pypi
+  ([`0e341b6`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/0e341b6512441e97c57af4e2551150929b90610b))
+
+
 ## v1.1.0 (2025-03-25)
 
 ### Chores
