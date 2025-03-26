@@ -1,6 +1,10 @@
 # PagerDuty MCP Server
 A server that exposes PagerDuty API functionality to LLMs. This server is designed to be used programmatically, with structured inputs and outputs.
 
+<a href="https://glama.ai/mcp/servers/@wpfleger96/pagerduty-mcp-server">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@wpfleger96/pagerduty-mcp-server/badge" alt="PagerDuty Server MCP server" />
+</a>
+
 [![PyPI Downloads](https://img.shields.io/pypi/dm/pagerduty-mcp-server.svg)](https://pypi.org/project/pagerduty-mcp-server/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/pagerduty-mcp-server.svg)](https://pypi.org/project/pagerduty-mcp-server/)
 [![GitHub Contributors](https://img.shields.io/github/contributors/wpfleger96/pagerduty-mcp-server.svg)](https://github.com/wpfleger96/pagerduty-mcp-server/graphs/contributors)
@@ -168,17 +172,17 @@ uv run pytest -m unit
 ```
 
 To run only integration tests:
-```bash
+```sh
 uv run python -m integration
 ```
 
 To run only parser tests:
-```bash
+```sh
 uv run python -m parsers
 ```
 
 To run only tests related to a specific submodule:
-```bash
+```sh
 uv run python -m <client|escalation_policies|...>
 ```
 
