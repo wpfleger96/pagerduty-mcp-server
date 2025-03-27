@@ -17,6 +17,7 @@ classifiers = [
 dependencies = [
     "mcp>=1.3.0",
     "pagerduty>=1.0.0",
+    "ruff>=0.11.2",
 ]
 
 [project.urls]
@@ -39,6 +40,7 @@ tag_format = "v{version}"
 branch = "main"
 commit_parser = "conventional"
 commit_message = "chore(release): {version}"
+build_command = "uv sync"
 
 [tool.semantic_release.commit_parser_opts]
 allowed_types = ["feat", "fix", "chore", "ci", "docs", "style", "refactor", "test"]

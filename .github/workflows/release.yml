@@ -16,6 +16,11 @@ jobs:
           fetch-depth: 0
           ssh-key: ${{ secrets.GH_ACTIONS_PRIVATE_KEY }}
 
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
       - name: Action | Semantic Version Release
         id: release
         uses: python-semantic-release/python-semantic-release@v9.21.0
