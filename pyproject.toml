@@ -17,6 +17,7 @@ classifiers = [
 dependencies = [
     "mcp>=1.3.0",
     "pagerduty>=1.0.0",
+    "pytest>=8.3.5",
     "ruff>=0.11.2",
 ]
 
@@ -52,3 +53,7 @@ docs = "patch"
 style = "patch"
 refactor = "patch"
 test = "patch"
+
+[[tool.uv.index]]
+name = "default"
+url = "https://pypi.org/simple"
