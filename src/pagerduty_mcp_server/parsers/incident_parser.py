@@ -1,6 +1,6 @@
 """Parser for PagerDuty incidents."""
 
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any
 
 def parse_incident(*,
                    result: Dict[str, Any]) -> Dict[str, Any]:

@@ -8,6 +8,9 @@ import logging
 import logging.handlers
 import atexit
 
+from .client import get_api_client
+from .server import server
+
 os.makedirs('./log', exist_ok=True)
 
 file_handler = logging.handlers.RotatingFileHandler(
@@ -23,9 +26,6 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=handlers
 )
-
-from .client import get_api_client
-from .server import server
 
 logger = logging.getLogger(__name__)
 

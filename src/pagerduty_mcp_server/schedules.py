@@ -1,6 +1,6 @@
 """PagerDuty schedule operations."""
 
-from typing import List, Dict, Any, Optional
+from typing import Dict, Any, Optional
 import logging
 
 from . import client

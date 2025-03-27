@@ -1,5 +1,4 @@
 import pytest
-from unittest.mock import patch
 
 from pagerduty_mcp_server import incidents
 from pagerduty_mcp_server import utils

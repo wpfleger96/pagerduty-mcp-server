@@ -1,7 +1,6 @@
 """Unit tests for the schedules module."""
 
 import pytest
-from unittest.mock import patch
 
 from pagerduty_mcp_server import schedules
 from pagerduty_mcp_server.parsers import parse_schedule

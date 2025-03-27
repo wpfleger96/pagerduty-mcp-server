@@ -1,8 +1,7 @@
 """PagerDuty incident operations."""
 
-from typing import List, Dict, Any, Optional, Union
+from typing import List, Dict, Any, Optional
 import logging
-from collections import Counter
 
 from . import client
 from . import utils

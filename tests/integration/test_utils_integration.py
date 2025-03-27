@@ -1,5 +1,4 @@
 import pytest
-from unittest.mock import patch
 
 from conftest import skip_if_no_pagerduty_key
 from pagerduty_mcp_server import utils

@@ -10,5 +10,5 @@ from pagerduty_mcp_server import client
 def test_get_api_client():
     """Test that the API client is created correctly."""
     test_client = client.get_api_client()
-    assert type(test_client) == pagerduty.RestApiV2Client
+    assert isinstance(test_client, pagerduty.RestApiV2Client)
     assert test_client.api_key is not None

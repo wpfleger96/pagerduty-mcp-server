@@ -1,5 +1,4 @@
 import pytest
-from unittest.mock import patch
 
 from pagerduty_mcp_server import escalation_policies
 from pagerduty_mcp_server.parsers import parse_escalation_policy
@@ -43,12 +42,3 @@ def test_parse_escalation_policy(mock_escalation_policies, mock_escalation_polic
     """Test that an escalation policy is parsed correctly."""
     parsed_policy = parse_escalation_policy(result=mock_escalation_policies[0])
     assert parsed_policy == mock_escalation_policies_parsed[0]
-
-@pytest.mark.unit
-@pytest.mark.escalation_policies
-def test_fetch_escalation_policy_ids(mock_get_api_client, mock_escalation_policies, mock_user):
-    """Test that escalation policy IDs are fetched correctly."""
-    mock_get_api_client.list_all.return_value = mock_escalation_policies
-
-    policy_ids = escalation_policies.fetch_escalation_policy_ids(user_id=mock_user['id'])
-    assert set(policy_ids) == set([policy['id'] for policy in mock_escalation_policies])

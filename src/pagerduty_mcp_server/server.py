@@ -1,12 +1,9 @@
 """PagerDuty MCP Server main module."""
 
-import asyncio
 import logging
 from typing import List, Dict, Any, Optional, Union
-from datetime import datetime, timedelta, timezone
 
 from mcp.server.fastmcp import FastMCP
-import pagerduty
 
 from . import escalation_policies
 from . import incidents

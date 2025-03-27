@@ -1,7 +1,6 @@
 """Unit tests for the oncalls module."""
 
 import pytest
-from unittest.mock import patch
 
 from pagerduty_mcp_server import oncalls
 from pagerduty_mcp_server.parsers import parse_oncall

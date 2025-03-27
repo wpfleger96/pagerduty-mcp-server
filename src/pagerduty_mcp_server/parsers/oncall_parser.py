@@ -1,6 +1,6 @@
 """Parser for PagerDuty on-calls."""
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 def parse_oncall(*,
                  result: Dict[str, Any]) -> Dict[str, Any]:

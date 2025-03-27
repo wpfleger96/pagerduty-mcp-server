@@ -1,7 +1,6 @@
 """Integration tests for the oncalls module."""
 
 import pytest
-from unittest.mock import patch
 
 from pagerduty_mcp_server import escalation_policies
 from pagerduty_mcp_server import oncalls
