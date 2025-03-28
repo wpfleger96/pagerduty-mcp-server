@@ -1,0 +1,47 @@
+[
+    {
+      "id": "EP123456",
+      "type": "escalation_policy",
+      "summary": "Test Escalation Policy",
+      "self": "https://api.pagerduty.com/escalation_policies/EP123456",
+      "html_url": "https://pagerduty.com/escalation_policies/EP123456",
+      "name": "Test Escalation Policy",
+      "escalation_rules": [
+        {
+          "id": "ER789012",
+          "escalation_delay_in_minutes": 60,
+          "targets": [
+            {
+              "id": "SCH345678",
+              "type": "schedule_reference",
+              "summary": "Primary On-Call",
+              "self": "https://api.pagerduty.com/schedules/SCH345678",
+              "html_url": "https://pagerduty.com/schedules/SCH345678"
+            }
+          ]
+        }
+      ],
+      "services": [
+        {
+          "id": "SRV567890",
+          "type": "service_reference",
+          "summary": "Test Service",
+          "self": "https://api.pagerduty.com/services/SRV567890",
+          "html_url": "https://pagerduty.com/service-directory/SRV567890"
+        }
+      ],
+      "num_loops": 3,
+      "teams": [
+        {
+          "id": "TM112233",
+          "type": "team_reference",
+          "summary": "Engineering Team",
+          "self": "https://api.pagerduty.com/teams/TM112233",
+          "html_url": "https://pagerduty.com/teams/TM112233"
+        }
+      ],
+      "description": "Test escalation policy.",
+      "on_call_handoff_notifications": "if_has_services",
+      "privilege": null
+    }
+]

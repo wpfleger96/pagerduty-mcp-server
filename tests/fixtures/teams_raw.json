@@ -1,0 +1,57 @@
+[
+    {
+        "id": "b41aaeebab",
+        "name": "Anonymized Team 1",
+        "description": null,
+        "type": "team",
+        "summary": "Anonymized Team 1",
+        "self": "https://api.pagerduty.com/teams/b41aaeebab",
+        "html_url": "https://pagerduty.com/teams/b41aaeebab",
+        "default_role": "manager",
+        "parent": null
+    },
+    {
+        "id": "9429c90ff0",
+        "name": "Anonymized Team 2",
+        "description": null,
+        "type": "team",
+        "summary": "Anonymized Team 2",
+        "self": "https://api.pagerduty.com/teams/9429c90ff0",
+        "html_url": "https://pagerduty.com/teams/9429c90ff0",
+        "default_role": "manager",
+        "parent": null
+    },
+    {
+        "id": "028cafaacf",
+        "name": "Anonymized Team 3",
+        "description": null,
+        "type": "team",
+        "summary": "Anonymized Team 3",
+        "self": "https://api.pagerduty.com/teams/028cafaacf",
+        "html_url": "https://pagerduty.com/teams/028cafaacf",
+        "default_role": "manager",
+        "parent": null
+    },
+    {
+        "id": "97019f90fa",
+        "name": "Anonymized Team 4",
+        "description": null,
+        "type": "team",
+        "summary": "Anonymized Team 4",
+        "self": "https://api.pagerduty.com/teams/97019f90fa",
+        "html_url": "https://pagerduty.com/teams/97019f90fa",
+        "default_role": "manager",
+        "parent": null
+    },
+    {
+        "id": "122673cf7d",
+        "name": "Anonymized Team 5",
+        "description": null,
+        "type": "team",
+        "summary": "Anonymized Team 5",
+        "self": "https://api.pagerduty.com/teams/122673cf7d",
+        "html_url": "https://pagerduty.com/teams/122673cf7d",
+        "default_role": "manager",
+        "parent": null
+    }
+]

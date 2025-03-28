@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -o errexit  # quit on first error
+set -o nounset
+
+echo "Syncing dependencies"
+uv sync
+
+echo "Running ruff check --fix"
+uv run ruff check --fix .
+
+echo "Pre-commit checks complete"

@@ -1,0 +1,22 @@
+[
+    {
+        "escalation_policy": {
+            "id": "EP123456",
+            "summary": "Test - Security Team",
+            "html_url": "https://test.pagerduty.com/escalation_policies/EP123456"
+        },
+        "escalation_level": 1,
+        "schedule": {
+            "id": "SCH123456",
+            "summary": "SecurityOps-Primary",
+            "html_url": "https://test.pagerduty.com/schedules/SCH123456"
+        },
+        "user": {
+            "id": "USR123456",
+            "summary": "User Test",
+            "html_url": "https://test.pagerduty.com/users/USR123456"
+        },
+        "start": "2025-03-17T18:00:00Z",
+        "end": "2025-03-24T18:00:00Z"
+    }
+] 

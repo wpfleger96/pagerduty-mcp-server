@@ -1,0 +1,71 @@
+{
+    "id": "012fb6899a",
+    "html_url": "https://pagerduty.com/users/012fb6899a",
+    "name": "User Name",
+    "email": "user278c511884@example.com",
+    "time_zone": "America/New_York",
+    "color": "darkolive-green",
+    "avatar_url": "https://example.com/avatar.png",
+    "billed": true,
+    "role": "user",
+    "description": null,
+    "invitation_sent": false,
+    "job_title": null,
+    "locale": "en-US",
+    "type": "user",
+    "summary": "User Name",
+    "teams": [
+        {
+            "id": "5fc61f8dfd",
+            "type": "team_reference",
+            "summary": "Anonymized Team",
+            "html_url": "https://pagerduty.com/teams/5fc61f8dfd"
+        },
+        {
+            "id": "ac7ae09a2a",
+            "type": "team_reference",
+            "summary": "Anonymized Team",
+            "html_url": "https://pagerduty.com/teams/ac7ae09a2a"
+        },
+        {
+            "id": "f29d37098d",
+            "type": "team_reference",
+            "summary": "Anonymized Team",
+            "html_url": "https://pagerduty.com/teams/f29d37098d"
+        },
+        {
+            "id": "30216a30a1",
+            "type": "team_reference",
+            "summary": "Anonymized Team",
+            "html_url": "https://pagerduty.com/teams/30216a30a1"
+        }
+    ],
+    "contact_methods": [
+        {
+            "id": "6d3be97280",
+            "type": "email_contact_method_reference",
+            "summary": "Default",
+            "html_url": null
+        },
+        {
+            "id": "91a67ef88a",
+            "type": "phone_contact_method_reference",
+            "summary": "Mobile",
+            "html_url": null
+        },
+        {
+            "id": "b43752f77a",
+            "type": "push_notification_contact_method_reference",
+            "summary": "iPhone",
+            "html_url": null
+        }
+    ],
+    "notification_rules": [
+        {
+            "id": "b7f5a03bea",
+            "type": "assignment_notification_rule_reference",
+            "summary": "0 minutes: anonymized channel",
+            "html_url": null
+        }
+    ]
+} 
