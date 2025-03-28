@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v2.1.0 (2025-03-28)
+
+### Features
+
+- Expose list_past_incidents API
+  ([`49059a1`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/49059a1cddd3c6603292b3d59e9e66df6f1af099))
+
+
 ## v2.0.0 (2025-03-28)
 
 ### Features
