@@ -1,6 +1,20 @@
 # CHANGELOG
 
 
+## v1.0.0 (2025-03-28)
+
+### Features
+
+- Initial release
+  ([`8871b39`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/8871b39982c4a648e7181cd2daf5e27e49d227a0))
+
+BREAKING CHANGE: clean start, skipping 1.0.0 to make Pypi happy
+
+### Breaking Changes
+
+- Clean start, skipping 1.0.0 to make Pypi happy
+
+
 ## v0.1.0 (2025-03-28)
 
 ### Features
