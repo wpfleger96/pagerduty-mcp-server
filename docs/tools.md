@@ -349,6 +349,66 @@ show_incident(
 )
 ```
 
+### list_past_incidents
+List incidents from the past 6 months that are similar to the input incident, ordered by similarity score.
+
+The returned incidents are in a slimmed down format containing only id, created_at, self, and title.
+Each incident also includes a similarity_score indicating how similar it is to the input incident.
+
+#### Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| **incident_id** | `str` | Yes | The ID or number of the incident to find similar incidents for |
+| **limit** | `int` | No | The maximum number of past incidents to return. This parameter is passed directly to the PagerDuty API. Default in the API is 5. |
+| **total** | `bool` | No | Whether to return the total number of incidents that match the criteria. This parameter is passed directly to the PagerDuty API. Default is False. |
+
+#### Returns
+Dict[str, Any]: A dictionary containing metadata and a list of similar incidents in the following format:
+- `metadata` (Dict): Contains result count and a description of the query results.
+- `incidents` (List[Dict]): A list of similar incident objects, each containing:
+  - `id` (str): The incident ID
+  - `created_at` (str): Creation timestamp
+  - `self` (str): API URL for the incident
+  - `title` (str): The incident title
+  - `similarity_score` (float): Decimal value indicating similarity to the input incident
+
+#### Example Response
+```json
+{
+    "metadata": {
+        "count": 1,
+        "description": "Found 1 results for resource type incidents"
+    },
+    "incidents": [
+        {
+            "id": "Q1QKZKKE2FC88M",
+            "created_at": "2025-02-08T19:34:42Z",
+            "self": "https://api.pagerduty.com/incidents/Q1QKZKKE2FC88M",
+            "title": "Test Incident 1",
+            "similarity_score": 190.21751
+        }
+    ]
+}
+```
+
+#### Example Queries
+Here are common ways an LLM might want to query for similar incidents:
+
+1. Find similar incidents to a given incident:
+```python
+list_past_incidents(
+    incident_id="INCIDENT_123"
+)
+```
+
+2. Find similar incidents with a custom limit:
+```python
+list_past_incidents(
+    incident_id="INCIDENT_123",
+    limit=10
+)
+```
+
 ## On-Call Tools
 Tools for interacting with PagerDuty On-Calls. An On-Call represents a contiguous unit of time for which a User will be On-Call for a given Escalation Policy and Escalation Rule.
 This may be the result of that User always being On-Call for the Escalation Rule, or a block of time during which the computed result of a Schedule on that Escalation Rule puts the User On-Call.
@@ -826,7 +886,8 @@ Dict[str, Any]: A dictionary containing metadata and a list of users in the foll
 - `users` (List[Dict]): A list of parsed user objects.
 
 Each user object contains:
-- `id` (str): The unique identifier for the user.- `summary` (str): Summary of the user.
+- `id` (str): The unique identifier for the user.
+- `summary` (str): Summary of the user.
 - `name` (str): The user's full name.
 - `email` (str): The user's email address.
 - `role` (str): The user's role in PagerDuty.

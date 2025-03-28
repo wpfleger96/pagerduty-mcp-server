@@ -129,6 +129,26 @@ def show_incident(*,
     """
     return incidents.show_incident(incident_id=incident_id)
 
+@server.tool()
+def list_past_incidents(*,
+                       incident_id: str,
+                       limit: Optional[int] = None,
+                       total: Optional[bool] = None) -> Dict[str, Any]:
+    """List past incidents similar to the input incident.
+
+    Args:
+        incident_id (str): The ID or number of the incident to find similar incidents for
+        limit (int): The maximum number of past incidents to return (optional). Default in the API is 5.
+        total (bool): Whether to return the total number of incidents that match the criteria (optional). Default is False.
+
+    Returns:
+        Dict[str, Any]: Dictionary containing metadata (count, description) and a list of similar incidents matching the specified criteria
+    """
+    return incidents.list_past_incidents(
+        incident_id=incident_id,
+        limit=limit,
+        total=total
+    )
 
 """
 Oncalls Tools

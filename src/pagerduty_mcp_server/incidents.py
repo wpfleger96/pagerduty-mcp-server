@@ -131,6 +131,61 @@ def show_incident(*,
         logger.error(f"Failed to fetch or process incident {incident_id}: {e}")
         raise RuntimeError(f"Failed to fetch or process incident {incident_id}: {e}") from e
 
+def list_past_incidents(*,
+                 incident_id: str,
+                 limit: Optional[int] = None,
+                 total: Optional[bool] = None) -> Dict[str, Any]:
+    """List incidents from the past 6 months that are similar to the input incident, ordered by similarity score.
+
+    The returned incidents are in a slimmed down format containing only id, created_at, self, and title.
+    Each incident also includes a similarity_score indicating how similar it is to the input incident.
+
+    Args:
+        incident_id (str): The ID or number of the incident to find similar incidents for
+        limit (int): The maximum number of past incidents to return (optional). This parameter is passed
+            directly to the PagerDuty API. Default in the API is 5.
+        total (bool): Whether to return the total number of incidents that match the criteria (optional).
+            This parameter is passed directly to the PagerDuty API. Default is False.
+
+    Returns:
+        Dict[str, Any]: A dictionary containing:
+            - incidents (List[Dict[str, Any]]): List of similar incident objects, each containing:
+                - id (str): The incident ID
+                - created_at (str): Creation timestamp
+                - self (str): API URL for the incident
+                - title (str): The incident title
+                - similarity_score (float): Decimal value indicating similarity to the input incident
+            - metadata (Dict[str, Any]): Metadata about the response including count and description
+
+    Raises:
+        ValueError: If incident_id is None or empty
+        RuntimeError: If the API request fails or response processing fails
+    """
+
+    if not incident_id:
+        raise ValueError("incident_id cannot be empty")
+
+    pd_client = client.get_api_client()
+
+    params = {'limit': limit, 'total': total}
+    try:
+        response = pd_client.jget(f"{INCIDENTS_URL}/{incident_id}/past_incidents", params=params)['past_incidents']
+        parsed_response = [
+            {
+                **parse_incident(result=item['incident']),
+                'similarity_score': item['score']
+            }
+            for item in response
+        ]
+
+        return utils.api_response_handler(
+            results=parsed_response,
+            resource_name='incidents'
+        )
+    except Exception as e:
+        logger.error(f"Failed to fetch or process past incidents for {incident_id}: {e}")
+        raise RuntimeError(f"Failed to fetch or process past incidents for {incident_id}: {e}") from e
+
 
 """
 Incidents Private Helpers

@@ -393,3 +393,120 @@ def test_show_incident_invalid_response(mock_get_api_client):
     with pytest.raises(RuntimeError) as exc_info:
         incidents.show_incident(incident_id=incident_id)
     assert str(exc_info.value) == f"Failed to fetch or process incident {incident_id}: 'incident'"
+
+@pytest.mark.unit
+@pytest.mark.incidents
+def test_list_past_incidents(mock_get_api_client):
+    """Test that past incidents are fetched correctly."""
+    incident_id = '123'
+    mock_past_incidents = [
+        {
+            'incident': {
+                'id': 'Q1QKZKKE2FC88M',
+                'created_at': '2025-02-08T19:34:42Z',
+                'self': 'https://api.pagerduty.com/incidents/Q1QKZKKE2FC88M',
+                'title': 'Test Incident 1'
+            },
+            'score': 190.21751
+        },
+        {
+            'incident': {
+                'id': 'Q2O8AO7WALN4N5',
+                'created_at': '2025-03-25T20:34:59Z',
+                'self': 'https://api.pagerduty.com/incidents/Q2O8AO7WALN4N5',
+                'title': 'Test Incident 2'
+            },
+            'score': 187.90202
+        }
+    ]
+    mock_get_api_client.jget.return_value = {'past_incidents': mock_past_incidents}
+
+    past_incidents = incidents.list_past_incidents(incident_id=incident_id)
+
+    mock_get_api_client.jget.assert_called_once_with(
+        f"{incidents.INCIDENTS_URL}/{incident_id}/past_incidents",
+        params={'limit': None, 'total': None}
+    )
+
+    expected_response = utils.api_response_handler(
+        results=[
+            {
+                **parse_incident(result=item['incident']),
+                'similarity_score': item['score']
+            }
+            for item in mock_past_incidents
+        ],
+        resource_name='incidents'
+    )
+    assert past_incidents == expected_response
+
+@pytest.mark.unit
+@pytest.mark.incidents
+def test_list_past_incidents_with_params(mock_get_api_client):
+    """Test that past incidents can be fetched with limit and total parameters."""
+    incident_id = '123'
+    mock_past_incidents = [
+        {
+            'incident': {
+                'id': 'Q1QKZKKE2FC88M',
+                'created_at': '2025-02-08T19:34:42Z',
+                'self': 'https://api.pagerduty.com/incidents/Q1QKZKKE2FC88M',
+                'title': 'Test Incident 1'
+            },
+            'score': 190.21751
+        }
+    ]
+    mock_get_api_client.jget.return_value = {'past_incidents': mock_past_incidents}
+
+    past_incidents = incidents.list_past_incidents(
+        incident_id=incident_id,
+        limit=1,
+        total=True
+    )
+
+    mock_get_api_client.jget.assert_called_once_with(
+        f"{incidents.INCIDENTS_URL}/{incident_id}/past_incidents",
+        params={'limit': 1, 'total': True}
+    )
+
+    expected_response = utils.api_response_handler(
+        results=[
+            {
+                **parse_incident(result=item['incident']),
+                'similarity_score': item['score']
+            }
+            for item in mock_past_incidents
+        ],
+        resource_name='incidents'
+    )
+    assert past_incidents == expected_response
+
+@pytest.mark.unit
+@pytest.mark.incidents
+def test_list_past_incidents_invalid_id(mock_get_api_client):
+    """Test that list_past_incidents raises ValueError for invalid incident ID."""
+    with pytest.raises(ValueError) as exc_info:
+        incidents.list_past_incidents(incident_id='')
+    assert str(exc_info.value) == "incident_id cannot be empty"
+
+@pytest.mark.unit
+@pytest.mark.incidents
+def test_list_past_incidents_api_error(mock_get_api_client):
+    """Test that list_past_incidents handles API errors correctly."""
+    incident_id = '123'
+    mock_get_api_client.jget.side_effect = RuntimeError("API Error")
+
+    with pytest.raises(RuntimeError) as exc_info:
+        incidents.list_past_incidents(incident_id=incident_id)
+    assert str(exc_info.value) == f"Failed to fetch or process past incidents for {incident_id}: API Error"
+
+@pytest.mark.unit
+@pytest.mark.incidents
+def test_list_past_incidents_invalid_response(mock_get_api_client):
+    """Test that list_past_incidents handles invalid API response correctly."""
+    incident_id = '123'
+    mock_get_api_client.jget.return_value = {}  # Missing 'past_incidents' key
+
+    with pytest.raises(RuntimeError) as exc_info:
+        incidents.list_past_incidents(incident_id=incident_id)
+    assert str(exc_info.value) == f"Failed to fetch or process past incidents for {incident_id}: 'past_incidents'"
