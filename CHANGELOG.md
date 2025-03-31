@@ -1,6 +1,16 @@
 # CHANGELOG
 
 
+## v2.2.0 (2025-03-31)
+
+### Features
+
+- Implement list_related_incidents and list_users_oncall APIs
+  ([`74bad51`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/74bad51e882f74ae2afcf74ea57ae944d0590f9c))
+
+housekeeping: improve tests and make sure all list_ methods respect limit param
+
+
 ## v2.1.0 (2025-03-28)
 
 ### Features
