@@ -22,7 +22,7 @@ stdout_handler = logging.StreamHandler(sys.stdout)
 handlers = [file_handler, stdout_handler]
 
 logging.basicConfig(
-    level=logging.INFO, 
+    level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=handlers
 )
@@ -31,10 +31,10 @@ logger = logging.getLogger(__name__)
 
 def handle_shutdown(signum, frame):
     """Handle shutdown signals gracefully.
-    
+
     This function is called when the server receives a shutdown signal (SIGINT or SIGTERM).
     It logs the shutdown message and ensures clean exit.
-    
+
     Args:
         signum (int): The signal number
         frame (frame): The current stack frame
@@ -49,10 +49,10 @@ def handle_shutdown(signum, frame):
 
 def main():
     """PagerDuty MCP Server entry point.
-    
+
     This function initializes the server, sets up signal handlers, and starts the server.
     It handles various error conditions and ensures proper cleanup.
-    
+
     Returns:
         int: Exit code (0 for success, 1 for failure)
     """
@@ -67,7 +67,7 @@ def main():
     # Set up signal handlers
     signal.signal(signal.SIGINT, handle_shutdown)
     signal.signal(signal.SIGTERM, handle_shutdown)
-    
+
     # Register cleanup function
     atexit.register(handle_shutdown, None, None)
 

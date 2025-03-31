@@ -22,15 +22,16 @@ AUTORESOLVE_TYPE = 'service_reference'
 Incidents API Helpers
 """
 
-def list_incidents(*, 
-                  service_ids: Optional[List[str]] = None, 
-                  team_ids: Optional[List[str]] = None, 
+def list_incidents(*,
+                  service_ids: Optional[List[str]] = None,
+                  team_ids: Optional[List[str]] = None,
                   statuses: Optional[List[str]] = None,
                   urgencies: Optional[List[str]] = None,
                   since: Optional[str] = None,
-                  until: Optional[str] = None) -> Dict[str, Any]:
+                  until: Optional[str] = None,
+                  limit: Optional[int] = None) -> Dict[str, Any]:
     """List PagerDuty incidents based on specified filters.
-    
+
     Args:
         service_ids (List[str]): List of PagerDuty service IDs to filter by (optional)
         team_ids (List[str]): List of PagerDuty team IDs to filter by (optional)
@@ -43,7 +44,8 @@ def list_incidents(*,
             - 'low' - Low urgency incidents (included by default)
         since (str): Start of date range in ISO8601 format (optional). Default is 1 month ago
         until (str): End of date range in ISO8601 format (optional). Default is now
-    
+        limit (int): Limit the number of results returned (optional)
+
     Returns:
         Dict[str, Any]: A dictionary containing:
             - incidents (List[Dict[str, Any]]): List of incident objects matching the specified criteria
@@ -53,38 +55,43 @@ def list_incidents(*,
                 - status_counts: Dictionary mapping each status to its count
                 - autoresolve_count: Number of incidents that were auto-resolved (status='resolved' and last_status_change_by.type='service_reference')
                 - no_data_count: Number of incidents with titles starting with "No Data:"
-    
+
     Raises:
         ValueError: If invalid status or urgency values are provided
+        ValidationError: If since or until parameters are not valid ISO8601 timestamps
         RuntimeError: If the API request fails or response processing fails
     """
 
     pd_client = client.get_api_client()
-    
+
     if statuses is None:
         statuses = DEFAULT_STATUSES
     else:
         invalid_statuses = [s for s in statuses if s not in VALID_STATUSES]
         if invalid_statuses:
             raise ValueError(f"Invalid status values: {invalid_statuses}. Valid values are: {VALID_STATUSES}")
-        
+
     if urgencies is None:
         urgencies = DEFAULT_URGENCIES
     else:
         invalid_urgencies = [u for u in urgencies if u not in VALID_URGENCIES]
         if invalid_urgencies:
             raise ValueError(f"Invalid urgency values: {invalid_urgencies}. Valid values are: {VALID_URGENCIES}")
-    
+
     params = {'statuses': statuses, 'urgencies': urgencies}
     if service_ids:
         params['service_ids'] = service_ids
     if team_ids:
         params['team_ids'] = team_ids
     if since is not None:
+        utils.validate_iso8601_timestamp(since, 'since')
         params['since'] = since
     if until is not None:
+        utils.validate_iso8601_timestamp(until, 'until')
         params['until'] = until
-    
+    if limit:
+        params['limit'] = limit
+
     try:
         response = pd_client.list_all(INCIDENTS_URL, params=params)
         metadata = _calculate_incident_metadata(response)
@@ -110,7 +117,7 @@ def show_incident(*,
         Dict[str, Any]: A dictionary containing:
             - incident (Dict[str, Any]): Incident object with detailed information
             - metadata (Dict[str, Any]): Metadata about the response
-    
+
     Raises:
         ValueError: If incident_id is None or empty
         RuntimeError: If the API request fails or response processing fails
@@ -120,7 +127,7 @@ def show_incident(*,
         raise ValueError("incident_id cannot be empty")
 
     pd_client = client.get_api_client()
-    
+
     try:
         response = pd_client.jget(f"{INCIDENTS_URL}/{incident_id}")['incident']
         return utils.api_response_handler(
@@ -139,6 +146,7 @@ def list_past_incidents(*,
 
     The returned incidents are in a slimmed down format containing only id, created_at, self, and title.
     Each incident also includes a similarity_score indicating how similar it is to the input incident.
+    Incidents are sorted by similarity_score in descending order, so the most similar incidents appear first.
 
     Args:
         incident_id (str): The ID or number of the incident to find similar incidents for
@@ -172,8 +180,58 @@ def list_past_incidents(*,
         response = pd_client.jget(f"{INCIDENTS_URL}/{incident_id}/past_incidents", params=params)['past_incidents']
         parsed_response = [
             {
+                **parse_incident(result=item.get('incident', {})),
+                'similarity_score': item.get('score', 0.0)
+            }
+            for item in response
+        ]
+        parsed_response.sort(key=lambda x: x['similarity_score'], reverse=True)
+
+        return utils.api_response_handler(
+            results=parsed_response,
+            resource_name='incidents'
+        )
+    except Exception as e:
+        logger.error(f"Failed to fetch or process past incidents for {incident_id}: {e}")
+        raise RuntimeError(f"Failed to fetch or process past incidents for {incident_id}: {e}") from e
+
+def list_related_incidents(*,
+                         incident_id: str) -> Dict[str, Any]:
+    """List the 20 most recent related incidents that are impacting other services and responders.
+
+    Args:
+        incident_id (str): The ID or number of the incident to find related incidents for
+
+    Returns:
+        Dict[str, Any]: A dictionary containing:
+            - incidents (List[Dict[str, Any]]): List of related incident objects, each containing:
+                - id (str): The incident ID
+                - created_at (str): Creation timestamp
+                - self (str): API URL for the incident
+                - title (str): The incident title
+                - relationship_type (str): The type of relationship (e.g. 'machine_learning_inferred')
+                - relationship_metadata (Dict[str, Any]): Additional metadata about the relationship including:
+                    - grouping_classification (str): Classification of the grouping
+                    - user_feedback (Dict[str, int]): Feedback counts for the relationship
+            - metadata (Dict[str, Any]): Metadata about the response including count and description
+
+    Raises:
+        ValueError: If incident_id is None or empty
+        RuntimeError: If the API request fails or response processing fails
+    """
+
+    if not incident_id:
+        raise ValueError("incident_id cannot be empty")
+
+    pd_client = client.get_api_client()
+
+    try:
+        response = pd_client.jget(f"{INCIDENTS_URL}/{incident_id}/related_incidents")['related_incidents']
+        parsed_response = [
+            {
                 **parse_incident(result=item['incident']),
-                'similarity_score': item['score']
+                'relationship_type': item['relationships'][0]['type'] if item['relationships'] else None,
+                'relationship_metadata': item['relationships'][0]['metadata'] if item['relationships'] else None
             }
             for item in response
         ]
@@ -183,8 +241,8 @@ def list_past_incidents(*,
             resource_name='incidents'
         )
     except Exception as e:
-        logger.error(f"Failed to fetch or process past incidents for {incident_id}: {e}")
-        raise RuntimeError(f"Failed to fetch or process past incidents for {incident_id}: {e}") from e
+        logger.error(f"Failed to fetch or process related incidents for {incident_id}: {e}")
+        raise RuntimeError(f"Failed to fetch or process related incidents for {incident_id}: {e}") from e
 
 
 """
@@ -219,7 +277,7 @@ def _count_autoresolved_incidents(incidents: List[Dict[str, Any]]) -> int:
     return sum(
         1 for incident in incidents
         if (incident.get('status') == 'resolved' and
-            incident.get('last_status_change_by', {}).get('type') == AUTORESOLVE_TYPE)
+            incident.get('last_status_change_by', {}).get('type', '') == AUTORESOLVE_TYPE)
     )
 
 def _count_no_data_incidents(incidents: List[Dict[str, Any]]) -> int:
@@ -262,7 +320,7 @@ def _calculate_incident_metadata(incidents: List[Dict[str, Any]]) -> Dict[str, A
 
     return {
         'status_counts': {
-            status: status_counts.get(status, 0) 
+            status: status_counts.get(status, 0)
             for status in VALID_STATUSES
         },
         'autoresolve_count': autoresolve_count,

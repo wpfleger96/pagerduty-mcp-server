@@ -5,7 +5,7 @@ from typing import Dict, Any
 def parse_oncall(*,
                  result: Dict[str, Any]) -> Dict[str, Any]:
     """Parses a raw on-call API response into a structured format without unneeded fields.
-    
+
     Args:
         result (Dict[str, Any]): The raw on-call API response
 
@@ -17,7 +17,7 @@ def parse_oncall(*,
             - user (Optional[Dict]): User information with id, summary, and html_url
             - start (Optional[str]): Start time in ISO 8601 format
             - end (Optional[str]): End time in ISO 8601 format
-    
+
     Note:
         Returns an empty dictionary if the input is None or not a dictionary.
         All fields are optional and will be None if not present in the input.
@@ -25,7 +25,7 @@ def parse_oncall(*,
 
     if not result:
         return {}
-    
+
     return {
         "escalation_policy": {
             "id": result.get("escalation_policy", {}).get("id"),

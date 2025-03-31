@@ -121,14 +121,18 @@ Common error scenarios include:
 - Required parameters cannot be `None` or empty strings
 - For `statuses` in `list_incidents`, only `triggered`, `acknowledged`, and `resolved` are valid values
 - For `urgency` in incidents, only `high` and `low` are valid values
+- The `limit` parameter can be used to restrict the number of results returned by list operations
 
 ### Rate Limiting and Pagination
 - The server respects PagerDuty's rate limits
 - The server automatically handles pagination for you
+- The `limit` parameter can be used to control the number of results returned by list operations
+- If no limit is specified, the server will return up to {pagerduty_mcp_server.utils.RESPONSE_LIMIT} results by default
 
 ### Example Usage
 ```python
 from pagerduty_mcp_server import incidents
+from pagerduty_mcp_server.utils import RESPONSE_LIMIT
 
 # List all incidents (including resolved) for the current user's teams
 incidents_list = incidents.list_incidents()
@@ -147,6 +151,12 @@ date_range_incidents = incidents.list_incidents(
     since='2024-03-01T00:00:00Z',
     until='2024-03-14T23:59:59Z'
 )
+
+# List incidents with a limit on the number of results
+limited_incidents = incidents.list_incidents(limit=10)
+
+# List incidents with the default limit
+default_limit_incidents = incidents.list_incidents(limit=RESPONSE_LIMIT)
 ```
 
 ## User Context

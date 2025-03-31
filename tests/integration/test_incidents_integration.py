@@ -1,15 +1,23 @@
 import pytest
+from datetime import datetime, timedelta
 
+from conftest import skip_if_no_pagerduty_key
 from pagerduty_mcp_server import incidents
-from pagerduty_mcp_server import utils
 
 @pytest.mark.integration
 @pytest.mark.incidents
-def test_list_incidents():
+@skip_if_no_pagerduty_key
+def test_list_incidents(user_context):
     """Test that incidents are fetched correctly."""
-    user_context = utils.build_user_context()
     team_ids = user_context['team_ids']
 
-    incidents_list = incidents.list_incidents(team_ids=team_ids)
+    since = (datetime.now() - timedelta(days=1)).isoformat()
+    until = datetime.now().isoformat()
+    incidents_list = incidents.list_incidents(
+        team_ids=team_ids,
+        limit=1,
+        since=since,
+        until=until
+    )
     assert incidents_list is not None
     assert len(incidents_list) > 0

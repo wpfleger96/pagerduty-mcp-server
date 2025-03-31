@@ -63,6 +63,7 @@ Common error scenarios include:
 - Required parameters cannot be `None` or empty strings
 - For `statuses` in `list_incidents`, only `triggered`, `acknowledged`, and `resolved` are valid values
 - For `urgency` in incidents, only `high` and `low` are valid values
+- The `limit` parameter can be used to restrict the number of results returned by list operations. If not specified, up to {pagerduty_mcp_server.utils.RESPONSE_LIMIT} results will be returned by default.
 
 ## Escalation Policy Tools
 Tools for interacting with PagerDuty Escalation Policies. An Escalation Policy determines what User or Schedule will be Notified and in what order. This will happen when an Incident is triggered. Escalation Policies can be used by one or more Services.
@@ -77,6 +78,7 @@ List existing escalation policies.
 | **query** | `str` | No | Filter escalation policies by name (case-insensitive substring match). |
 | **user_ids** | `List[str]` | No | Filter results to escalation policies that include any of the given user IDs. Cannot be used with `current_user_context`. |
 | **team_ids** | `List[str]` | No | Filter results to escalation policies that belong to any of the given teams. Cannot be used with `current_user_context`. |
+| **limit** | `int` | No | Limit the number of results returned. If not specified, up to {pagerduty_mcp_server.utils.RESPONSE_LIMIT} results will be returned. |
 
 #### Returns
 Dict[str, Any]: A dictionary containing metadata and a list of escalation policies in the following format:
@@ -224,6 +226,7 @@ List existing incidents.
 | **statuses** | `List[str]` | No | Filter incidents by status. Valid values are: `triggered`, `acknowledged`, `resolved`. Defaults to `["triggered", "acknowledged", "resolved"]`. |
 | **since** | `str` | No | Start of date range in ISO8601 format. Default is 1 month ago. Must be a valid ISO8601 timestamp. |
 | **until** | `str` | No | End of date range in ISO8601 format. Default is now. Must be a valid ISO8601 timestamp. |
+| **limit** | `int` | No | Limit the number of results returned. If not specified, up to {pagerduty_mcp_server.utils.RESPONSE_LIMIT} results will be returned. |
 
 #### Returns
 Dict[str, Any]: A dictionary containing metadata and a list of incidents in the following format:
@@ -427,6 +430,7 @@ List existing on-call entries.
 | **escalation_policy_ids** | `List[str]` | No | Filter on-calls by specific escalation policy IDs. |
 | **since** | `str` | No | Start of date range in ISO8601 format. Default is 1 month ago. |
 | **until** | `str` | No | End of date range in ISO8601 format. Default is now. |
+| **limit** | `int` | No | Limit the number of results returned. If not specified, up to {pagerduty_mcp_server.utils.RESPONSE_LIMIT} results will be returned. |
 
 #### Returns
 Dict[str, Any]: A dictionary containing metadata and a list of on-call entries in the following format:
@@ -503,6 +507,7 @@ List existing schedules.
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | **query** | `str` | No | Filter schedules whose names contain the search query (case-insensitive substring match). |
+| **limit** | `int` | No | Limit the number of results returned. If not specified, up to {pagerduty_mcp_server.utils.RESPONSE_LIMIT} results will be returned. |
 
 #### Returns
 Dict[str, Any]: A dictionary containing metadata and a list of schedules in the following format:
@@ -621,6 +626,7 @@ List existing services.
 | **current_user_context** | `bool` | No | If `True`, filters services to those associated with the current user's teams. Cannot be used with `team_ids`. |
 | **team_ids** | `List[str]` | No | Filter services by specific team IDs. Cannot be used with `current_user_context`. |
 | **query** | `str` | No | Filter services whose names contain the search query (case-insensitive substring match). |
+| **limit** | `int` | No | Limit the number of results returned. If not specified, up to {pagerduty_mcp_server.utils.RESPONSE_LIMIT} results will be returned. |
 
 #### Returns
 Dict[str, Any]: A dictionary containing metadata and a list of services in the following format:
@@ -729,6 +735,7 @@ List existing teams.
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | **query** | `str` | No | Filter teams whose names contain the search query (case-insensitive substring match). |
+| **limit** | `int` | No | Limit the number of results returned. If not specified, up to {pagerduty_mcp_server.utils.RESPONSE_LIMIT} results will be returned. |
 
 #### Returns
 Dict[str, Any]: A dictionary containing metadata and a list of teams in the following format:
@@ -879,6 +886,7 @@ List existing users.
 | **current_user_context** | `bool` | No | If `True`, filters users to those associated with the current user's teams. Cannot be used with `team_ids`. |
 | **team_ids** | `List[str]` | No | Filter users by specific team IDs. Cannot be used with `current_user_context`. |
 | **query** | `str` | No | Filter users whose names contain the search query (case-insensitive substring match). |
+| **limit** | `int` | No | Limit the number of results returned. If not specified, up to {pagerduty_mcp_server.utils.RESPONSE_LIMIT} results will be returned. |
 
 #### Returns
 Dict[str, Any]: A dictionary containing metadata and a list of users in the following format:

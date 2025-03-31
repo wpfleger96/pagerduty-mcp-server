@@ -15,33 +15,35 @@ ONCALLS_URL = '/oncalls'
 On-Calls API Helpers
 """
 
-def list_oncalls(*, 
+def list_oncalls(*,
                 schedule_ids: Optional[List[str]] = None,
                 user_ids: Optional[List[str]] = None,
                 escalation_policy_ids: Optional[List[str]] = None,
                 since: Optional[str] = None,
-                until: Optional[str] = None) -> Dict[str, Any]:
+                until: Optional[str] = None,
+                limit: Optional[int] = None) -> Dict[str, Any]:
     """List the on-call entries during a given time range.
-    
+
     Args:
         schedule_ids (List[str]): Return only on-calls for the specified schedule IDs (optional)
         user_ids (List[str]): Return only on-calls for the specified user IDs (optional)
         escalation_policy_ids (List[str]): Return only on-calls for the specified escalation policy IDs (optional)
         since (str): Start of date range in ISO8601 format (optional). Default is 1 month ago
         until (str): End of date range in ISO8601 format (optional). Default is now
-    
+        limit (int): Limit the number of results returned (optional)
     Returns:
         Dict[str, Any]: A dictionary containing:
             - oncalls (List[Dict[str, Any]]): List of on-call entries matching the specified criteria
             - metadata (Dict[str, Any]): Metadata about the response including total count and pagination info
-    
+
     Raises:
         ValueError: If any of the ID lists are empty
+        ValidationError: If since or until parameters are not valid ISO8601 timestamps
         RuntimeError: If the API request fails or response processing fails
     """
 
     pd_client = client.get_api_client()
-    
+
     params = {}
     if schedule_ids:
         params['schedule_ids[]'] = schedule_ids
@@ -50,10 +52,14 @@ def list_oncalls(*,
     if escalation_policy_ids:
         params['escalation_policy_ids[]'] = escalation_policy_ids
     if since:
+        utils.validate_iso8601_timestamp(since, 'since')
         params['since'] = since
     if until:
+        utils.validate_iso8601_timestamp(until, 'until')
         params['until'] = until
-        
+    if limit:
+        params['limit'] = limit
+
     try:
         response = pd_client.list_all(ONCALLS_URL, params=params)
         parsed_response = [parse_oncall(result=result) for result in response]

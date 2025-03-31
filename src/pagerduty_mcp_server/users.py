@@ -17,7 +17,7 @@ Users API Helpers
 
 def show_current_user() -> Dict[str, Any]:
     """Get the current user's PagerDuty profile including their teams, contact methods, and notification rules.
-    
+
     Returns:
         Dict[str, Any]: A dictionary containing:
             - name (str): User's full name
@@ -29,7 +29,7 @@ def show_current_user() -> Dict[str, Any]:
             - contact_methods (List[Dict]): List of contact methods with id and summary
             - notification_rules (List[Dict]): List of notification rules with id and summary
             - id (str): User's PagerDuty ID
-    
+
     Raises:
         RuntimeError: If the API request fails or response processing fails
     """
@@ -44,19 +44,20 @@ def show_current_user() -> Dict[str, Any]:
 
 def list_users(*,
                team_ids: Optional[List[str]] = None,
-               query: Optional[str] = None) -> Dict[str, Any]:
+               query: Optional[str] = None,
+               limit: Optional[int] = None) -> Dict[str, Any]:
     """List users in PagerDuty.
-    
+
     Args:
         team_ids (List[str]): Filter results to only users assigned to teams with the given IDs (optional)
         query (str): Filter users whose names contain the search query (optional)
-
+        limit (int): Limit the number of results returned (optional)
     Returns:
         Dict[str, Any]: A dictionary containing:
             - users (List[Dict[str, Any]]): List of user objects matching the specified criteria
             - metadata (Dict[str, Any]): Metadata about the response including total count and pagination info
             - error (Optional[Dict[str, Any]]): Error information if the query exceeds the limit
-    
+
     Raises:
         ValueError: If team_ids is an empty list
         RuntimeError: If the API request fails or response processing fails
@@ -69,6 +70,8 @@ def list_users(*,
         params['team_ids[]'] = team_ids
     if query:
         params['query'] = query
+    if limit:
+        params['limit'] = limit
 
     try:
         response = pd_client.list_all(USERS_URL, params=params)
@@ -81,16 +84,16 @@ def list_users(*,
 def show_user(*,
               user_id: str) -> Dict[str, Any]:
     """Get detailed information about a given user.
-    
+
     Args:
         user_id (str): The ID of the user to fetch
-    
+
     Returns:
         Dict[str, Any]: A dictionary containing:
             - user (Dict[str, Any]): User object with detailed information
             - metadata (Dict[str, Any]): Metadata about the response
             - error (Optional[Dict[str, Any]]): Error information if the query exceeds the limit
-    
+
     Raises:
         ValueError: If user_id is None or empty
         RuntimeError: If the API request fails or response processing fails

@@ -5,7 +5,7 @@ from typing import Dict, Any
 def parse_escalation_policy(*,
                             result: Dict[str, Any]) -> Dict[str, Any]:
     """Parses a raw escalation policy API response into a structured format without unneeded fields.
-    
+
     Args:
         result (Dict[str, Any]): The raw escalation policy API response
 
@@ -23,7 +23,7 @@ def parse_escalation_policy(*,
             - num_loops (int): Number of times to loop through the policy (defaults to 1)
             - teams (List[Dict]): List of teams with id, summary, and html_url
             - description (str): Policy description
-    
+
     Note:
         Returns an empty dictionary if the input is None or not a dictionary.
         The num_loops field defaults to 1 if not specified in the input.
@@ -31,7 +31,7 @@ def parse_escalation_policy(*,
 
     if not result:
         return {}
-    
+
     return {
         "id": result.get("id"),
         "html_url": result.get("html_url"),
@@ -72,4 +72,4 @@ def parse_escalation_policy(*,
         "description": result.get("description")
     }
 
-    
+

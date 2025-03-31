@@ -5,7 +5,7 @@ from typing import Dict, Any
 def parse_team(*,
               result: Dict[str, Any]) -> Dict[str, Any]:
     """Parses a raw team API response into a structured format without unneeded fields.
-    
+
     Args:
         result (Dict[str, Any]): The raw team API response
 
@@ -23,14 +23,14 @@ def parse_team(*,
                 - type (str): Parent team type
                 - summary (str): Parent team summary
                 - html_url (str): URL to view the parent team in PagerDuty
-    
+
     Note:
         Returns an empty dictionary if the input is None or not a dictionary
     """
 
     if not result:
         return {}
-    
+
     return {
         "id": result.get("id"),
         "html_url": result.get("html_url"),

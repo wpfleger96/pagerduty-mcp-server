@@ -5,7 +5,7 @@ from typing import Dict, Any
 def parse_user(*,
               result: Dict[str, Any]) -> Dict[str, Any]:
     """Parses a raw user API response into a structured format without unneeded fields.
-    
+
     Args:
         result (Dict[str, Any]): The raw user API response
 
@@ -36,7 +36,7 @@ def parse_user(*,
 
     if not result:
         return {}
-    
+
     return {
         "id": result.get("id"),
         "html_url": result.get("html_url"),
@@ -80,4 +80,4 @@ def parse_user(*,
             }
             for rule in result.get("notification_rules", [])
         ]
-    } 
+    }

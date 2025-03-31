@@ -3,6 +3,8 @@ import os
 import pytest
 from unittest.mock import patch, MagicMock
 
+from pagerduty_mcp_server import utils
+
 def pytest_configure(config):
     """Register custom test markers to make testing and iterating easier on the developer."""
     config.addinivalue_line("markers", "unit: Unit tests that do not require external dependencies")
@@ -23,6 +25,16 @@ skip_if_no_pagerduty_key = pytest.mark.skipif(
     not os.getenv("PAGERDUTY_API_KEY"),
     reason="Skipping test because PAGERDUTY_API_KEY is not set"
 )
+
+@pytest.fixture(scope="session")
+def user_context():
+    """Create a user context that will be shared across all integration tests.
+
+    This fixture has session scope, meaning it will be created once per test session
+    and reused across all tests, avoiding redundant API calls to build the user context.
+    Only runs when integration tests are being run (when PAGERDUTY_API_KEY is set).
+    """
+    return utils.build_user_context()
 
 @pytest.fixture
 def load_fixture():
@@ -87,7 +99,7 @@ def mock_schedules_parsed(load_fixture):
 @pytest.fixture
 def mock_schedule_ids(load_fixture):
     """Extracts expected schedule IDs from schedules.json."""
-    return [schedule["id"] for schedule in load_fixture("schedules_raw.json")]  
+    return [schedule["id"] for schedule in load_fixture("schedules_raw.json")]
 
 @pytest.fixture
 def mock_services(load_fixture):
@@ -128,3 +140,13 @@ def mock_user(load_fixture):
 def mock_user_parsed(load_fixture):
     """Loads a mock user from users_parsed.json."""
     return load_fixture("users_parsed.json")
+
+@pytest.fixture
+def mock_users(load_fixture):
+    """Loads mock users from users_raw.json."""
+    return [load_fixture("users_raw.json")]
+
+@pytest.fixture
+def mock_users_parsed(load_fixture):
+    """Loads mock users from users_parsed.json."""
+    return [load_fixture("users_parsed.json")]

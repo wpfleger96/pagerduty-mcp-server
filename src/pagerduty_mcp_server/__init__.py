@@ -4,6 +4,5 @@ A server that exposes PagerDuty API functionality to LLMs. This server is design
 """
 
 from .server import server
-from .__main__ import main
 
-__all__ = ['server', 'main']
+__all__ = ['server']

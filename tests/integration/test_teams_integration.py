@@ -7,7 +7,7 @@ from pagerduty_mcp_server import teams
 @pytest.mark.teams
 @skip_if_no_pagerduty_key
 def test_list_teams():
-    """Test that teams are listed correctly."""
-    team_list = teams.list_teams()
-    assert team_list is not None
-    assert len(team_list) > 0
+    """Test that teams are fetched correctly."""
+    teams_list = teams.list_teams()
+    assert teams_list is not None
+    assert len(teams_list) > 0

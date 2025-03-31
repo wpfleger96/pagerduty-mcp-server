@@ -510,3 +510,271 @@ def test_list_past_incidents_invalid_response(mock_get_api_client):
     with pytest.raises(RuntimeError) as exc_info:
         incidents.list_past_incidents(incident_id=incident_id)
     assert str(exc_info.value) == f"Failed to fetch or process past incidents for {incident_id}: 'past_incidents'"
+
+@pytest.mark.unit
+@pytest.mark.incidents
+def test_list_related_incidents(mock_get_api_client):
+    """Test that related incidents are fetched correctly."""
+    incident_id = '123'
+    mock_related_incidents = [
+        {
+            'incident': {
+                'id': 'Q1QKZKKE2FC88M',
+                'created_at': '2025-02-08T19:34:42Z',
+                'self': 'https://api.pagerduty.com/incidents/Q1QKZKKE2FC88M',
+                'title': 'Test Incident 1'
+            },
+            'relationships': [{
+                'type': 'machine_learning_inferred',
+                'metadata': {
+                    'grouping_classification': 'prior_feedback',
+                    'user_feedback': {
+                        'negative_feedback_count': 0,
+                        'positive_feedback_count': 0
+                    }
+                }
+            }]
+        },
+        {
+            'incident': {
+                'id': 'Q2O8AO7WALN4N5',
+                'created_at': '2025-03-25T20:34:59Z',
+                'self': 'https://api.pagerduty.com/incidents/Q2O8AO7WALN4N5',
+                'title': 'Test Incident 2'
+            },
+            'relationships': [{
+                'type': 'machine_learning_inferred',
+                'metadata': {
+                    'grouping_classification': 'prior_feedback',
+                    'user_feedback': {
+                        'negative_feedback_count': 1,
+                        'positive_feedback_count': 2
+                    }
+                }
+            }]
+        }
+    ]
+    mock_get_api_client.jget.return_value = {'related_incidents': mock_related_incidents}
+
+    related_incidents = incidents.list_related_incidents(incident_id=incident_id)
+
+    mock_get_api_client.jget.assert_called_once_with(
+        f"{incidents.INCIDENTS_URL}/{incident_id}/related_incidents"
+    )
+
+    expected_response = utils.api_response_handler(
+        results=[
+            {
+                **parse_incident(result=item['incident']),
+                'relationship_type': item['relationships'][0]['type'],
+                'relationship_metadata': item['relationships'][0]['metadata']
+            }
+            for item in mock_related_incidents
+        ],
+        resource_name='incidents'
+    )
+    assert related_incidents == expected_response
+
+@pytest.mark.unit
+@pytest.mark.incidents
+def test_list_related_incidents_invalid_id(mock_get_api_client):
+    """Test that list_related_incidents raises ValueError for invalid incident ID."""
+    with pytest.raises(ValueError) as exc_info:
+        incidents.list_related_incidents(incident_id='')
+    assert str(exc_info.value) == "incident_id cannot be empty"
+
+@pytest.mark.unit
+@pytest.mark.incidents
+def test_list_related_incidents_api_error(mock_get_api_client):
+    """Test that list_related_incidents handles API errors correctly."""
+    incident_id = '123'
+    mock_get_api_client.jget.side_effect = RuntimeError("API Error")
+
+    with pytest.raises(RuntimeError) as exc_info:
+        incidents.list_related_incidents(incident_id=incident_id)
+    assert str(exc_info.value) == f"Failed to fetch or process related incidents for {incident_id}: API Error"
+
+@pytest.mark.unit
+@pytest.mark.incidents
+def test_list_related_incidents_invalid_response(mock_get_api_client):
+    """Test that list_related_incidents handles invalid API response correctly."""
+    incident_id = '123'
+    mock_get_api_client.jget.return_value = {}  # Missing 'related_incidents' key
+
+    with pytest.raises(RuntimeError) as exc_info:
+        incidents.list_related_incidents(incident_id=incident_id)
+    assert str(exc_info.value) == f"Failed to fetch or process related incidents for {incident_id}: 'related_incidents'"
+
+@pytest.mark.unit
+@pytest.mark.incidents
+def test_list_related_incidents_empty_list(mock_get_api_client):
+    """Test that list_related_incidents handles empty list response correctly."""
+    incident_id = '123'
+    mock_get_api_client.jget.return_value = {'related_incidents': []}
+
+    related_incidents = incidents.list_related_incidents(incident_id=incident_id)
+
+    mock_get_api_client.jget.assert_called_once_with(
+        f"{incidents.INCIDENTS_URL}/{incident_id}/related_incidents"
+    )
+
+    expected_response = utils.api_response_handler(
+        results=[],
+        resource_name='incidents'
+    )
+    assert related_incidents == expected_response
+
+@pytest.mark.unit
+@pytest.mark.incidents
+def test_list_related_incidents_missing_relationships(mock_get_api_client):
+    """Test that list_related_incidents handles incidents with missing relationships correctly."""
+    incident_id = '123'
+    mock_related_incidents = [
+        {
+            'incident': {
+                'id': 'Q1QKZKKE2FC88M',
+                'created_at': '2025-02-08T19:34:42Z',
+                'self': 'https://api.pagerduty.com/incidents/Q1QKZKKE2FC88M',
+                'title': 'Test Incident 1'
+            },
+            'relationships': []
+        }
+    ]
+    mock_get_api_client.jget.return_value = {'related_incidents': mock_related_incidents}
+
+    related_incidents = incidents.list_related_incidents(incident_id=incident_id)
+
+    mock_get_api_client.jget.assert_called_once_with(
+        f"{incidents.INCIDENTS_URL}/{incident_id}/related_incidents"
+    )
+
+    expected_response = utils.api_response_handler(
+        results=[
+            {
+                **parse_incident(result=item['incident']),
+                'relationship_type': None,
+                'relationship_metadata': None
+            }
+            for item in mock_related_incidents
+        ],
+        resource_name='incidents'
+    )
+    assert related_incidents == expected_response
+
+@pytest.mark.unit
+@pytest.mark.incidents
+def test_list_past_incidents_missing_fields(mock_get_api_client):
+    """Test that list_past_incidents handles missing fields in response items correctly."""
+    incident_id = '123'
+    mock_past_incidents = [
+        {
+            'incident': {
+                'id': 'Q1QKZKKE2FC88M',
+                'created_at': '2025-02-08T19:34:42Z',
+                'self': 'https://api.pagerduty.com/incidents/Q1QKZKKE2FC88M',
+                'title': 'Test Incident 1'
+            }
+            # Missing 'score' field
+        },
+        {
+            # Missing 'incident' field
+            'score': 187.90202
+        }
+    ]
+    mock_get_api_client.jget.return_value = {'past_incidents': mock_past_incidents}
+
+    past_incidents = incidents.list_past_incidents(incident_id=incident_id)
+
+    mock_get_api_client.jget.assert_called_once_with(
+        f"{incidents.INCIDENTS_URL}/{incident_id}/past_incidents",
+        params={'limit': None, 'total': None}
+    )
+
+    expected_incidents = [
+        {
+            **parse_incident(result=mock_past_incidents[1].get('incident', {})),
+            'similarity_score': mock_past_incidents[1].get('score', 0.0)
+        },
+        {
+            **parse_incident(result=mock_past_incidents[0].get('incident', {})),
+            'similarity_score': mock_past_incidents[0].get('score', 0.0)
+        }
+    ]
+
+    expected_response = utils.api_response_handler(
+        results=expected_incidents,
+        resource_name='incidents'
+    )
+    assert past_incidents == expected_response
+
+@pytest.mark.unit
+@pytest.mark.incidents
+def test_calculate_incident_metadata_autoresolve_edge_cases():
+    """Test metadata calculation includes autoresolve count with edge cases."""
+    auto_resolved = {
+        'id': '123',
+        'status': 'resolved',
+        'urgency': 'high',
+        'created_at': '2024-01-01T00:00:00Z',
+        'updated_at': '2024-01-01T01:00:00Z',
+        'last_status_change_by': {
+            'type': incidents.AUTORESOLVE_TYPE,
+            'id': 'service-1'
+        }
+    }
+
+    manual_resolved = {
+        'id': '456',
+        'status': 'resolved',
+        'urgency': 'high',
+        'created_at': '2024-01-01T02:00:00Z',
+        'updated_at': '2024-01-01T03:00:00Z',
+        'last_status_change_by': {
+            'type': 'user_reference',
+            'id': 'user-1'
+        }
+    }
+
+    missing_status_change = {
+        'id': '789',
+        'status': 'resolved',
+        'urgency': 'high',
+        'created_at': '2024-01-01T04:00:00Z',
+        'updated_at': '2024-01-01T05:00:00Z'
+    }
+
+    missing_type = {
+        'id': '101',
+        'status': 'resolved',
+        'urgency': 'high',
+        'created_at': '2024-01-01T06:00:00Z',
+        'updated_at': '2024-01-01T07:00:00Z',
+        'last_status_change_by': {
+            'id': 'service-2'
+        }
+    }
+
+    triggered = {
+        'id': '102',
+        'status': 'triggered',
+        'urgency': 'low',
+        'created_at': '2024-01-01T08:00:00Z',
+        'updated_at': '2024-01-01T08:00:00Z',
+        'last_status_change_by': {
+            'type': 'user_reference',
+            'id': 'user-2'
+        }
+    }
+
+    incident_list = [auto_resolved, manual_resolved, missing_status_change, missing_type, triggered]
+    metadata = incidents._calculate_incident_metadata(incident_list)
+
+    assert metadata == {
+        'status_counts': {
+            'triggered': 1,
+            'acknowledged': 0,
+            'resolved': 4
+        },
+        'autoresolve_count': 1,
+        'no_data_count': 0
+    }

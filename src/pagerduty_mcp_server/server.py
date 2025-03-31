@@ -15,25 +15,30 @@ from . import users
 from . import utils
 
 logger = logging.getLogger(__name__)
-server = FastMCP("pagerduty_mcp_server")
+server = FastMCP(
+    name="pagerduty_mcp_server",
+    log_level="INFO"
+)
 
 """
 Escalation Policies Tools
 """
 @server.tool()
 def list_escalation_policies(*,
-                            current_user_context: bool = True, 
+                            current_user_context: bool = True,
                             query: Optional[str] = None,
                             user_ids: Optional[List[str]] = None,
-                            team_ids: Optional[List[str]] = None) -> Dict[str, Any]:
+                            team_ids: Optional[List[str]] = None,
+                            limit: Optional[int] = None) -> Dict[str, Any]:
     """List existing escalation policies based on the given criteria.
-    
+
     Args:
         current_user_context (bool): Whether to use the current user's ID/team IDs context (default: True, cannot be used with user_ids or team_ids)
         query (str): Filter escalation policies whose names contain the search query (optional)
         user_ids (List[str]): Filter results to only escalation policies that include the given user IDs (optional, cannot be used with current_user_context)
         team_ids (List[str]): Filter results to only escalation policies assigned to teams with the given IDs (optional, cannot be used with current_user_context)
-    
+        limit (int): Limit the number of results returned (optional)
+
     Returns:
         Dict[str, Any]: Dictionary containing metadata (count, description) and a list of escalation policies matching the specified criteria
     """
@@ -49,17 +54,18 @@ def list_escalation_policies(*,
     return escalation_policies.list_escalation_policies(
         query=query,
         user_ids=user_ids,
-        team_ids=team_ids
+        team_ids=team_ids,
+        limit=limit
     )
 
 @server.tool()
 def show_escalation_policy(*,
                           policy_id: str) -> Dict[str, Any]:
     """Show details about a given escalation policy.
-    
+
     Args:
         policy_id (str): The ID of the escalation policy to show
-    
+
     Returns:
         Dict[str, Any]: Escalation policy object with detailed information
     """
@@ -72,13 +78,14 @@ Incidents Tools
 @server.tool()
 def list_incidents(*,
                    current_user_context: bool = True,
-                   service_ids: Optional[List[str]] = None, 
-                   team_ids: Optional[List[str]] = None, 
-                   statuses: Optional[Union[List[str], str]] = None, 
+                   service_ids: Optional[List[str]] = None,
+                   team_ids: Optional[List[str]] = None,
+                   statuses: Optional[Union[List[str], str]] = None,
                    since: Optional[str] = None,
-                   until: Optional[str] = None) -> Dict[str, Any]:
+                   until: Optional[str] = None,
+                   limit: Optional[int] = None) -> Dict[str, Any]:
     """List PagerDuty incidents based on specified filters.
-    
+
     Args:
         current_user_context (bool): Boolean, use the current user's team_ids and service_ids to filter (default: True, cannot be used with service_ids or team_ids)
         service_ids (List[str]): list of PagerDuty service IDs to filter by (optional, cannot be used with current_user_context)
@@ -89,7 +96,8 @@ def list_incidents(*,
             - 'resolved' - The incident has been resolved (excluded by default)
         since (str): Start of date range in ISO8601 format (optional). Default is 1 month ago
         until (str): End of date range in ISO8601 format (optional). Default is now
-    
+        limit (int): Limit the number of results returned (optional)
+
     Returns:
         Dict[str, Any]: Dictionary containing metadata (count, description) and a list of incidents matching the specified criteria
     """
@@ -101,7 +109,7 @@ def list_incidents(*,
         service_ids = user_context['service_ids']
     elif not (service_ids or team_ids):
         raise ValueError("Must specify at least service_ids or team_ids when current_user_context is False.")
-    
+
     if statuses is not None:
         if isinstance(statuses, str):
             statuses = [statuses.lower()]
@@ -113,17 +121,18 @@ def list_incidents(*,
         team_ids=team_ids,
         statuses=statuses,
         since=since,
-        until=until
+        until=until,
+        limit=limit
     )
 
 @server.tool()
 def show_incident(*,
                  incident_id: str) -> Dict[str, Any]:
     """Get detailed information about a given incident.
-    
+
     Args:
         incident_id (str): The ID or number of the incident to get
-    
+
     Returns:
         Dict[str, Any]: Incident object with detailed information
     """
@@ -150,6 +159,19 @@ def list_past_incidents(*,
         total=total
     )
 
+@server.tool()
+def list_related_incidents(*,
+                         incident_id: str) -> Dict[str, Any]:
+    """List the 20 most recent related incidents that are impacting other services and responders.
+
+    Args:
+        incident_id (str): The ID or number of the incident to find related incidents for
+
+    Returns:
+        Dict[str, Any]: Dictionary containing metadata (count, description) and a list of related incidents matching the specified criteria
+    """
+    return incidents.list_related_incidents(incident_id=incident_id)
+
 """
 Oncalls Tools
 """
@@ -160,9 +182,10 @@ def list_oncalls(*,
                 user_ids: Optional[List[str]] = None,
                 escalation_policy_ids: Optional[List[str]] = None,
                 since: Optional[str] = None,
-                until: Optional[str] = None) -> Dict[str, Any]:
+                until: Optional[str] = None,
+                limit: Optional[int] = None) -> Dict[str, Any]:
     """List the on-call entries during a given time range.
-    
+
     Args:
         current_user_context (bool): Use the current user's ID to filter (default: True, cannot be used with user_ids or escalation_policy_ids)
         schedule_ids (List[str]): Return only on-calls for the specified schedule IDs (optional)
@@ -170,7 +193,8 @@ def list_oncalls(*,
         escalation_policy_ids (List[str]): Return only on-calls for the specified escalation policy IDs (optional, cannot be used with current_user_context)
         since (str): Start of date range in ISO8601 format (optional). Default is 1 month ago
         until (str): End of date range in ISO8601 format (optional). Default is now
-    
+        limit (int): Limit the number of results returned (optional)
+
     Returns:
         Dict[str, Any]: Dictionary containing metadata (count, description) and a list of on-call entries matching the specified criteria
     """
@@ -188,24 +212,30 @@ def list_oncalls(*,
         schedule_ids=schedule_ids,
         escalation_policy_ids=escalation_policy_ids,
         since=since,
-        until=until
+        until=until,
+        limit=limit
     )
 
 """
 Schedules Tools
 """
 @server.tool()
-def list_schedules(*, 
-                  query: Optional[str] = None) -> Dict[str, Any]:
+def list_schedules(*,
+                  query: Optional[str] = None,
+                  limit: Optional[int] = None) -> Dict[str, Any]:
     """List the on-call schedules.
-    
+
     Args:
         query (str): Filter schedules whose names contain the search query (optional)
-    
+        limit (int): Limit the number of results returned (optional)
+
     Returns:
         Dict[str, Any]: Dictionary containing metadata (count, description) and a list of schedules matching the specified criteria
     """
-    return schedules.list_schedules(query=query)
+    return schedules.list_schedules(
+        query=query,
+        limit=limit
+    )
 
 @server.tool()
 def show_schedule(*,
@@ -213,16 +243,37 @@ def show_schedule(*,
                 since: Optional[str] = None,
                 until: Optional[str] = None) -> Dict[str, Any]:
     """Show detailed information about a given schedule.
-    
+
     Args:
         schedule_id (str): The ID of the schedule to get
         since (str): The start of the time range over which you want to search. Defaults to 2 weeks before until if an until is given. (optional)
         until (str): The end of the time range over which you want to search. Defaults to 2 weeks after since if a since is given. (optional)
-    
+
     Returns:
         Dict[str, Any]: Schedule object with detailed information
     """
     return schedules.show_schedule(
+        schedule_id=schedule_id,
+        since=since,
+        until=until
+    )
+
+@server.tool()
+def list_users_oncall(*,
+                     schedule_id: str,
+                     since: Optional[str] = None,
+                     until: Optional[str] = None) -> Dict[str, Any]:
+    """List the users on call for a given schedule during the specified time range.
+
+    Args:
+        schedule_id (str): The ID of the schedule to list users on call for
+        since (str): Start of date range in ISO8601 format (optional). Default is 1 month ago
+        until (str): End of date range in ISO8601 format (optional). Default is now
+
+    Returns:
+        Dict[str, Any]: Dictionary containing metadata (count, description) and a list of users on call matching the specified criteria
+    """
+    return schedules.list_users_oncall(
         schedule_id=schedule_id,
         since=since,
         until=until
@@ -235,14 +286,16 @@ Services Tools
 def list_services(*,
                   current_user_context: bool = True,
                   team_ids: Optional[List[str]] = None,
-                  query: Optional[str] = None) -> Dict[str, Any]:
+                  query: Optional[str] = None,
+                  limit: Optional[int] = None) -> Dict[str, Any]:
     """List existing PagerDuty services.
-    
+
     Args:
         current_user_context (bool): Use the current user's team IDs to filter (default: True, cannot be used with team_ids)
         team_ids (List[str]): Filter results to only services assigned to teams with the given IDs (optional, cannot be used with current_user_context)
         query (str): Filter services whose names contain the search query (optional)
-    
+        limit (int): Limit the number of results returned (optional)
+
     Returns:
         Dict[str, Any]: Dictionary containing metadata (count, description) and a list of services matching the specified criteria
     """
@@ -256,7 +309,8 @@ def list_services(*,
 
     return services.list_services(
         team_ids=team_ids,
-        query=query
+        query=query,
+        limit=limit
     )
 
 
@@ -264,10 +318,10 @@ def list_services(*,
 def show_service(*,
                 service_id: str) -> Dict[str, Any]:
     """Get details about a given service.
-    
+
     Args:
         service_id (str): The ID of the service to get
-    
+
     Returns:
         Dict[str, Any]: Service object with detailed information
     """
@@ -279,25 +333,29 @@ Teams Tools
 """
 @server.tool()
 def list_teams(*,
-               query: Optional[str] = None) -> Dict[str, Any]:
+               query: Optional[str] = None,
+               limit: Optional[int] = None) -> Dict[str, Any]:
     """List teams in your PagerDuty account.
-    
+
     Args:
         query (str): Filter teams whose names contain the search query (optional)
-    
+        limit (int): Limit the number of results returned (optional)
     Returns:
         Dict[str, Any]: Dictionary containing metadata (count, description) and a list of teams matching the specified criteria
     """
-    return teams.list_teams(query=query)
+    return teams.list_teams(
+        query=query,
+        limit=limit
+    )
 
 @server.tool()
 def show_team(*,
               team_id: str) -> Dict[str, Any]:
     """Get detailed information about a given team.
-    
+
     Args:
         team_id (str): The ID of the team to get
-    
+
     Returns:
         Dict[str, Any]: Team object with detailed information
     """
@@ -310,7 +368,7 @@ Users Tools
 @server.tool()
 def show_current_user() -> Dict[str, Any]:
     """Get the current user's PagerDuty profile including their teams, contact methods, and notification rules.
-    
+
     Returns:
         Dict[str, Any]: The user object containing profile information in the following format (note this is non-exhaustive):
             {
@@ -349,14 +407,15 @@ def show_current_user() -> Dict[str, Any]:
 def list_users(*,
                current_user_context: bool = True,
                team_ids: Optional[List[str]] = None,
-               query: Optional[str] = None) -> Dict[str, Any]:
+               query: Optional[str] = None,
+               limit: Optional[int] = None) -> Dict[str, Any]:
     """List users in PagerDuty.
 
     Args:
         current_user_context (bool): Use the current user's team IDs to filter (default: True, cannot be used with team_ids)
         team_ids (List[str]): A list of team IDs to filter users (optional, cannot be used with current_user_context)
         query (str): A search query to filter users (optional)
-    
+        limit (int): Limit the number of results returned (optional)
     Returns:
         Dict[str, Any]: Dictionary containing metadata (count, description) and a list of users matching the specified criteria
     """
@@ -370,7 +429,8 @@ def list_users(*,
 
     return users.list_users(
         team_ids=team_ids,
-        query=query
+        query=query,
+        limit=limit
     )
 
 @server.tool()

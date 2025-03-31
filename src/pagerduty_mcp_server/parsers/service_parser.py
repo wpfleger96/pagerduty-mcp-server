@@ -5,7 +5,7 @@ from typing import Dict, Any
 def parse_service(*,
                  result: Dict[str, Any]) -> Dict[str, Any]:
     """Parses a raw service API response into a structured format without unneeded fields.
-    
+
     Args:
         result (Dict[str, Any]): The raw service API response
 
@@ -20,14 +20,14 @@ def parse_service(*,
             - updated_at (str): Last update timestamp
             - teams (List[Dict]): List of teams with id, summary, and html_url
             - integrations (List[Dict]): List of integrations with id, summary, and html_url
-    
+
     Note:
         Returns an empty dictionary if the input is None or not a dictionary
     """
 
     if not result:
         return {}
-    
+
     return {
         "id": result.get("id"),
         "html_url": result.get("html_url"),
@@ -52,4 +52,4 @@ def parse_service(*,
             }
             for integration in result.get("integrations", [])
         ]
-    } 
+    }

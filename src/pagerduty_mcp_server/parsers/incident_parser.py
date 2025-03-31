@@ -5,7 +5,7 @@ from typing import Dict, Any
 def parse_incident(*,
                    result: Dict[str, Any]) -> Dict[str, Any]:
     """Parses a raw incident API response into a structured format without unneeded fields.
-    
+
     Args:
         result (Dict[str, Any]): The raw incident API response
 
@@ -33,14 +33,14 @@ def parse_incident(*,
             - incident_key (str): Unique incident key
             - last_status_change_at (str): Last status change timestamp
             - last_status_change_by (Dict): User who last changed status with id, summary, and html_url
-    
+
     Note:
         Returns an empty dictionary if the input is None or not a dictionary
     """
 
     if not result:
         return {}
-    
+
     return {
         "id": result.get("id"),
         "html_url": result.get("html_url"),
@@ -104,4 +104,3 @@ def parse_incident(*,
             "html_url": result.get("last_status_change_by", {}).get("html_url")
         }
     }
-    

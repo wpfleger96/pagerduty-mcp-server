@@ -28,7 +28,7 @@ def test_build_user_context(mock_fetch_escalation_policy_ids, mock_fetch_service
 def test_build_user_context_missing_data(mock_show_current_user):
     """Test that build_user_context handles missing or invalid data correctly."""
     mock_show_current_user.return_value = None
-    
+
     context = utils.build_user_context()
     assert context == {
         "user_id": "",

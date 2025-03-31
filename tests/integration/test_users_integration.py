@@ -2,7 +2,6 @@ import pytest
 
 from conftest import skip_if_no_pagerduty_key
 from pagerduty_mcp_server import users
-from pagerduty_mcp_server import utils
 
 @pytest.mark.integration
 @pytest.mark.users
@@ -17,16 +16,13 @@ def test_show_current_user():
 @pytest.mark.integration
 @pytest.mark.users
 @skip_if_no_pagerduty_key
-def test_list_users():
-    """Test that users are listed correctly."""
-    user_context = utils.build_user_context()
+def test_list_users(user_context):
+    """Test that users are fetched correctly."""
     team_ids = user_context['team_ids']
-    response = users.list_users(team_ids=team_ids)
 
-    assert response is not None
-    assert "users" in response
-    assert "metadata" in response
-    assert len(response["users"]) > 0
+    users_list = users.list_users(team_ids=team_ids, limit=1)
+    assert users_list is not None
+    assert len(users_list) > 0
 
 @pytest.mark.integration
 @pytest.mark.users

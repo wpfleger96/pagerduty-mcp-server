@@ -5,7 +5,7 @@ from typing import Dict, Any
 def parse_schedule(*,
                    result: Dict[str, Any]) -> Dict[str, Any]:
     """Parses a raw schedule API response into a structured format without unneeded fields.
-    
+
     Args:
         result (Dict[str, Any]): The raw schedule API response
 
@@ -32,7 +32,7 @@ def parse_schedule(*,
 
     if not result:
         return {}
-    
+
     return {
         "id": result.get("id"),
         "html_url": result.get("html_url"),
@@ -73,4 +73,4 @@ def parse_schedule(*,
             }
             for layer in result.get("schedule_layers", [])
         ]
-    } 
+    }

@@ -2,6 +2,7 @@
 
 from typing import List, Dict, Any, Optional, Union
 import logging
+from datetime import datetime
 
 from . import users, escalation_policies, teams, services
 
@@ -149,3 +150,18 @@ def api_response_handler(*,
         "metadata": metadata,
         f"{resource_name}": results
     }
+
+def validate_iso8601_timestamp(timestamp: str, param_name: str) -> None:
+    """Validate that a string is a valid ISO8601 timestamp.
+
+    Args:
+        timestamp (str): The timestamp string to validate
+        param_name (str): The name of the parameter being validated (for error messages)
+
+    Raises:
+        ValidationError: If the timestamp is not a valid ISO8601 format
+    """
+    try:
+        datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+    except ValueError as e:
+        raise ValidationError(f"Invalid ISO8601 timestamp for {param_name}: {timestamp}. Error: {str(e)}")
