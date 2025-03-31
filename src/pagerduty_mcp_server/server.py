@@ -143,7 +143,11 @@ def list_past_incidents(*,
                        incident_id: str,
                        limit: Optional[int] = None,
                        total: Optional[bool] = None) -> Dict[str, Any]:
-    """List past incidents similar to the input incident.
+    """List incidents from the past 6 months that are similar to the input incident, and were generated on the same service as the parent incident. Results are ordered by similarity score.
+
+    The returned incidents are in a slimmed down format containing only id, created_at, self, and title.
+    Each incident also includes a similarity_score indicating how similar it is to the input incident.
+    Incidents are sorted by similarity_score in descending order, so the most similar incidents appear first.
 
     Args:
         incident_id (str): The ID or number of the incident to find similar incidents for
@@ -151,7 +155,13 @@ def list_past_incidents(*,
         total (bool): Whether to return the total number of incidents that match the criteria (optional). Default is False.
 
     Returns:
-        Dict[str, Any]: Dictionary containing metadata (count, description) and a list of similar incidents matching the specified criteria
+        Dict[str, Any]: Dictionary containing metadata (count, description) and a list of similar incidents matching the specified criteria.
+            Each incident in the list contains:
+            - id (str): The incident ID
+            - created_at (str): Creation timestamp
+            - self (str): API URL for the incident
+            - title (str): The incident title
+            - similarity_score (float): Decimal value indicating similarity to the input incident
     """
     return incidents.list_past_incidents(
         incident_id=incident_id,
@@ -168,7 +178,15 @@ def list_related_incidents(*,
         incident_id (str): The ID or number of the incident to find related incidents for
 
     Returns:
-        Dict[str, Any]: Dictionary containing metadata (count, description) and a list of related incidents matching the specified criteria
+        Dict[str, Any]: Dictionary containing metadata (count, description) and a list of related incidents matching the specified criteria.
+            Each incident in the list contains:
+            - id (str): The incident ID
+            - summary (str): Summary of the incident
+            - title (str): The incident title
+            - status (str): Current status of the incident
+            - urgency (str): Current urgency level of the incident
+            - service (Dict): The service this incident belongs to
+            - created_at (str): Creation timestamp
     """
     return incidents.list_related_incidents(incident_id=incident_id)
 
@@ -313,7 +331,6 @@ def list_services(*,
         limit=limit
     )
 
-
 @server.tool()
 def show_service(*,
                 service_id: str) -> Dict[str, Any]:
@@ -340,6 +357,7 @@ def list_teams(*,
     Args:
         query (str): Filter teams whose names contain the search query (optional)
         limit (int): Limit the number of results returned (optional)
+
     Returns:
         Dict[str, Any]: Dictionary containing metadata (count, description) and a list of teams matching the specified criteria
     """
@@ -416,6 +434,7 @@ def list_users(*,
         team_ids (List[str]): A list of team IDs to filter users (optional, cannot be used with current_user_context)
         query (str): A search query to filter users (optional)
         limit (int): Limit the number of results returned (optional)
+
     Returns:
         Dict[str, Any]: Dictionary containing metadata (count, description) and a list of users matching the specified criteria
     """
@@ -437,11 +456,11 @@ def list_users(*,
 def show_user(*,
             user_id: str) -> Dict[str, Any]:
     """Get detailed information about a given user.
+
     Args:
         user_id (str): The ID of the user to get
 
     Returns:
         Dict[str, Any]: User object with detailed information
     """
-
     return users.show_user(user_id=user_id)

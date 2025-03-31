@@ -142,7 +142,7 @@ def list_past_incidents(*,
                  incident_id: str,
                  limit: Optional[int] = None,
                  total: Optional[bool] = None) -> Dict[str, Any]:
-    """List incidents from the past 6 months that are similar to the input incident, ordered by similarity score.
+    """List incidents from the past 6 months that are similar to the input incident, and were generated on the same service as the parent incident. Results are ordered by similarity score.
 
     The returned incidents are in a slimmed down format containing only id, created_at, self, and title.
     Each incident also includes a similarity_score indicating how similar it is to the input incident.
