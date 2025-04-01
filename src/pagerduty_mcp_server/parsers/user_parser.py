@@ -31,7 +31,11 @@ def parse_user(*,
             - notification_rules (List[Dict]): List of notification rules with id, type, summary, and html_url
 
     Note:
-        Returns an empty dictionary if the input is None or not a dictionary
+        If the input is None or not a dictionary, returns an empty dictionary.
+        All fields are optional and will be None if not present in the input.
+
+    Raises:
+        KeyError: If accessing nested dictionary fields fails
     """
 
     if not result:

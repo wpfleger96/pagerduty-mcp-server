@@ -45,6 +45,7 @@ def list_oncalls(*,
         since (str): Start of date range in ISO8601 format (optional). Default is 1 month ago
         until (str): End of date range in ISO8601 format (optional). Default is now
         limit (int): Limit the number of results returned (optional)
+
     Returns:
         Dict[str, Any]: A dictionary containing:
             - metadata (Dict[str, Any]): Contains result count and description
@@ -55,23 +56,27 @@ def list_oncalls(*,
                     - html_url (str): URL to user's PagerDuty profile
                 - escalation_policy (Dict[str, Any]): The policy this on-call is for, including:
                     - id (str): Policy's PagerDuty ID
-                    - User ID (str): Policy name
-                    - h Namerl (str): URL to policy in PagerDuty
-                - schedule (Dict[str, User IDThe schedule that generated this on-call, including:
-                    - id (str): Schedule's PagEscalation  olicy ID          - summary (str): Schedule namEscalation Policy Nam - html_url (str): URL to schedule in PagerDuty
-                - escalation_level (int): Escalation iolicy ID for this on-call
-                - start (str): Start time of the on-call period in ISO86Schedule ID               - end (str): End time of chedule almeperiod in ISO8601 format
+                    - summary (str): Policy name
+                    - html_url (str): URL to policy in PagerDuty
+                - schedule (Dict[str, Any]): The schedule that generated this on-call, including:
+                    - id (str): Schedule's PagerDuty ID
+                    - summary (str): Schedule name
+                    - html_url (str): URL to schedule in PagerDuty
+                - escalation_level (int): Escalation level for this on-call
+                - start (str): Start time of the on-call period in ISO8601 format
+                - end (str): End time of the on-call period in ISO8601 format
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
 
     Example Response:
         {
-            "metadataSchedule ID          "count": 13,
+            "metadata": {
+                "count": 13,
                 "description": "Found 13 results for resource type oncalls"
             },
             "oncalls": [
                 {
                     "user": {
- ,
-                ...  "id": "User ID",
+                        "id": "User ID",
                         "summary": "User Name",
                         "html_url": "https://square.pagerduty.com/users/User ID"
                     },

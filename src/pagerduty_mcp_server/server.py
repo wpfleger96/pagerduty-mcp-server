@@ -1,6 +1,5 @@
 """PagerDuty MCP Server main module."""
 
-import logging
 from typing import List, Dict, Any, Optional, Union
 
 from mcp.server.fastmcp import FastMCP
@@ -13,10 +12,8 @@ from . import services
 from . import teams
 from . import users
 
-logger = logging.getLogger(__name__)
 server = FastMCP(
-    name="pagerduty_mcp_server",
-    log_level="INFO"
+    name="pagerduty_mcp_server"
 )
 
 """
@@ -39,7 +36,16 @@ def list_escalation_policies(*,
         limit (int): Limit the number of results returned (optional)
 
     Returns:
-        Dict[str, Any]: Dictionary containing metadata (count, description) and a list of escalation policies matching the specified criteria
+        Dict[str, Any]: A dictionary containing:
+            - escalation_policies (List[Dict[str, Any]]): List of escalation policy objects matching the specified criteria
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Total number of results
+                - description (str): Description of the results
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
+
+    Raises:
+        ValueError: If current_user_context is True and user_ids/team_ids are provided, or if current_user_context is False and neither user_ids nor team_ids are provided
+        RuntimeError: If the API request fails or response processing fails
     """
     if current_user_context:
         if user_ids is not None or team_ids is not None:
@@ -66,7 +72,17 @@ def show_escalation_policy(*,
         policy_id (str): The ID of the escalation policy to show
 
     Returns:
-        Dict[str, Any]: Escalation policy object with detailed information
+        Dict[str, Any]: A dictionary containing:
+            - escalation_policy (Dict[str, Any]): Escalation policy object with detailed information
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Always 1 for single resource responses
+                - description (str): Description of the result
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
+
+    Raises:
+        ValueError: If policy_id is None or empty
+        RuntimeError: If the API request fails or response processing fails
+        KeyError: If the API response is missing required fields
     """
     return escalation_policies.show_escalation_policy(policy_id=policy_id)
 
@@ -89,7 +105,8 @@ def list_incidents(*,
         current_user_context (bool): Boolean, use the current user's team_ids and service_ids to filter (default: True, cannot be used with service_ids or team_ids)
         service_ids (List[str]): list of PagerDuty service IDs to filter by (optional, cannot be used with current_user_context)
         team_ids (List[str]): list of PagerDuty team IDs to filter by (optional, cannot be used with current_user_context)
-        statuses (List[str]): list of status values to filter by (optional). Valid values are:
+        statuses (Union[List[str], str]): Status values to filter by (optional). Can be a single string or list of strings.
+            Valid values are:
             - 'triggered' - The incident is currently active (included by default)
             - 'acknowledged' - The incident has been acknowledged by a user (included by default)
             - 'resolved' - The incident has been resolved (excluded by default)
@@ -98,7 +115,19 @@ def list_incidents(*,
         limit (int): Limit the number of results returned (optional)
 
     Returns:
-        Dict[str, Any]: Dictionary containing metadata (count, description) and a list of incidents matching the specified criteria
+        Dict[str, Any]: A dictionary containing:
+            - incidents (List[Dict[str, Any]]): List of incident objects matching the specified criteria
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Total number of results
+                - description (str): Description of the results
+                - status_counts (Dict[str, int]): Dictionary mapping each status to its count
+                - autoresolve_count (int): Number of incidents that were auto-resolved
+                - no_data_count (int): Number of incidents with titles starting with "No Data:"
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
+
+    Raises:
+        ValueError: If current_user_context is True and service_ids/team_ids are provided, if current_user_context is False and neither service_ids nor team_ids are provided, or if statuses is not a list or string
+        RuntimeError: If the API request fails or response processing fails
     """
     if current_user_context:
         if service_ids is not None or team_ids is not None:
@@ -133,7 +162,17 @@ def show_incident(*,
         incident_id (str): The ID or number of the incident to get
 
     Returns:
-        Dict[str, Any]: Incident object with detailed information
+        Dict[str, Any]: A dictionary containing:
+            - incident (Dict[str, Any]): Incident object with detailed information
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Always 1 for single resource responses
+                - description (str): Description of the result
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
+
+    Raises:
+        ValueError: If incident_id is None or empty
+        RuntimeError: If the API request fails or response processing fails
+        KeyError: If the API response is missing required fields
     """
     return incidents.show_incident(incident_id=incident_id)
 
@@ -154,13 +193,22 @@ def list_past_incidents(*,
         total (bool): Whether to return the total number of incidents that match the criteria (optional). Default is False.
 
     Returns:
-        Dict[str, Any]: Dictionary containing metadata (count, description) and a list of similar incidents matching the specified criteria.
-            Each incident in the list contains:
-            - id (str): The incident ID
-            - created_at (str): Creation timestamp
-            - self (str): API URL for the incident
-            - title (str): The incident title
-            - similarity_score (float): Decimal value indicating similarity to the input incident
+        Dict[str, Any]: A dictionary containing:
+            - incidents (List[Dict[str, Any]]): List of similar incident objects, each containing:
+                - id (str): The incident ID
+                - created_at (str): Creation timestamp
+                - self (str): API URL for the incident
+                - title (str): The incident title
+                - similarity_score (float): Decimal value indicating similarity to the input incident
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Total number of results
+                - description (str): Description of the results
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
+
+    Raises:
+        ValueError: If incident_id is None or empty
+        RuntimeError: If the API request fails or response processing fails
+        KeyError: If the API response is missing required fields
     """
     return incidents.list_past_incidents(
         incident_id=incident_id,
@@ -172,20 +220,30 @@ def list_past_incidents(*,
 def list_related_incidents(*,
                          incident_id: str) -> Dict[str, Any]:
     """List the 20 most recent related incidents that are impacting other services and responders.
+    The limit of 20 incidents is enforced by the PagerDuty API.
 
     Args:
         incident_id (str): The ID or number of the incident to find related incidents for
 
     Returns:
-        Dict[str, Any]: Dictionary containing metadata (count, description) and a list of related incidents matching the specified criteria.
-            Each incident in the list contains:
-            - id (str): The incident ID
-            - summary (str): Summary of the incident
-            - title (str): The incident title
-            - status (str): Current status of the incident
-            - urgency (str): Current urgency level of the incident
-            - service (Dict): The service this incident belongs to
-            - created_at (str): Creation timestamp
+        Dict[str, Any]: A dictionary containing:
+            - incidents (List[Dict[str, Any]]): List of related incident objects, each containing:
+                - id (str): The incident ID
+                - summary (str): Summary of the incident
+                - title (str): The incident title
+                - status (str): Current status of the incident
+                - urgency (str): Current urgency level of the incident
+                - service (Dict): The service this incident belongs to
+                - created_at (str): Creation timestamp
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Total number of related incidents (up to 20)
+                - description (str): Description of the results
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
+
+    Raises:
+        ValueError: If incident_id is None or empty
+        RuntimeError: If the API request fails or response processing fails
+        KeyError: If the API response is missing required fields
     """
     return incidents.list_related_incidents(incident_id=incident_id)
 
@@ -245,36 +303,11 @@ def list_oncalls(*,
                 - escalation_level (int): The escalation level for this on-call
                 - start (str): Start time of the on-call period in ISO8601 format
                 - end (str): End time of the on-call period in ISO8601 format
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
 
-    Example Response:
-        {
-            "metadata": {
-                "count": 13,
-                "description": "Found 13 results for resource type oncalls"
-            },
-            "oncalls": [
-                {
-                    "user": {
-                        "id": "User ID",
-                        "summary": "User Name",
-                        "html_url": "https://square.pagerduty.com/users/User ID"
-                    },
-                    "escalation_policy": {
-                        "id": "Escalation Policy ID",
-                        "summary": "Escalation Policy Name",
-                        "html_url": "https://square.pagerduty.com/escalation_policies/Escalation Policy ID"
-                    },
-                    "schedule": {
-                        "id": "Schedule ID",
-                        "summary": "Schedule Name",
-                        "html_url": "https://square.pagerduty.com/schedules/Schedule ID"
-                    },
-                    "escalation_level": 1,
-                    "start": "2025-03-31T18:00:00Z",
-                    "end": "2025-04-07T18:00:00Z"
-                }
-            ]
-        }
+    Raises:
+        ValueError: If current_user_context is True and user_ids is provided, or if current_user_context is False and none of schedule_ids, user_ids, or escalation_policy_ids are provided
+        RuntimeError: If the API request fails or response processing fails
     """
     if current_user_context:
         if user_ids is not None:
@@ -307,7 +340,15 @@ def list_schedules(*,
         limit (int): Limit the number of results returned (optional)
 
     Returns:
-        Dict[str, Any]: Dictionary containing metadata (count, description) and a list of schedules matching the specified criteria
+        Dict[str, Any]: A dictionary containing:
+            - schedules (List[Dict[str, Any]]): List of schedule objects matching the specified criteria
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Total number of results
+                - description (str): Description of the results
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
+
+    Raises:
+        RuntimeError: If the API request fails or response processing fails
     """
     return schedules.list_schedules(
         query=query,
@@ -327,7 +368,18 @@ def show_schedule(*,
         until (str): The end of the time range over which you want to search. Defaults to 2 weeks after since if a since is given. (optional)
 
     Returns:
-        Dict[str, Any]: Schedule object with detailed information
+        Dict[str, Any]: A dictionary containing:
+            - schedule (Dict[str, Any]): Schedule object with detailed information
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Always 1 for single resource responses
+                - description (str): Description of the result
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
+
+    Raises:
+        ValueError: If schedule_id is None or empty
+        ValidationError: If since or until parameters are not valid ISO8601 timestamps
+        RuntimeError: If the API request fails or response processing fails
+        KeyError: If the API response is missing required fields
     """
     return schedules.show_schedule(
         schedule_id=schedule_id,
@@ -348,7 +400,18 @@ def list_users_oncall(*,
         until (str): End of date range in ISO8601 format (optional). Default is now
 
     Returns:
-        Dict[str, Any]: Dictionary containing metadata (count, description) and a list of users on call matching the specified criteria
+        Dict[str, Any]: A dictionary containing:
+            - users (List[Dict[str, Any]]): List of user objects on call during the specified time range
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Total number of users on call
+                - description (str): Description of the results
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
+
+    Raises:
+        ValueError: If schedule_id is None or empty
+        ValidationError: If since or until parameters are not valid ISO8601 timestamps
+        RuntimeError: If the API request fails or response processing fails
+        KeyError: If the API response is missing required fields
     """
     return schedules.list_users_oncall(
         schedule_id=schedule_id,
@@ -374,7 +437,16 @@ def list_services(*,
         limit (int): Limit the number of results returned (optional)
 
     Returns:
-        Dict[str, Any]: Dictionary containing metadata (count, description) and a list of services matching the specified criteria
+        Dict[str, Any]: A dictionary containing:
+            - services (List[Dict[str, Any]]): List of service objects matching the specified criteria
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Total number of results
+                - description (str): Description of the results
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
+
+    Raises:
+        ValueError: If current_user_context is True and team_ids is provided, or if current_user_context is False and team_ids is not provided
+        RuntimeError: If the API request fails or response processing fails
     """
     if current_user_context:
         if team_ids is not None:
@@ -399,7 +471,17 @@ def show_service(*,
         service_id (str): The ID of the service to get
 
     Returns:
-        Dict[str, Any]: Service object with detailed information
+        Dict[str, Any]: A dictionary containing:
+            - service (Dict[str, Any]): Service object with detailed information
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Always 1 for single resource responses
+                - description (str): Description of the result
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
+
+    Raises:
+        ValueError: If service_id is None or empty
+        RuntimeError: If the API request fails or response processing fails
+        KeyError: If the API response is missing required fields
     """
     return services.show_service(service_id=service_id)
 
@@ -418,7 +500,15 @@ def list_teams(*,
         limit (int): Limit the number of results returned (optional)
 
     Returns:
-        Dict[str, Any]: Dictionary containing metadata (count, description) and a list of teams matching the specified criteria
+        Dict[str, Any]: A dictionary containing:
+            - teams (List[Dict[str, Any]]): List of team objects matching the specified criteria
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Total number of results
+                - description (str): Description of the results
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
+
+    Raises:
+        RuntimeError: If the API request fails or response processing fails
     """
     return teams.list_teams(
         query=query,
@@ -434,7 +524,17 @@ def show_team(*,
         team_id (str): The ID of the team to get
 
     Returns:
-        Dict[str, Any]: Team object with detailed information
+        Dict[str, Any]: A dictionary containing:
+            - team (Dict[str, Any]): Team object with detailed information
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Always 1 for single resource responses
+                - description (str): Description of the result
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
+
+    Raises:
+        ValueError: If team_id is None or empty
+        RuntimeError: If the API request fails or response processing fails
+        KeyError: If the API response is missing required fields
     """
     return teams.show_team(team_id=team_id)
 
@@ -473,36 +573,25 @@ def show_current_user() -> Dict[str, Any]:
     """Get the current user's PagerDuty profile including their teams, contact methods, and notification rules.
 
     Returns:
-        Dict[str, Any]: The user object containing profile information in the following format (note this is non-exhaustive):
-            {
-                "name": "John Doe",
-                "email": "john.doe@example.com",
-                "role": "user",
-                "description": "John Doe is a user at Example Inc.",
-                "job_title": "Software Engineer",
-                "teams": [
-                    {
-                        "id": "P123456",
-                        "summary": "Team Name 1"
-                    },
-                    ...
-                ],
-                "contact_methods": [
-                    {
-                        "id": "P123456",
-                        "summary": "Mobile"
-                    },
-                    ...
-                ],
-                "notification_rules": [
-                    {
-                        "id": "P123456",
-                        "summary": "0 minutes: channel XYZ"
-                    },
-                    ...
-                ],
-                "id": "P123456"
-            }
+        Dict[str, Any]: A dictionary containing:
+            - user (Dict[str, Any]): The user object containing profile information in the following format (note this is non-exhaustive):
+                - name (str): User's full name
+                - email (str): User's email address
+                - role (str): User's role in PagerDuty
+                - description (str): User's description
+                - job_title (str): User's job title
+                - teams (List[Dict[str, Any]]): List of teams the user belongs to
+                - contact_methods (List[Dict[str, Any]]): List of user's contact methods
+                - notification_rules (List[Dict[str, Any]]): List of user's notification rules
+                - id (str): User's PagerDuty ID
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Always 1 for single resource responses
+                - description (str): Description of the result
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
+
+    Raises:
+        RuntimeError: If the API request fails or response processing fails
+        KeyError: If the API response is missing required fields
     """
     return users.show_current_user()
 
@@ -521,7 +610,16 @@ def list_users(*,
         limit (int): Limit the number of results returned (optional)
 
     Returns:
-        Dict[str, Any]: Dictionary containing metadata (count, description) and a list of users matching the specified criteria
+        Dict[str, Any]: A dictionary containing:
+            - users (List[Dict[str, Any]]): List of user objects matching the specified criteria
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Total number of results
+                - description (str): Description of the results
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
+
+    Raises:
+        ValueError: If current_user_context is True and team_ids is provided, or if current_user_context is False and team_ids is not provided
+        RuntimeError: If the API request fails or response processing fails
     """
     if current_user_context:
         if team_ids is not None:
@@ -546,6 +644,16 @@ def show_user(*,
         user_id (str): The ID of the user to get
 
     Returns:
-        Dict[str, Any]: User object with detailed information
+        Dict[str, Any]: A dictionary containing:
+            - user (Dict[str, Any]): User object with detailed information
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Always 1 for single resource responses
+                - description (str): Description of the result
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
+
+    Raises:
+        ValueError: If user_id is None or empty
+        RuntimeError: If the API request fails or response processing fails
+        KeyError: If the API response is missing required fields
     """
     return users.show_user(user_id=user_id)

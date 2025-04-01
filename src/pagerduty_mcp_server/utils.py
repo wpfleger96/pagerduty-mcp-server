@@ -39,14 +39,19 @@ def api_response_handler(*,
         results (Union[Dict[str, Any], List[Dict[str, Any]]]): The API response results
         resource_name (str): The name of the resource (e.g., 'services', 'incidents').
             Use plural form for list operations, singular for single-item operations.
-        limit (int): The maximum number of results allowed (optional, default is 400)
+        limit (int): The maximum number of results allowed (optional, default is {pagerduty_mcp_server.utils.RESPONSE_LIMIT})
         additional_metadata (Dict[str, Any]): Optional additional metadata to include in the response
 
     Returns:
         Dict[str, Any]: A dictionary containing:
             - {resource_name} (List[Dict[str, Any]]): The processed results as a list
-            - metadata (Dict[str, Any]): Metadata about the response including total count and pagination info
-            - error (Optional[Dict[str, Any]]): Error information if the query exceeds the limit
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Total number of results
+                - description (str): Description of the results
+                - Additional fields from additional_metadata if provided
+            - error (Optional[Dict[str, Any]]): Error information if the query exceeds the limit, containing:
+                - code (str): Error code (e.g., "LIMIT_EXCEEDED")
+                - message (str): Human-readable error message
 
     Raises:
         ValidationError: If the results format is invalid or resource_name is empty
@@ -89,6 +94,10 @@ def validate_iso8601_timestamp(timestamp: str, param_name: str) -> None:
         timestamp (str): The timestamp string to validate
         param_name (str): The name of the parameter being validated (for error messages)
 
+    Note:
+        Accepts both UTC timestamps (ending in 'Z') and timestamps with timezone offsets.
+        UTC timestamps are automatically converted to the equivalent offset format.
+
     Raises:
         ValidationError: If the timestamp is not a valid ISO8601 format
     """
@@ -101,10 +110,10 @@ def handle_api_error(e: Exception) -> None:
     """Log the error and re-raise the original exception.
 
     Args:
-        e: The exception that was raised
+        e (Exception): The exception that was raised
 
     Raises:
-        The original exception without modification
+        Exception: The original exception without modification
     """
     # Get the full error message from the response if available
     if hasattr(e, 'response') and e.response is not None:

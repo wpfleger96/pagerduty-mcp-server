@@ -25,14 +25,19 @@ def list_services(*,
         team_ids (List[str]): Filter results to only services assigned to teams with the given IDs (optional)
         query (str): Filter services whose names contain the search query (optional)
         limit (int): Limit the number of results returned (optional)
+
     Returns:
         Dict[str, Any]: A dictionary containing:
             - services (List[Dict[str, Any]]): List of service objects matching the specified criteria
-            - metadata (Dict[str, Any]): Metadata about the response including total count and pagination info
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Total number of results
+                - description (str): Description of the results
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
 
     Raises:
         ValueError: If team_ids is an empty list
         RuntimeError: If the API request fails or response processing fails
+        KeyError: If the API response is missing required fields
     """
 
     pd_client = client.get_api_client()
@@ -65,7 +70,10 @@ def show_service(*,
     Returns:
         Dict[str, Any]: A dictionary containing:
             - service (Dict[str, Any]): Service object with detailed information
-            - metadata (Dict[str, Any]): Metadata about the response
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Always 1 for single resource responses
+                - description (str): Description of the result
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
 
     Raises:
         ValueError: If service_id is None or empty
@@ -105,7 +113,16 @@ def fetch_service_ids(*,
         team_ids (List[str]): A list of team IDs
 
     Returns:
-        List[str]: A list of service IDs
+        List[str]: A list of service IDs. Returns an empty list if no services are found.
+
+    Note:
+        This is an internal helper function used by other modules to fetch service IDs.
+        The PagerDuty API expects array parameters with [] suffix (e.g., 'team_ids[]').
+
+    Raises:
+        ValueError: If team_ids is empty or None
+        RuntimeError: If the API request fails or response processing fails
+        KeyError: If the API response is missing required fields
     """
     if not team_ids:
         raise ValueError("Team IDs must be specified")

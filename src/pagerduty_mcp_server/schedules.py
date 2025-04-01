@@ -18,7 +18,7 @@ Schedules API Helpers
 def list_schedules(*,
                    query: Optional[str] = None,
                    limit: Optional[int] = None) -> Dict[str, Any]:
-    """List existing PagerDuty schedules.
+    """List existing PagerDuty schedules. Returns all schedules that match the given search criteria.
 
     Args:
         query (str): Filter schedules whose names contain the search query (optional)
@@ -27,7 +27,10 @@ def list_schedules(*,
     Returns:
         Dict[str, Any]: A dictionary containing:
             - schedules (List[Dict[str, Any]]): List of schedule objects matching the specified criteria
-            - metadata (Dict[str, Any]): Metadata about the response including total count and pagination info
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Total number of results
+                - description (str): Description of the results
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
 
     Raises:
         RuntimeError: If the API request fails or response processing fails
@@ -52,7 +55,7 @@ def show_schedule(*,
                  schedule_id: str,
                  since: Optional[str] = None,
                  until: Optional[str] = None) -> Dict[str, Any]:
-    """Get detailed information about a given schedule.
+    """Get detailed information about a given schedule, including its configuration and current state.
 
     Args:
         schedule_id (str): The ID of the schedule to get
@@ -62,7 +65,10 @@ def show_schedule(*,
     Returns:
         Dict[str, Any]: A dictionary containing:
             - schedule (Dict[str, Any]): Schedule object with detailed information
-            - metadata (Dict[str, Any]): Metadata about the response
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Always 1 for single resource responses
+                - description (str): Description of the result
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
 
     Raises:
         ValueError: If schedule_id is None or empty
@@ -98,7 +104,7 @@ def list_users_oncall(*,
                       schedule_id: str,
                       since: Optional[str] = None,
                       until: Optional[str] = None) -> Dict[str, Any]:
-    """List the users on call for a given schedule during the specified time range.
+    """List the users on call for a given schedule during the specified time range. Returns a list of users who are or will be on call during the specified period.
 
     Args:
         schedule_id (str): The ID of the schedule to list users on call for
@@ -108,7 +114,10 @@ def list_users_oncall(*,
     Returns:
         Dict[str, Any]: A dictionary containing:
             - users (List[Dict[str, Any]]): List of user objects on call during the specified time range
-            - metadata (Dict[str, Any]): Metadata about the response
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Total number of users on call
+                - description (str): Description of the results
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
 
     Raises:
         ValueError: If schedule_id is None or empty

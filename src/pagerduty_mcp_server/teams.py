@@ -27,11 +27,14 @@ def list_teams(*,
     Returns:
         Dict[str, Any]: A dictionary containing:
             - teams (List[Dict[str, Any]]): List of team objects matching the specified criteria
-            - metadata (Dict[str, Any]): Metadata about the response including total count and pagination info
-            - error (Optional[Dict[str, Any]]): Error information if the query exceeds the limit
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Total number of results
+                - description (str): Description of the results
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
 
     Raises:
         RuntimeError: If the API request fails or response processing fails
+        KeyError: If the API response is missing required fields
     """
 
     pd_client = client.get_api_client()
@@ -59,8 +62,10 @@ def show_team(*,
     Returns:
         Dict[str, Any]: A dictionary containing:
             - team (Dict[str, Any]): Team object with detailed information
-            - metadata (Dict[str, Any]): Metadata about the response
-            - error (Optional[Dict[str, Any]]): Error information if the query exceeds the limit
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Always 1 for single resource responses
+                - description (str): Description of the result
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
 
     Raises:
         ValueError: If team_id is None or empty
@@ -100,11 +105,14 @@ def fetch_team_ids(*,
         user (Dict[str, Any]): The user object containing a teams field with team information
 
     Returns:
-        List[str]: A list of team IDs from the user's teams
+        List[str]: A list of team IDs from the user's teams. Returns an empty list if user is None or has no teams.
 
     Note:
-        This is an internal helper function used by other modules.
-        Returns an empty list if user is None or has no teams.
+        This is an internal helper function used by other modules to extract team IDs from a user object.
+        It should not be called directly by external code.
+
+    Raises:
+        KeyError: If user is None or missing the 'teams' field
     """
 
     return [team['id'] for team in user['teams']]

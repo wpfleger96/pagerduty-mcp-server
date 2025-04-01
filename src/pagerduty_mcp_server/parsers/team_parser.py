@@ -25,7 +25,12 @@ def parse_team(*,
                 - html_url (str): URL to view the parent team in PagerDuty
 
     Note:
-        Returns an empty dictionary if the input is None or not a dictionary
+        If the input is None or not a dictionary, returns an empty dictionary.
+        All fields are optional and will be None if not present in the input.
+        The parent field will be None if the team is not a sub-team.
+
+    Raises:
+        KeyError: If accessing nested dictionary fields fails
     """
 
     if not result:

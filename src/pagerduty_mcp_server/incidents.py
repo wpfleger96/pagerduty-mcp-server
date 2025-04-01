@@ -39,9 +39,11 @@ def list_incidents(*,
             - 'triggered' - The incident is currently active (included by default)
             - 'acknowledged' - The incident has been acknowledged by a user (included by default)
             - 'resolved' - The incident has been resolved (included by default)
+            Defaults to ['triggered', 'acknowledged', 'resolved'] if not specified.
         urgencies (List[str]): List of urgency values to filter by (optional). Valid values are:
             - 'high' - High urgency incidents (included by default)
             - 'low' - Low urgency incidents (included by default)
+            Defaults to ['high', 'low'] if not specified.
         since (str): Start of date range in ISO8601 format (optional). Default is 1 month ago
         until (str): End of date range in ISO8601 format (optional). Default is now
         limit (int): Limit the number of results returned (optional)
@@ -55,6 +57,7 @@ def list_incidents(*,
                 - status_counts: Dictionary mapping each status to its count
                 - autoresolve_count: Number of incidents that were auto-resolved (status='resolved' and last_status_change_by.type='service_reference')
                 - no_data_count: Number of incidents with titles starting with "No Data:"
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
 
     Raises:
         ValueError: If invalid status or urgency values are provided
@@ -115,7 +118,10 @@ def show_incident(*,
     Returns:
         Dict[str, Any]: A dictionary containing:
             - incident (Dict[str, Any]): Incident object with detailed information
-            - metadata (Dict[str, Any]): Metadata about the response
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Always 1 for single resource responses
+                - description (str): Description of the result
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
 
     Raises:
         ValueError: If incident_id is None or empty
@@ -149,7 +155,7 @@ def list_past_incidents(*,
     """List incidents from the past 6 months that are similar to the input incident, and were generated on the same service as the parent incident. Results are ordered by similarity score.
 
     The returned incidents are in a slimmed down format containing only id, created_at, self, and title.
-    Each incident also includes a similarity_score indicating how similar it is to the input incident.
+    Each incident also includes a similarity_score (a decimal value) indicating how similar it is to the input incident.
     Incidents are sorted by similarity_score in descending order, so the most similar incidents appear first.
 
     Args:
@@ -166,7 +172,7 @@ def list_past_incidents(*,
                 - created_at (str): Creation timestamp
                 - self (str): API URL for the incident
                 - title (str): The incident title
-                - similarity_score (float): Decimal value indicating similarity to the input incident
+                - similarity_score (Decimal): Decimal value indicating similarity to the input incident
             - metadata (Dict[str, Any]): Metadata about the response including count and description
 
     Raises:
@@ -207,6 +213,7 @@ def list_past_incidents(*,
 def list_related_incidents(*,
                          incident_id: str) -> Dict[str, Any]:
     """List the 20 most recent related incidents that are impacting other services and responders.
+    The limit of 20 incidents is enforced by the PagerDuty API.
 
     Args:
         incident_id (str): The ID or number of the incident to get related incidents for
@@ -222,7 +229,10 @@ def list_related_incidents(*,
                 - relationship_metadata (Dict[str, Any]): Additional metadata about the relationship including:
                     - grouping_classification (str): Classification of the grouping
                     - user_feedback (Dict[str, int]): Feedback counts for the relationship
-            - metadata (Dict[str, Any]): Metadata about the response including count and description
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Total number of related incidents (up to 20)
+                - description (str): Description of the results
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
 
     Raises:
         ValueError: If incident_id is None or empty

@@ -31,8 +31,10 @@ def list_escalation_policies(*,
     Returns:
         Dict[str, Any]: A dictionary containing:
             - escalation_policies (List[Dict[str, Any]]): List of escalation policy objects matching the specified criteria
-            - metadata (Dict[str, Any]): Metadata about the response including total count and pagination info
-            - error (Optional[Dict[str, Any]]): Error information if the query exceeds the limit
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Total number of results
+                - description (str): Description of the results
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
 
     Raises:
         ValueError: If user_ids or team_ids are empty lists
@@ -68,8 +70,10 @@ def show_escalation_policy(*,
     Returns:
         Dict[str, Any]: A dictionary containing:
             - escalation_policy (Dict[str, Any]): Escalation policy object with detailed information
-            - metadata (Dict[str, Any]): Metadata about the response
-            - error (Optional[Dict[str, Any]]): Error information if the query exceeds the limit
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Always 1 for single resource responses
+                - description (str): Description of the result
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
 
     Raises:
         ValueError: If policy_id is None or empty
@@ -109,11 +113,12 @@ def fetch_escalation_policy_ids(*,
         user_id (str): The ID of the user
 
     Returns:
-        List[str]: A list of escalation policy IDs associated with the user
+        List[str]: A list of escalation policy IDs associated with the user.
+            Returns an empty list if no policies are found for the user.
 
     Note:
-        This is an internal helper function used by other modules.
-        Returns an empty list if no policies are found for the user.
+        This is an internal helper function used by other modules to fetch escalation policy IDs.
+        It should not be called directly by external code.
 
     Raises:
         ValueError: If user_id is None or empty

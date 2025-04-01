@@ -28,12 +28,17 @@ def build_user_context() -> Dict[str, Any]:
         - Users
 
     Returns:
-        Dict[str, Any]: Dictionary containing the current user's ID, team IDs, and service IDs.
-            If the user context cannot be built (e.g., API errors or invalid user), returns a dictionary
-            with empty strings for user_id and empty lists for all other fields.
+        Dict[str, Any]: A dictionary containing:
+            - user_id (str): The current user's PagerDuty ID
+            - team_ids (List[str]): List of team IDs the user belongs to
+            - service_ids (List[str]): List of service IDs associated with the user's teams
+            - escalation_policy_ids (List[str]): List of escalation policy IDs the user is part of
+            If there are API errors or the user context cannot be built, returns a dictionary
+            with empty string for user_id and empty lists for all other fields.
 
     Raises:
         RuntimeError: If there are API errors while fetching user data
+        KeyError: If the API response is missing required fields
     """
     empty_context = {
         "user_id": "",
@@ -90,18 +95,25 @@ def show_current_user() -> Dict[str, Any]:
 
     Returns:
         Dict[str, Any]: A dictionary containing:
-            - name (str): User's full name
-            - email (str): User's email address
-            - role (str): User's role in PagerDuty
-            - description (str): User's description
-            - job_title (str): User's job title
-            - teams (List[Dict]): List of teams with id and summary
-            - contact_methods (List[Dict]): List of contact methods with id and summary
-            - notification_rules (List[Dict]): List of notification rules with id and summary
-            - id (str): User's PagerDuty ID
+            - user (Dict[str, Any]): The user object containing profile information (non-exhaustive list of fields):
+                - name (str): User's full name
+                - email (str): User's email address
+                - role (str): User's role in PagerDuty
+                - description (str): User's description
+                - job_title (str): User's job title
+                - teams (List[Dict[str, Any]]): List of teams with id and summary
+                - contact_methods (List[Dict[str, Any]]): List of contact methods with id and summary
+                - notification_rules (List[Dict[str, Any]]): List of notification rules with id and summary
+                - id (str): User's PagerDuty ID
+                Note: Additional fields may be present in the response.
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Always 1 for single resource responses
+                - description (str): Description of the result
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
 
     Raises:
         RuntimeError: If the API request fails or response processing fails
+        KeyError: If the API response is missing required fields
     """
 
     pd_client = client.get_api_client()
@@ -121,15 +133,19 @@ def list_users(*,
         team_ids (List[str]): Filter results to only users assigned to teams with the given IDs (optional)
         query (str): Filter users whose names contain the search query (optional)
         limit (int): Limit the number of results returned (optional)
+
     Returns:
         Dict[str, Any]: A dictionary containing:
             - users (List[Dict[str, Any]]): List of user objects matching the specified criteria
-            - metadata (Dict[str, Any]): Metadata about the response including total count and pagination info
-            - error (Optional[Dict[str, Any]]): Error information if the query exceeds the limit
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Total number of results
+                - description (str): Description of the results
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
 
     Raises:
         ValueError: If team_ids is an empty list
         RuntimeError: If the API request fails or response processing fails
+        KeyError: If the API response is missing required fields
     """
 
     pd_client = client.get_api_client()
@@ -159,8 +175,10 @@ def show_user(*,
     Returns:
         Dict[str, Any]: A dictionary containing:
             - user (Dict[str, Any]): User object with detailed information
-            - metadata (Dict[str, Any]): Metadata about the response
-            - error (Optional[Dict[str, Any]]): Error information if the query exceeds the limit
+            - metadata (Dict[str, Any]): Metadata about the response including:
+                - count (int): Always 1 for single resource responses
+                - description (str): Description of the result
+            - error (Optional[Dict[str, Any]]): Error information if the API request fails
 
     Raises:
         ValueError: If user_id is None or empty

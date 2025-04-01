@@ -20,13 +20,16 @@ def parse_escalation_policy(*,
                 - escalation_delay_in_minutes (int): Delay before escalation
                 - targets (List[Dict]): List of targets with id, summary, and html_url
             - services (List[Dict]): List of services with id, summary, and html_url
-            - num_loops (int): Number of times to loop through the policy (defaults to 1)
+            - num_loops (int): Number of times to loop through the policy (defaults to 1 if not specified)
             - teams (List[Dict]): List of teams with id, summary, and html_url
             - description (str): Policy description
 
     Note:
-        Returns an empty dictionary if the input is None or not a dictionary.
-        The num_loops field defaults to 1 if not specified in the input.
+        If the input is None or not a dictionary, returns an empty dictionary.
+        All fields are optional and will be None if not present in the input.
+
+    Raises:
+        KeyError: If accessing nested dictionary fields fails
     """
 
     if not result:

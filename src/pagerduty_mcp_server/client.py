@@ -10,7 +10,7 @@ def get_api_client():
     """Get a configured PagerDuty API client.
 
     Returns:
-        RestApiV2Client: A configured PagerDuty API client
+        pagerduty.RestApiV2Client: A configured PagerDuty API client
 
     Raises:
         SystemExit: If PAGERDUTY_API_KEY environment variable is not set

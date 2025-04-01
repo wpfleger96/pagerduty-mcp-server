@@ -11,16 +11,18 @@ def parse_oncall(*,
 
     Returns:
         Dict[str, Any]: A dictionary containing:
-            - escalation_policy (Optional[Dict]): Policy information with id, summary, and html_url
-            - escalation_level (Optional[int]): Level in the escalation policy
-            - schedule (Optional[Dict]): Schedule information with id, summary, and html_url
-            - user (Optional[Dict]): User information with id, summary, and html_url
-            - start (Optional[str]): Start time in ISO 8601 format
-            - end (Optional[str]): End time in ISO 8601 format
+            - escalation_policy (Optional[Dict]): Policy information with id, summary, and html_url (None if not present)
+            - escalation_level (Optional[int]): Level in the escalation policy (None if not present)
+            - schedule (Optional[Dict]): Schedule information with id, summary, and html_url (None if not present)
+            - user (Optional[Dict]): User information with id, summary, and html_url (None if not present)
+            - start (Optional[str]): Start time in ISO 8601 format (None if not present)
+            - end (Optional[str]): End time in ISO 8601 format (None if not present)
 
     Note:
-        Returns an empty dictionary if the input is None or not a dictionary.
-        All fields are optional and will be None if not present in the input.
+        If the input is None or not a dictionary, returns an empty dictionary.
+
+    Raises:
+        KeyError: If accessing nested dictionary fields fails
     """
 
     if not result:
