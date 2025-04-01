@@ -47,8 +47,7 @@ def list_teams(*,
         parsed_response = [parse_team(result=team) for team in response]
         return utils.api_response_handler(results=parsed_response, resource_name='teams')
     except Exception as e:
-        logger.error(f"Failed to fetch teams: {e}")
-        raise RuntimeError(f"Failed to fetch teams: {e}") from e
+        utils.handle_api_error(e)
 
 def show_team(*,
              team_id: str) -> Dict[str, Any]:
@@ -66,6 +65,7 @@ def show_team(*,
     Raises:
         ValueError: If team_id is None or empty
         RuntimeError: If the API request fails or response processing fails
+        KeyError: If the API response is missing required fields
     """
 
     if team_id is None:
@@ -74,11 +74,18 @@ def show_team(*,
     pd_client = client.get_api_client()
 
     try:
-        response = pd_client.jget(f"{TEAMS_URL}/{team_id}")['team']
-        return utils.api_response_handler(results=parse_team(result=response), resource_name='team')
+        response = pd_client.jget(f"{TEAMS_URL}/{team_id}")
+        try:
+            team_data = response['team']
+        except KeyError:
+            raise RuntimeError(f"Failed to fetch team {team_id}: Response missing 'team' field")
+            
+        return utils.api_response_handler(
+            results=parse_team(result=team_data),
+            resource_name='team'
+        )
     except Exception as e:
-        logger.error(f"Failed to fetch team {team_id}: {e}")
-        raise RuntimeError(f"Failed to fetch team {team_id}: {e}") from e
+        utils.handle_api_error(e)
 
 
 """

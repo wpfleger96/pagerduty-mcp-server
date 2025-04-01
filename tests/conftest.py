@@ -3,7 +3,7 @@ import os
 import pytest
 from unittest.mock import patch, MagicMock
 
-from pagerduty_mcp_server import utils
+from pagerduty_mcp_server import users
 
 def pytest_configure(config):
     """Register custom test markers to make testing and iterating easier on the developer."""
@@ -34,7 +34,7 @@ def user_context():
     and reused across all tests, avoiding redundant API calls to build the user context.
     Only runs when integration tests are being run (when PAGERDUTY_API_KEY is set).
     """
-    return utils.build_user_context()
+    return users.build_user_context()
 
 @pytest.fixture
 def load_fixture():

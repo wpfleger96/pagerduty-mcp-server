@@ -56,8 +56,7 @@ def list_escalation_policies(*,
         parsed_response = [parse_escalation_policy(result=result) for result in response]
         return utils.api_response_handler(results=parsed_response, resource_name='escalation_policies')
     except Exception as e:
-        logger.error(f"Failed to fetch escalation policies: {e}")
-        raise RuntimeError(f"Failed to fetch escalation policies: {e}") from e
+        utils.handle_api_error(e)
 
 def show_escalation_policy(*,
                         policy_id: str) -> Dict[str, Any]:
@@ -75,6 +74,7 @@ def show_escalation_policy(*,
     Raises:
         ValueError: If policy_id is None or empty
         RuntimeError: If the API request fails or response processing fails
+        KeyError: If the API response is missing required fields
     """
 
     if not policy_id:
@@ -83,11 +83,18 @@ def show_escalation_policy(*,
     pd_client = client.get_api_client()
 
     try:
-        response = pd_client.jget(f"{ESCALATION_POLICIES_URL}/{policy_id}")['escalation_policy']
-        return utils.api_response_handler(results=parse_escalation_policy(result=response), resource_name='escalation_policy')
+        response = pd_client.jget(f"{ESCALATION_POLICIES_URL}/{policy_id}")
+        try:
+            policy_data = response['escalation_policy']
+        except KeyError:
+            raise RuntimeError(f"Failed to fetch escalation policy {policy_id}: Response missing 'escalation_policy' field")
+            
+        return utils.api_response_handler(
+            results=parse_escalation_policy(result=policy_data),
+            resource_name='escalation_policy'
+        )
     except Exception as e:
-        logger.error(f"Failed to fetch escalation policy {policy_id}: {e}")
-        raise RuntimeError(f"Failed to fetch escalation policy {policy_id}: {e}") from e
+        utils.handle_api_error(e)
 
 
 """
@@ -120,5 +127,4 @@ def fetch_escalation_policy_ids(*,
         results = list_escalation_policies(user_ids=[user_id])
         return [result['id'] for result in results['escalation_policies']]
     except Exception as e:
-        logger.error(f"Failed to fetch escalation policies for user {user_id}: {e}")
-        raise RuntimeError(f"Failed to fetch escalation policies for user {user_id}: API Error") from e
+        utils.handle_api_error(e)

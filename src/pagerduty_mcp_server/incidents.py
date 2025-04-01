@@ -103,8 +103,7 @@ def list_incidents(*,
             additional_metadata=metadata
         )
     except Exception as e:
-        logger.error(f"Failed to fetch or process incidents: {e}")
-        raise RuntimeError(f"Failed to fetch or process incidents: {e}") from e
+        utils.handle_api_error(e)
 
 def show_incident(*,
                  incident_id: str) -> Dict[str, Any]:
@@ -121,6 +120,7 @@ def show_incident(*,
     Raises:
         ValueError: If incident_id is None or empty
         RuntimeError: If the API request fails or response processing fails
+        KeyError: If the API response is missing required fields
     """
 
     if not incident_id:
@@ -129,14 +129,18 @@ def show_incident(*,
     pd_client = client.get_api_client()
 
     try:
-        response = pd_client.jget(f"{INCIDENTS_URL}/{incident_id}")['incident']
+        response = pd_client.jget(f"{INCIDENTS_URL}/{incident_id}")
+        try:
+            incident_data = response['incident']
+        except KeyError:
+            raise RuntimeError(f"Failed to fetch or process incident {incident_id}: 'incident'")
+            
         return utils.api_response_handler(
-            results=parse_incident(result=response),
+            results=parse_incident(result=incident_data),
             resource_name='incident'
         )
     except Exception as e:
-        logger.error(f"Failed to fetch or process incident {incident_id}: {e}")
-        raise RuntimeError(f"Failed to fetch or process incident {incident_id}: {e}") from e
+        utils.handle_api_error(e)
 
 def list_past_incidents(*,
                  incident_id: str,
@@ -168,6 +172,7 @@ def list_past_incidents(*,
     Raises:
         ValueError: If incident_id is None or empty
         RuntimeError: If the API request fails or response processing fails
+        KeyError: If the API response is missing required fields
     """
 
     if not incident_id:
@@ -177,13 +182,18 @@ def list_past_incidents(*,
 
     params = {'limit': limit, 'total': total}
     try:
-        response = pd_client.jget(f"{INCIDENTS_URL}/{incident_id}/past_incidents", params=params)['past_incidents']
+        response = pd_client.jget(f"{INCIDENTS_URL}/{incident_id}/past_incidents", params=params)
+        try:
+            past_incidents = response['past_incidents']
+        except KeyError:
+            raise RuntimeError(f"Failed to fetch past incidents for {incident_id}: Response missing 'past_incidents' field")
+            
         parsed_response = [
             {
                 **parse_incident(result=item.get('incident', {})),
                 'similarity_score': item.get('score', 0.0)
             }
-            for item in response
+            for item in past_incidents
         ]
         parsed_response.sort(key=lambda x: x['similarity_score'], reverse=True)
 
@@ -192,15 +202,14 @@ def list_past_incidents(*,
             resource_name='incidents'
         )
     except Exception as e:
-        logger.error(f"Failed to fetch or process past incidents for {incident_id}: {e}")
-        raise RuntimeError(f"Failed to fetch or process past incidents for {incident_id}: {e}") from e
+        utils.handle_api_error(e)
 
 def list_related_incidents(*,
                          incident_id: str) -> Dict[str, Any]:
     """List the 20 most recent related incidents that are impacting other services and responders.
 
     Args:
-        incident_id (str): The ID or number of the incident to find related incidents for
+        incident_id (str): The ID or number of the incident to get related incidents for
 
     Returns:
         Dict[str, Any]: A dictionary containing:
@@ -218,6 +227,7 @@ def list_related_incidents(*,
     Raises:
         ValueError: If incident_id is None or empty
         RuntimeError: If the API request fails or response processing fails
+        KeyError: If the API response is missing required fields
     """
 
     if not incident_id:
@@ -226,14 +236,19 @@ def list_related_incidents(*,
     pd_client = client.get_api_client()
 
     try:
-        response = pd_client.jget(f"{INCIDENTS_URL}/{incident_id}/related_incidents")['related_incidents']
+        response = pd_client.jget(f"{INCIDENTS_URL}/{incident_id}/related_incidents")
+        try:
+            related_incidents = response['related_incidents']
+        except KeyError:
+            raise RuntimeError(f"Failed to fetch related incidents for {incident_id}: Response missing 'related_incidents' field")
+            
         parsed_response = [
             {
                 **parse_incident(result=item['incident']),
                 'relationship_type': item['relationships'][0]['type'] if item['relationships'] else None,
                 'relationship_metadata': item['relationships'][0]['metadata'] if item['relationships'] else None
             }
-            for item in response
+            for item in related_incidents
         ]
 
         return utils.api_response_handler(
@@ -241,8 +256,7 @@ def list_related_incidents(*,
             resource_name='incidents'
         )
     except Exception as e:
-        logger.error(f"Failed to fetch or process related incidents for {incident_id}: {e}")
-        raise RuntimeError(f"Failed to fetch or process related incidents for {incident_id}: {e}") from e
+        utils.handle_api_error(e)
 
 
 """

@@ -1,6 +1,7 @@
 """Unit tests for the teams module."""
 
 import pytest
+from unittest.mock import MagicMock
 
 from pagerduty_mcp_server import teams
 from pagerduty_mcp_server.parsers.team_parser import parse_team
@@ -37,7 +38,7 @@ def test_list_teams_api_error(mock_get_api_client):
 
     with pytest.raises(RuntimeError) as exc_info:
         teams.list_teams()
-    assert str(exc_info.value) == "Failed to fetch teams: API Error"
+    assert str(exc_info.value) == "API Error"
 
 @pytest.mark.unit
 @pytest.mark.teams
@@ -47,6 +48,20 @@ def test_list_teams_empty_response(mock_get_api_client):
 
     team_list = teams.list_teams()
     assert team_list == utils.api_response_handler(results=[], resource_name='teams')
+
+@pytest.mark.unit
+@pytest.mark.teams
+def test_list_teams_preserves_full_error_message(mock_get_api_client):
+    """Test that list_teams preserves the full error message from the API response."""
+    mock_response = MagicMock()
+    mock_response.text = '{"error":{"message":"Invalid Input Provided","code":2001,"errors":["Invalid team ID format"]}}'
+    mock_error = RuntimeError("API Error")
+    mock_error.response = mock_response
+    mock_get_api_client.list_all.side_effect = mock_error
+
+    with pytest.raises(RuntimeError) as exc_info:
+        teams.list_teams()
+    assert str(exc_info.value) == "API Error"
 
 @pytest.mark.unit
 @pytest.mark.teams
@@ -93,7 +108,7 @@ def test_show_team_api_error(mock_get_api_client):
 
     with pytest.raises(RuntimeError) as exc_info:
         teams.show_team(team_id=team_id)
-    assert str(exc_info.value) == f"Failed to fetch team {team_id}: API Error"
+    assert str(exc_info.value) == "API Error"
 
 @pytest.mark.unit
 @pytest.mark.teams
@@ -104,7 +119,7 @@ def test_show_team_invalid_response(mock_get_api_client):
 
     with pytest.raises(RuntimeError) as exc_info:
         teams.show_team(team_id=team_id)
-    assert str(exc_info.value) == f"Failed to fetch team {team_id}: 'team'"
+    assert str(exc_info.value) == "Failed to fetch team 123: Response missing 'team' field"
 
 @pytest.mark.unit
 @pytest.mark.parsers

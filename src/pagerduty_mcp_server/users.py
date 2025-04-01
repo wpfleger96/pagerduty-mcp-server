@@ -1,13 +1,83 @@
 """PagerDuty user operations."""
 
-from typing import List, Dict, Any, Optional
 import logging
+from typing import List, Dict, Any, Optional
 
 from . import client
-from .parsers import parse_user
+from . import escalation_policies
+from . import services
+from . import teams
 from . import utils
+from .parsers import parse_user
 
 logger = logging.getLogger(__name__)
+
+def build_user_context() -> Dict[str, Any]:
+    """Validate and build the current user's context into a dictionary with the following format:
+        {
+            "user_id": str,
+            "team_ids": List[str],
+            "service_ids": List[str],
+            "escalation_policy_ids": List[str]
+        }
+    The MCP server tools use this user context to filter the following resources:
+        - Escalation policies
+        - Incidents
+        - Oncalls
+        - Services
+        - Users
+
+    Returns:
+        Dict[str, Any]: Dictionary containing the current user's ID, team IDs, and service IDs.
+            If the user context cannot be built (e.g., API errors or invalid user), returns a dictionary
+            with empty strings for user_id and empty lists for all other fields.
+
+    Raises:
+        RuntimeError: If there are API errors while fetching user data
+    """
+    empty_context = {
+        "user_id": "",
+        "team_ids": [],
+        "service_ids": [],
+        "escalation_policy_ids": []
+    }
+
+    try:
+        user = show_current_user()
+        if not user or 'id' not in user or not user['id']:
+            return empty_context
+
+        user_id = str(user['id'])
+        context = {**empty_context, "user_id": user_id}
+
+        try:
+            team_ids = teams.fetch_team_ids(user=user)
+            team_ids = [str(tid) for tid in team_ids if tid and isinstance(tid, str) and str(tid).strip()]
+            context["team_ids"] = team_ids
+        except Exception as e:
+            logger.error(f"Failed to fetch team IDs: {e}")
+            return context
+
+        try:
+            service_ids = services.fetch_service_ids(team_ids=team_ids) if team_ids else []
+            service_ids = [str(sid) for sid in service_ids if sid and isinstance(sid, str) and str(sid).strip()]
+            context["service_ids"] = service_ids
+        except Exception as e:
+            logger.error(f"Failed to fetch service IDs: {e}")
+            return context
+
+        try:
+            escalation_policy_ids = escalation_policies.fetch_escalation_policy_ids(user_id=user_id)
+            escalation_policy_ids = [str(epid) for epid in escalation_policy_ids if epid and isinstance(epid, str) and str(epid).strip()]
+            context["escalation_policy_ids"] = escalation_policy_ids
+        except Exception as e:
+            logger.error(f"Failed to fetch escalation policy IDs: {e}")
+            return context
+
+        return context
+    except Exception as e:
+        logger.error(f"Failed to build user context: {e}")
+        return empty_context
 
 USERS_URL = '/users'
 
@@ -39,8 +109,7 @@ def show_current_user() -> Dict[str, Any]:
         response = pd_client.jget(USERS_URL + '/me')['user']
         return parse_user(result=response)
     except Exception as e:
-        logger.error(f"Failed to fetch current user: {e}")
-        raise RuntimeError(f"Failed to fetch current user: {e}") from e
+        utils.handle_api_error(e)
 
 def list_users(*,
                team_ids: Optional[List[str]] = None,
@@ -78,8 +147,7 @@ def list_users(*,
         parsed_response = [parse_user(result=result) for result in response]
         return utils.api_response_handler(results=parsed_response, resource_name='users')
     except Exception as e:
-        logger.error(f"Failed to fetch users: {e}")
-        raise RuntimeError(f"Failed to fetch users: {e}") from e
+        utils.handle_api_error(e)
 
 def show_user(*,
               user_id: str) -> Dict[str, Any]:
@@ -97,6 +165,7 @@ def show_user(*,
     Raises:
         ValueError: If user_id is None or empty
         RuntimeError: If the API request fails or response processing fails
+        KeyError: If the API response is missing required fields
     """
 
     if not user_id:
@@ -104,8 +173,15 @@ def show_user(*,
 
     pd_client = client.get_api_client()
     try:
-        response = pd_client.jget(f"{USERS_URL}/{user_id}")['user']
-        return utils.api_response_handler(results=parse_user(result=response), resource_name='user')
+        response = pd_client.jget(f"{USERS_URL}/{user_id}")
+        try:
+            user_data = response['user']
+        except KeyError:
+            raise RuntimeError(f"Failed to fetch user {user_id}: Response missing 'user' field")
+            
+        return utils.api_response_handler(
+            results=parse_user(result=user_data),
+            resource_name='user'
+        )
     except Exception as e:
-        logger.error(f"Failed to fetch user {user_id}: {e}")
-        raise RuntimeError(f"Failed to fetch user {user_id}: {e}") from e
+        utils.handle_api_error(e)

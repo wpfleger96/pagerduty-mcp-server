@@ -36,3 +36,16 @@ def test_show_user():
     assert "user" in response
     assert "metadata" in response
     assert response["user"][0]["id"] == current_user_id
+
+@pytest.mark.integration
+@pytest.mark.users
+@skip_if_no_pagerduty_key
+def test_build_user_context():
+    """Test that the user context is built correctly."""
+    user_context = users.build_user_context()
+
+    assert user_context is not None
+    assert user_context['user_id'] is not None
+    assert user_context['team_ids'] is not None
+    assert user_context['service_ids'] is not None
+    assert user_context['escalation_policy_ids'] is not None

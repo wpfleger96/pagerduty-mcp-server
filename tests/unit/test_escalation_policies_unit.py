@@ -1,4 +1,5 @@
 import pytest
+from unittest.mock import MagicMock
 
 from pagerduty_mcp_server import escalation_policies
 from pagerduty_mcp_server.parsers.escalation_policy_parser import parse_escalation_policy
@@ -35,7 +36,7 @@ def test_list_escalation_policies_api_error(mock_get_api_client):
 
     with pytest.raises(RuntimeError) as exc_info:
         escalation_policies.list_escalation_policies()
-    assert str(exc_info.value) == "Failed to fetch escalation policies: API Error"
+    assert str(exc_info.value) == "API Error"
 
 @pytest.mark.unit
 @pytest.mark.escalation_policies
@@ -45,6 +46,20 @@ def test_list_escalation_policies_empty_response(mock_get_api_client):
 
     policy_list = escalation_policies.list_escalation_policies()
     assert policy_list == utils.api_response_handler(results=[], resource_name='escalation_policies')
+
+@pytest.mark.unit
+@pytest.mark.escalation_policies
+def test_list_escalation_policies_preserves_full_error_message(mock_get_api_client):
+    """Test that list_escalation_policies preserves the full error message from the API response."""
+    mock_response = MagicMock()
+    mock_response.text = '{"error":{"message":"Invalid Input Provided","code":2001,"errors":["Invalid team ID format"]}}'
+    mock_error = RuntimeError("API Error")
+    mock_error.response = mock_response
+    mock_get_api_client.list_all.side_effect = mock_error
+
+    with pytest.raises(RuntimeError) as exc_info:
+        escalation_policies.list_escalation_policies()
+    assert str(exc_info.value) == "API Error"
 
 @pytest.mark.unit
 @pytest.mark.escalation_policies
@@ -65,7 +80,7 @@ def test_fetch_escalation_policy_ids_api_error(mock_get_api_client, mock_user):
 
     with pytest.raises(RuntimeError) as exc_info:
         escalation_policies.fetch_escalation_policy_ids(user_id=mock_user['id'])
-    assert str(exc_info.value) == f"Failed to fetch escalation policies for user {mock_user['id']}: API Error"
+    assert str(exc_info.value) == "API Error"
 
 @pytest.mark.unit
 @pytest.mark.escalation_policies
@@ -96,7 +111,7 @@ def test_show_escalation_policy_api_error(mock_get_api_client):
 
     with pytest.raises(RuntimeError) as exc_info:
         escalation_policies.show_escalation_policy(policy_id=policy_id)
-    assert str(exc_info.value) == f"Failed to fetch escalation policy {policy_id}: API Error"
+    assert str(exc_info.value) == "API Error"
 
 @pytest.mark.unit
 @pytest.mark.escalation_policies
@@ -107,7 +122,7 @@ def test_show_escalation_policy_invalid_response(mock_get_api_client):
 
     with pytest.raises(RuntimeError) as exc_info:
         escalation_policies.show_escalation_policy(policy_id=policy_id)
-    assert str(exc_info.value) == f"Failed to fetch escalation policy {policy_id}: 'escalation_policy'"
+    assert str(exc_info.value) == "Failed to fetch escalation policy 123: Response missing 'escalation_policy' field"
 
 @pytest.mark.unit
 @pytest.mark.parsers

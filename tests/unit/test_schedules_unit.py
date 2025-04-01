@@ -2,6 +2,7 @@
 
 import pytest
 from datetime import datetime, timedelta
+from unittest.mock import MagicMock
 
 from pagerduty_mcp_server import schedules
 from pagerduty_mcp_server.parsers.schedule_parser import parse_schedule
@@ -39,7 +40,7 @@ def test_list_schedules_api_error(mock_get_api_client):
 
     with pytest.raises(RuntimeError) as exc_info:
         schedules.list_schedules()
-    assert str(exc_info.value) == "Failed to fetch schedules: API Error"
+    assert str(exc_info.value) == "API Error"
 
 @pytest.mark.unit
 @pytest.mark.schedules
@@ -86,17 +87,6 @@ def test_show_schedule_invalid_id(mock_get_api_client):
 
 @pytest.mark.unit
 @pytest.mark.schedules
-def test_show_schedule_api_error(mock_get_api_client):
-    """Test that show_schedule handles API errors correctly."""
-    schedule_id = '123'
-    mock_get_api_client.jget.side_effect = RuntimeError("API Error")
-
-    with pytest.raises(RuntimeError) as exc_info:
-        schedules.show_schedule(schedule_id=schedule_id)
-    assert str(exc_info.value) == f"Failed to fetch schedule {schedule_id}: API Error"
-
-@pytest.mark.unit
-@pytest.mark.schedules
 def test_show_schedule_invalid_response(mock_get_api_client):
     """Test that show_schedule handles invalid API response correctly."""
     schedule_id = '123'
@@ -104,7 +94,7 @@ def test_show_schedule_invalid_response(mock_get_api_client):
 
     with pytest.raises(RuntimeError) as exc_info:
         schedules.show_schedule(schedule_id=schedule_id)
-    assert str(exc_info.value) == f"Failed to fetch schedule {schedule_id}: 'schedule'"
+    assert str(exc_info.value) == "Failed to fetch schedule 123: Response missing 'schedule' field"
 
 @pytest.mark.unit
 @pytest.mark.parsers
@@ -190,7 +180,7 @@ def test_list_users_oncall_api_error(mock_get_api_client):
 
     with pytest.raises(RuntimeError) as exc_info:
         schedules.list_users_oncall(schedule_id=schedule_id)
-    assert str(exc_info.value) == f"Failed to fetch users on call for schedule {schedule_id}: API Error"
+    assert str(exc_info.value) == "API Error"
 
 @pytest.mark.unit
 @pytest.mark.schedules
@@ -201,3 +191,28 @@ def test_list_users_oncall_empty_response(mock_get_api_client):
 
     users_list = schedules.list_users_oncall(schedule_id=schedule_id)
     assert users_list == utils.api_response_handler(results=[], resource_name='users')
+
+@pytest.mark.unit
+@pytest.mark.schedules
+def test_list_schedules_preserves_full_error_message(mock_get_api_client):
+    """Test that list_schedules preserves the full error message from the API response."""
+    mock_response = MagicMock()
+    mock_response.text = '{"error":{"message":"Invalid Input Provided","code":2001,"errors":["Invalid team ID format"]}}'
+    mock_error = RuntimeError("API Error")
+    mock_error.response = mock_response
+    mock_get_api_client.list_all.side_effect = mock_error
+
+    with pytest.raises(RuntimeError) as exc_info:
+        schedules.list_schedules()
+    assert str(exc_info.value) == "API Error"
+
+@pytest.mark.unit
+@pytest.mark.schedules
+def test_show_schedule_api_error(mock_get_api_client):
+    """Test that show_schedule handles API errors correctly."""
+    schedule_id = '123'
+    mock_get_api_client.jget.side_effect = RuntimeError("API Error")
+
+    with pytest.raises(RuntimeError) as exc_info:
+        schedules.show_schedule(schedule_id=schedule_id)
+    assert str(exc_info.value) == "API Error"

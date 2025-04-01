@@ -160,13 +160,22 @@ default_limit_incidents = incidents.list_incidents(limit=RESPONSE_LIMIT)
 ```
 
 ## User Context
-Many functions support automatic filtering based on the current user's context. When `current_user_context=True` (default), results are filtered to only show resources the current user has access to:
-- Incidents for teams the user belongs to
-- Services the user has access to
-- Teams the user belongs to
-- Escalation policies the user is part of
+Many functions accept a `current_user_context` parameter (defaults to `True`) which automatically filters results based on this context. When `current_user_context` is `True`, you cannot use certain filter parameters as they would conflict with the automatic filtering:
 
-When using `current_user_context=True` (default), you cannot use `user_ids`, `team_ids`, or `service_ids` parameters as they would conflict with the automatic filtering.
+- For all resource types:
+  - `user_ids` cannot be used with `current_user_context=True`
+- For incidents:
+  - `team_ids` and `service_ids` cannot be used with `current_user_context=True`
+- For services:
+  - `team_ids` cannot be used with `current_user_context=True`
+- For escalation policies:
+  - `team_ids` cannot be used with `current_user_context=True`
+- For on-calls:
+  - `user_ids` cannot be used with `current_user_context=True`
+  - `schedule_ids` can still be used to filter by specific schedules
+  - The query will show on-calls for all escalation policies associated with the current user's teams
+  - This is useful for answering questions like "who is currently on-call for my team?"
+  - The current user's ID is not used as a filter, so you'll see all team members who are on-call
 
 ## Development
 ### Running Tests
@@ -177,23 +186,23 @@ uv run pytest
 ```
 
 To run only unit tests (i.e. tests that don't require `PAGERDUTY_API_KEY` set in the environment):
-```sh
+```bash
 uv run pytest -m unit
 ```
 
 To run only integration tests:
-```sh
-uv run python -m integration
+```bash
+uv run pytest -m integration
 ```
 
 To run only parser tests:
-```sh
-uv run python -m parsers
+```bash
+uv run pytest -m parsers
 ```
 
 To run only tests related to a specific submodule:
-```sh
-uv run python -m <client|escalation_policies|...>
+```bash
+uv run pytest -m <client|escalation_policies|...>
 ```
 
 ### Debug Server with MCP Inspector

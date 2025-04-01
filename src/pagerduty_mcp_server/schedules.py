@@ -46,8 +46,7 @@ def list_schedules(*,
         parsed_response = [parse_schedule(result=result) for result in response]
         return utils.api_response_handler(results=parsed_response, resource_name='schedules')
     except Exception as e:
-        logger.error(f"Failed to fetch schedules: {e}")
-        raise RuntimeError(f"Failed to fetch schedules: {e}") from e
+        utils.handle_api_error(e)
 
 def show_schedule(*,
                  schedule_id: str,
@@ -59,6 +58,7 @@ def show_schedule(*,
         schedule_id (str): The ID of the schedule to get
         since (str): Start of date range in ISO8601 format (optional). Default is 1 month ago
         until (str): End of date range in ISO8601 format (optional). Default is now
+
     Returns:
         Dict[str, Any]: A dictionary containing:
             - schedule (Dict[str, Any]): Schedule object with detailed information
@@ -84,11 +84,15 @@ def show_schedule(*,
         params['until'] = until
 
     try:
-        response = pd_client.jget(f"{SCHEDULES_URL}/{schedule_id}", params=params)['schedule']
-        return utils.api_response_handler(results=parse_schedule(result=response), resource_name='schedule')
+        response = pd_client.jget(f"{SCHEDULES_URL}/{schedule_id}", params=params)
+        try:
+            schedule_data = response['schedule']
+        except KeyError:
+            raise RuntimeError(f"Failed to fetch schedule {schedule_id}: Response missing 'schedule' field")
+            
+        return utils.api_response_handler(results=parse_schedule(result=schedule_data), resource_name='schedule')
     except Exception as e:
-        logger.error(f"Failed to fetch schedule {schedule_id}: {e}")
-        raise RuntimeError(f"Failed to fetch schedule {schedule_id}: {e}") from e
+        utils.handle_api_error(e)
 
 def list_users_oncall(*,
                       schedule_id: str,
@@ -126,8 +130,12 @@ def list_users_oncall(*,
         params['until'] = until
 
     try:
-        response = pd_client.jget(f"{SCHEDULES_URL}/{schedule_id}/users", params=params)['users']
-        return utils.api_response_handler(results=[parse_user(result=user) for user in response], resource_name='users')
+        response = pd_client.jget(f"{SCHEDULES_URL}/{schedule_id}/users", params=params)
+        try:
+            users_data = response['users']
+        except KeyError:
+            raise RuntimeError(f"Failed to fetch users on call for schedule {schedule_id}: Response missing 'users' field")
+            
+        return utils.api_response_handler(results=[parse_user(result=user) for user in users_data], resource_name='users')
     except Exception as e:
-        logger.error(f"Failed to fetch users on call for schedule {schedule_id}: {e}")
-        raise RuntimeError(f"Failed to fetch users on call for schedule {schedule_id}: {e}") from e
+        utils.handle_api_error(e)

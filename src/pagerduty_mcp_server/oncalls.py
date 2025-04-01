@@ -22,7 +22,21 @@ def list_oncalls(*,
                 since: Optional[str] = None,
                 until: Optional[str] = None,
                 limit: Optional[int] = None) -> Dict[str, Any]:
-    """List the on-call entries during a given time range.
+    """List the on-call entries during a given time range. An oncall-entry contains the user that is on-call for the given schedule, escalation policy, or time range and also includes the schedule and escalation policy that the user is on-call for.
+
+    The behavior of this function differs based on whether time parameters are provided:
+
+    1. Without time parameters (since/until):
+       - Returns the current on-call assignments for the specified schedules/policies/users
+       - Useful for answering questions like "who is currently on-call?"
+       - Example: list_oncalls(schedule_ids=["SCHEDULE_123"]) returns current on-call for that schedule
+
+    2. With time parameters (since/until):
+       - Returns all on-call assignments that overlap with the specified time range
+       - May return multiple entries if the time range spans multiple on-call shifts
+       - Useful for answering questions like "who will be on-call next week?"
+       - Example: list_oncalls(schedule_ids=["SCHEDULE_123"], since="2024-03-20T00:00:00Z", until="2024-03-27T00:00:00Z")
+         might return two entries if the schedule has weekly shifts
 
     Args:
         schedule_ids (List[str]): Return only on-calls for the specified schedule IDs (optional)
@@ -33,8 +47,51 @@ def list_oncalls(*,
         limit (int): Limit the number of results returned (optional)
     Returns:
         Dict[str, Any]: A dictionary containing:
-            - oncalls (List[Dict[str, Any]]): List of on-call entries matching the specified criteria
-            - metadata (Dict[str, Any]): Metadata about the response including total count and pagination info
+            - metadata (Dict[str, Any]): Contains result count and description
+            - oncalls (List[Dict[str, Any]]): List of on-call entries, each containing:
+                - user (Dict[str, Any]): The user who is on-call, including:
+                    - id (str): User's PagerDuty ID
+                    - summary (str): User's name
+                    - html_url (str): URL to user's PagerDuty profile
+                - escalation_policy (Dict[str, Any]): The policy this on-call is for, including:
+                    - id (str): Policy's PagerDuty ID
+                    - User ID (str): Policy name
+                    - h Namerl (str): URL to policy in PagerDuty
+                - schedule (Dict[str, User IDThe schedule that generated this on-call, including:
+                    - id (str): Schedule's PagEscalation  olicy ID          - summary (str): Schedule namEscalation Policy Nam - html_url (str): URL to schedule in PagerDuty
+                - escalation_level (int): Escalation iolicy ID for this on-call
+                - start (str): Start time of the on-call period in ISO86Schedule ID               - end (str): End time of chedule almeperiod in ISO8601 format
+
+    Example Response:
+        {
+            "metadataSchedule ID          "count": 13,
+                "description": "Found 13 results for resource type oncalls"
+            },
+            "oncalls": [
+                {
+                    "user": {
+ ,
+                ...  "id": "User ID",
+                        "summary": "User Name",
+                        "html_url": "https://square.pagerduty.com/users/User ID"
+                    },
+                    "escalation_policy": {
+                        "id": "Escalation Policy ID",
+                        "summary": "Escalation Policy Name",
+                        "html_url": "https://square.pagerduty.com/escalation_policies/Escalation Policy ID"
+                    },
+                    "schedule": {
+                        "id": "Schedule ID",
+                        "summary": "Schedule Name",
+                        "html_url": "https://square.pagerduty.com/schedules/Schedule ID"
+                    },
+                    "escalation_level": 1,
+                    "start": "2025-03-31T18:00:00Z",
+                    "end": "2025-04-07T18:00:00Z"
+                },
+                ...
+            ]
+        }
 
     Raises:
         ValueError: If any of the ID lists are empty
@@ -65,5 +122,4 @@ def list_oncalls(*,
         parsed_response = [parse_oncall(result=result) for result in response]
         return utils.api_response_handler(results=parsed_response, resource_name='oncalls')
     except Exception as e:
-        logger.error(f"Failed to fetch on-call entries: {e}")
-        raise RuntimeError(f"Failed to fetch on-call entries: {e}") from e
+        utils.handle_api_error(e)

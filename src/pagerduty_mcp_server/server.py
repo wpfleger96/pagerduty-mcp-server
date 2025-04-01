@@ -12,7 +12,6 @@ from . import schedules
 from . import services
 from . import teams
 from . import users
-from . import utils
 
 logger = logging.getLogger(__name__)
 server = FastMCP(
@@ -45,7 +44,7 @@ def list_escalation_policies(*,
     if current_user_context:
         if user_ids is not None or team_ids is not None:
             raise ValueError("Cannot specify user_ids or team_ids when current_user_context is True.")
-        user_context = utils.build_user_context()
+        user_context = users.build_user_context()
         user_ids = [user_context['user_id']]
         team_ids = user_context['team_ids']
     elif not (user_ids or team_ids):
@@ -104,7 +103,7 @@ def list_incidents(*,
     if current_user_context:
         if service_ids is not None or team_ids is not None:
             raise ValueError("Cannot specify service_ids or team_ids when current_user_context is True.")
-        user_context = utils.build_user_context()
+        user_context = users.build_user_context()
         team_ids = user_context['team_ids']
         service_ids = user_context['service_ids']
     elif not (service_ids or team_ids):
@@ -202,28 +201,88 @@ def list_oncalls(*,
                 since: Optional[str] = None,
                 until: Optional[str] = None,
                 limit: Optional[int] = None) -> Dict[str, Any]:
-    """List the on-call entries during a given time range.
+    """List the on-call entries during a given time range. An oncall-entry contains the user that is on-call for the given schedule, escalation policy, or time range and also includes the schedule and escalation policy that the user is on-call for.
+
+    The behavior of this function differs based on whether time parameters are provided:
+
+    1. Without time parameters (since/until):
+       - Returns the current on-call assignments for the specified schedules/policies/users
+       - Useful for answering questions like "who is currently on-call?"
+       - Example: list_oncalls(schedule_ids=["SCHEDULE_123"]) returns current on-call for that schedule
+
+    2. With time parameters (since/until):
+       - Returns all on-call assignments that overlap with the specified time range
+       - May return multiple entries if the time range spans multiple on-call shifts
+       - Useful for answering questions like "who will be on-call next week?"
+       - Example: list_oncalls(schedule_ids=["SCHEDULE_123"], since="2024-03-20T00:00:00Z", until="2024-03-27T00:00:00Z")
+         might return two entries if the schedule has weekly shifts
 
     Args:
-        current_user_context (bool): Use the current user's ID to filter (default: True, cannot be used with user_ids or escalation_policy_ids)
+        current_user_context (bool): If True, shows on-calls for the current user's team's escalation policies. Cannot be used with user_ids. (default: True)
         schedule_ids (List[str]): Return only on-calls for the specified schedule IDs (optional)
         user_ids (List[str]): Return only on-calls for the specified user IDs (optional, cannot be used with current_user_context)
-        escalation_policy_ids (List[str]): Return only on-calls for the specified escalation policy IDs (optional, cannot be used with current_user_context)
+        escalation_policy_ids (List[str]): Return only on-calls for the specified escalation policy IDs (optional)
         since (str): Start of date range in ISO8601 format (optional). Default is 1 month ago
         until (str): End of date range in ISO8601 format (optional). Default is now
         limit (int): Limit the number of results returned (optional)
 
     Returns:
-        Dict[str, Any]: Dictionary containing metadata (count, description) and a list of on-call entries matching the specified criteria
+        Dict[str, Any]: A dictionary containing:
+            - metadata (Dict[str, Any]): Contains result count and description
+            - oncalls (List[Dict[str, Any]]): List of on-call entries, each containing:
+                - user (Dict[str, Any]): The user who is on-call, including:
+                    - id (str): User's PagerDuty ID
+                    - summary (str): User's name
+                    - html_url (str): URL to user's PagerDuty profile
+                - escalation_policy (Dict[str, Any]): The policy this on-call is for, including:
+                    - id (str): Policy's PagerDuty ID
+                    - summary (str): Policy name
+                    - html_url (str): URL to policy in PagerDuty
+                - schedule (Dict[str, Any]): The schedule that generated this on-call, including:
+                    - id (str): Schedule's PagerDuty ID
+                    - summary (str): Schedule name
+                    - html_url (str): URL to schedule in PagerDuty
+                - escalation_level (int): The escalation level for this on-call
+                - start (str): Start time of the on-call period in ISO8601 format
+                - end (str): End time of the on-call period in ISO8601 format
+
+    Example Response:
+        {
+            "metadata": {
+                "count": 13,
+                "description": "Found 13 results for resource type oncalls"
+            },
+            "oncalls": [
+                {
+                    "user": {
+                        "id": "User ID",
+                        "summary": "User Name",
+                        "html_url": "https://square.pagerduty.com/users/User ID"
+                    },
+                    "escalation_policy": {
+                        "id": "Escalation Policy ID",
+                        "summary": "Escalation Policy Name",
+                        "html_url": "https://square.pagerduty.com/escalation_policies/Escalation Policy ID"
+                    },
+                    "schedule": {
+                        "id": "Schedule ID",
+                        "summary": "Schedule Name",
+                        "html_url": "https://square.pagerduty.com/schedules/Schedule ID"
+                    },
+                    "escalation_level": 1,
+                    "start": "2025-03-31T18:00:00Z",
+                    "end": "2025-04-07T18:00:00Z"
+                }
+            ]
+        }
     """
     if current_user_context:
-        if user_ids is not None or escalation_policy_ids is not None:
-            raise ValueError("Cannot specify user_ids or escalation_policy_ids when current_user_context is True.")
-        user_context = utils.build_user_context()
-        user_ids = [user_context['user_id']]
+        if user_ids is not None:
+            raise ValueError("Cannot specify user_ids when current_user_context is True.")
+        user_context = users.build_user_context()
         escalation_policy_ids = user_context['escalation_policy_ids']
-    elif not (user_ids or escalation_policy_ids):
-        raise ValueError("Must specify at least user_ids or escalation_policy_ids when current_user_context is False.")
+    elif not (schedule_ids or user_ids or escalation_policy_ids):
+        raise ValueError("When current_user_context is False, must specify at least one of: schedule_ids, user_ids, or escalation_policy_ids")
 
     return oncalls.list_oncalls(
         user_ids=user_ids,
@@ -320,7 +379,7 @@ def list_services(*,
     if current_user_context:
         if team_ids is not None:
             raise ValueError("Cannot specify team_ids when current_user_context is True.")
-        user_context = utils.build_user_context()
+        user_context = users.build_user_context()
         team_ids = user_context['team_ids']
     elif not team_ids:
         raise ValueError("Must specify at least team_ids when current_user_context is False.")
@@ -384,6 +443,32 @@ def show_team(*,
 Users Tools
 """
 @server.tool()
+def build_user_context() -> Dict[str, Any]:
+    """Validate and build the current user's context into a dictionary with the following format:
+        {
+            "user_id": str,
+            "team_ids": List[str],
+            "service_ids": List[str],
+            "escalation_policy_ids": List[str]
+        }
+    The MCP server tools use this user context to filter the following resources:
+        - Escalation policies
+        - Incidents
+        - Oncalls
+        - Services
+        - Users
+
+    Returns:
+        Dict[str, Any]: Dictionary containing the current user's ID, team IDs, and service IDs.
+            If the user context cannot be built (e.g., API errors or invalid user), returns a dictionary
+            with empty strings for user_id and empty lists for all other fields.
+
+    Raises:
+        RuntimeError: If there are API errors while fetching user data
+    """
+    return users.build_user_context()
+
+@server.tool()
 def show_current_user() -> Dict[str, Any]:
     """Get the current user's PagerDuty profile including their teams, contact methods, and notification rules.
 
@@ -441,7 +526,7 @@ def list_users(*,
     if current_user_context:
         if team_ids is not None:
             raise ValueError("Cannot specify team_ids when current_user_context is True.")
-        user_context = utils.build_user_context()
+        user_context = users.build_user_context()
         team_ids = user_context['team_ids']
     elif not team_ids:
         raise ValueError("Must specify at least team_ids when current_user_context is False.")

@@ -1,6 +1,7 @@
 """Unit tests for the services module."""
 
 import pytest
+from unittest.mock import MagicMock
 
 from pagerduty_mcp_server import services
 from pagerduty_mcp_server.parsers.service_parser import parse_service
@@ -52,7 +53,7 @@ def test_list_services_api_error(mock_get_api_client):
 
     with pytest.raises(RuntimeError) as exc_info:
         services.list_services()
-    assert str(exc_info.value) == "Failed to fetch services: API Error"
+    assert str(exc_info.value) == "API Error"
 
 @pytest.mark.unit
 @pytest.mark.services
@@ -82,7 +83,7 @@ def test_fetch_service_ids_api_error(mock_get_api_client, mock_team_ids):
 
     with pytest.raises(RuntimeError) as exc_info:
         services.fetch_service_ids(team_ids=mock_team_ids)
-    assert str(exc_info.value) == f"Failed to fetch services for teams {mock_team_ids}: API Error"
+    assert str(exc_info.value) == "API Error"
 
 @pytest.mark.unit
 @pytest.mark.services
@@ -122,7 +123,7 @@ def test_show_service_api_error(mock_get_api_client):
 
     with pytest.raises(RuntimeError) as exc_info:
         services.show_service(service_id=service_id)
-    assert str(exc_info.value) == f"Failed to fetch service {service_id}: API Error"
+    assert str(exc_info.value) == "API Error"
 
 @pytest.mark.unit
 @pytest.mark.services
@@ -133,7 +134,7 @@ def test_show_service_invalid_response(mock_get_api_client):
 
     with pytest.raises(RuntimeError) as exc_info:
         services.show_service(service_id=service_id)
-    assert str(exc_info.value) == f"Failed to fetch service {service_id}: 'service'"
+    assert str(exc_info.value) == "Failed to fetch service 123: Response missing 'service' field"
 
 @pytest.mark.unit
 @pytest.mark.parsers
@@ -149,3 +150,17 @@ def test_parse_service(mock_services, mock_services_parsed):
 def test_parse_service_none():
     """Test that parse_service handles None input correctly."""
     assert parse_service(result=None) == {}
+
+@pytest.mark.unit
+@pytest.mark.services
+def test_list_services_preserves_full_error_message(mock_get_api_client):
+    """Test that list_services preserves the full error message from the API response."""
+    mock_response = MagicMock()
+    mock_response.text = '{"error":{"message":"Invalid Input Provided","code":2001,"errors":["Invalid team ID format"]}}'
+    mock_error = RuntimeError("API Error")
+    mock_error.response = mock_response
+    mock_get_api_client.list_all.side_effect = mock_error
+
+    with pytest.raises(RuntimeError) as exc_info:
+        services.list_services()
+    assert str(exc_info.value) == "API Error"

@@ -53,8 +53,7 @@ def list_services(*,
         parsed_response = [parse_service(result=result) for result in response]
         return utils.api_response_handler(results=parsed_response, resource_name='services')
     except Exception as e:
-        logger.error(f"Failed to fetch services: {e}")
-        raise RuntimeError(f"Failed to fetch services: {e}") from e
+        utils.handle_api_error(e)
 
 def show_service(*,
                 service_id: str) -> Dict[str, Any]:
@@ -71,6 +70,7 @@ def show_service(*,
     Raises:
         ValueError: If service_id is None or empty
         RuntimeError: If the API request fails or response processing fails
+        KeyError: If the API response is missing required fields
     """
 
     if not service_id:
@@ -79,11 +79,18 @@ def show_service(*,
     pd_client = client.get_api_client()
 
     try:
-        response = pd_client.jget(f"{SERVICES_URL}/{service_id}")['service']
-        return utils.api_response_handler(results=parse_service(result=response), resource_name='service')
+        response = pd_client.jget(f"{SERVICES_URL}/{service_id}")
+        try:
+            service_data = response['service']
+        except KeyError:
+            raise RuntimeError(f"Failed to fetch service {service_id}: Response missing 'service' field")
+            
+        return utils.api_response_handler(
+            results=parse_service(result=service_data),
+            resource_name='service'
+        )
     except Exception as e:
-        logger.error(f"Failed to fetch service {service_id}: {e}")
-        raise RuntimeError(f"Failed to fetch service {service_id}: {e}") from e
+        utils.handle_api_error(e)
 
 
 """
@@ -110,5 +117,4 @@ def fetch_service_ids(*,
         parsed_response = [parse_service(result=result) for result in services_response]
         return [service['id'] for service in parsed_response]
     except Exception as e:
-        logger.error(f"Failed to fetch services for teams {team_ids}: {e}")
-        raise RuntimeError(f"Failed to fetch services for teams {team_ids}: {e}") from e
+        utils.handle_api_error(e)

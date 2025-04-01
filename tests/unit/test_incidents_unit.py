@@ -1,6 +1,7 @@
 """Unit tests for the incidents module."""
 
 import pytest
+from unittest.mock import MagicMock
 
 from pagerduty_mcp_server import incidents
 from pagerduty_mcp_server.parsers import parse_incident
@@ -381,7 +382,7 @@ def test_show_incident_api_error(mock_get_api_client):
 
     with pytest.raises(RuntimeError) as exc_info:
         incidents.show_incident(incident_id=incident_id)
-    assert str(exc_info.value) == f"Failed to fetch or process incident {incident_id}: API Error"
+    assert str(exc_info.value) == "API Error"
 
 @pytest.mark.unit
 @pytest.mark.incidents
@@ -498,7 +499,7 @@ def test_list_past_incidents_api_error(mock_get_api_client):
 
     with pytest.raises(RuntimeError) as exc_info:
         incidents.list_past_incidents(incident_id=incident_id)
-    assert str(exc_info.value) == f"Failed to fetch or process past incidents for {incident_id}: API Error"
+    assert str(exc_info.value) == "API Error"
 
 @pytest.mark.unit
 @pytest.mark.incidents
@@ -509,7 +510,7 @@ def test_list_past_incidents_invalid_response(mock_get_api_client):
 
     with pytest.raises(RuntimeError) as exc_info:
         incidents.list_past_incidents(incident_id=incident_id)
-    assert str(exc_info.value) == f"Failed to fetch or process past incidents for {incident_id}: 'past_incidents'"
+    assert str(exc_info.value) == "Failed to fetch past incidents for 123: Response missing 'past_incidents' field"
 
 @pytest.mark.unit
 @pytest.mark.incidents
@@ -592,7 +593,7 @@ def test_list_related_incidents_api_error(mock_get_api_client):
 
     with pytest.raises(RuntimeError) as exc_info:
         incidents.list_related_incidents(incident_id=incident_id)
-    assert str(exc_info.value) == f"Failed to fetch or process related incidents for {incident_id}: API Error"
+    assert str(exc_info.value) == "API Error"
 
 @pytest.mark.unit
 @pytest.mark.incidents
@@ -603,7 +604,7 @@ def test_list_related_incidents_invalid_response(mock_get_api_client):
 
     with pytest.raises(RuntimeError) as exc_info:
         incidents.list_related_incidents(incident_id=incident_id)
-    assert str(exc_info.value) == f"Failed to fetch or process related incidents for {incident_id}: 'related_incidents'"
+    assert str(exc_info.value) == "Failed to fetch related incidents for 123: Response missing 'related_incidents' field"
 
 @pytest.mark.unit
 @pytest.mark.incidents
@@ -778,3 +779,17 @@ def test_calculate_incident_metadata_autoresolve_edge_cases():
         'autoresolve_count': 1,
         'no_data_count': 0
     }
+
+@pytest.mark.unit
+@pytest.mark.incidents
+def test_list_incidents_preserves_full_error_message(mock_get_api_client):
+    """Test that list_incidents preserves the full error message from the API response."""
+    mock_response = MagicMock()
+    mock_response.text = '{"error":{"message":"Invalid Input Provided","code":2001,"errors":["Invalid team ID format"]}}'
+    mock_error = RuntimeError("API Error")
+    mock_error.response = mock_response
+    mock_get_api_client.list_all.side_effect = mock_error
+
+    with pytest.raises(RuntimeError) as exc_info:
+        incidents.list_incidents()
+    assert str(exc_info.value) == "API Error"

@@ -4,11 +4,9 @@ from typing import List, Dict, Any, Optional, Union
 import logging
 from datetime import datetime
 
-from . import users, escalation_policies, teams, services
-
 logger = logging.getLogger(__name__)
 
-RESPONSE_LIMIT = 400
+RESPONSE_LIMIT = 500
 
 class ValidationError(Exception):
     """Raised when data validation fails."""
@@ -17,73 +15,6 @@ class ValidationError(Exception):
 """
 Utils public methods
 """
-
-def build_user_context() -> Dict[str, Any]:
-    """Validate and build the current user's context into a dictionary with the following format:
-        {
-            "user_id": str,
-            "team_ids": List[str],
-            "service_ids": List[str],
-            "escalation_policy_ids": List[str]
-        }
-    The MCP server tools use this user context to filter the following resources:
-        - Escalation policies
-        - Incidents
-        - Oncalls
-        - Services
-        - Users
-
-    Returns:
-        Dict[str, Any]: Dictionary containing the current user's ID, team IDs, and service IDs.
-            If the user context cannot be built (e.g., API errors or invalid user), returns a dictionary
-            with empty strings for user_id and empty lists for all other fields.
-
-    Raises:
-        RuntimeError: If there are API errors while fetching user data
-    """
-    empty_context = {
-        "user_id": "",
-        "team_ids": [],
-        "service_ids": [],
-        "escalation_policy_ids": []
-    }
-
-    try:
-        user = users.show_current_user()
-        if not user or 'id' not in user or not user['id']:
-            return empty_context
-
-        user_id = str(user['id'])
-        context = {**empty_context, "user_id": user_id}
-
-        try:
-            team_ids = teams.fetch_team_ids(user=user)
-            team_ids = [str(tid) for tid in team_ids if tid and isinstance(tid, str) and str(tid).strip()]
-            context["team_ids"] = team_ids
-        except Exception as e:
-            logger.error(f"Failed to fetch team IDs: {e}")
-            return context
-
-        try:
-            service_ids = services.fetch_service_ids(team_ids=team_ids) if team_ids else []
-            service_ids = [str(sid) for sid in service_ids if sid and isinstance(sid, str) and str(sid).strip()]
-            context["service_ids"] = service_ids
-        except Exception as e:
-            logger.error(f"Failed to fetch service IDs: {e}")
-            return context
-
-        try:
-            escalation_policy_ids = escalation_policies.fetch_escalation_policy_ids(user_id=user_id)
-            escalation_policy_ids = [str(epid) for epid in escalation_policy_ids if epid and isinstance(epid, str) and str(epid).strip()]
-            context["escalation_policy_ids"] = escalation_policy_ids
-        except Exception as e:
-            logger.error(f"Failed to fetch escalation policy IDs: {e}")
-            return context
-
-        return context
-    except Exception as e:
-        logger.error(f"Failed to build user context: {e}")
-        return empty_context
 
 def api_response_handler(*,
                         results: Union[Dict[str, Any], List[Dict[str, Any]]],
@@ -165,3 +96,21 @@ def validate_iso8601_timestamp(timestamp: str, param_name: str) -> None:
         datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
     except ValueError as e:
         raise ValidationError(f"Invalid ISO8601 timestamp for {param_name}: {timestamp}. Error: {str(e)}")
+
+def handle_api_error(e: Exception) -> None:
+    """Log the error and re-raise the original exception.
+
+    Args:
+        e: The exception that was raised
+
+    Raises:
+        The original exception without modification
+    """
+    # Get the full error message from the response if available
+    if hasattr(e, 'response') and e.response is not None:
+        error_message = e.response.text
+    else:
+        error_message = str(e)
+
+    logger.error(error_message)
+    raise e
