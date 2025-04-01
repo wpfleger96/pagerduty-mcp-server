@@ -1,0 +1,123 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# pagerduty-mcp-server Rules
+
+This file provides context for how Goose and large language models should interact with the pagerduty-mcp-server repository.
+
+## Repository Overview
+`pagerduty-mcp-server` is an MCP server that allows Goose and other LLMs to interact with the PagerDuty API. It provides a structured interface for querying and managing PagerDuty resources like incidents, services, teams, and users.
+
+### Project Structure
+Reference the following project structure when looking for files but note it is non-exhaustive:
+```text
+.
+├─ src/
+│  ├─ pagerduty_mcp_server/        # Main package directory
+│  │  ├─ __init__.py              # Package initialization
+│  │  ├─ __main__.py              # Entry point for running the server
+│  │  ├─ server.py                # Core server implementation that exposes submodule functionality as MCP server tools
+│  │  ├─ client.py                # PagerDuty API client submodule
+│  │  ├─ utils.py                 # Utility functions submodule
+│  │  ├─ incidents.py             # Incident management submodule
+│  │  ├─ services.py              # Service management submodule
+│  │  ├─ teams.py                 # Team management submodule
+│  │  ├─ users.py                 # User management submodule
+│  │  ├─ schedules.py             # Schedule management submodule
+│  │  ├─ oncalls.py               # On-call management submodule
+│  │  ├─ escalation_policies.py   # Escalation policy management submodule
+│  │  └─ parsers/                 # Response parsing utilities
+│  └─ pagerduty_mcp_server.egg-info/  # Package metadata
+├─ tests/                      # Test suite
+│  ├─ unit/                    # Unit tests
+│  ├─ integration/             # Integration tests
+│  ├─ fixtures/                # Test fixtures
+│  └─ conftest.py              # Pytest configuration
+├─ docs/                       # Documentation
+├─ .venv/                      # Python virtual environment
+├─ pyproject.toml              # Project configuration
+├─ uv.lock                     # Dependency lock file
+├─ CHANGELOG.md                # Version history
+├─ README.md                   # Project documentation
+```
+
+## Development Guide
+When writing new code for pagerduty-mcp-server, follow these guidelines:
+1. All API responses must follow the standard format with metadata, resource list, and optional error
+2. Resource names in responses must be pluralized for consistency
+3. All functions that return a single item must return a list with one element
+4. Error responses must include both a message and a code
+5. All timestamps must be in ISO8601 format
+6. Tests must be marked with appropriate pytest markers:
+   - Type: unit/integration
+   - Resource: incidents, teams, etc.
+   - Parser tests: "parsers" marker
+7. Follow Python 3.13+ best practices
+8. Use type hints consistently
+9. Document all public functions and classes
+10. Keep functions focused and single-purpose
+11. Use meaningful variable names
+12. Handle errors gracefully with appropriate error codes
+13. Respect PagerDuty API rate limits
+14. Implement proper pagination handling
+
+## Documentation
+For more detailed information about the project refer to:
+- [README.md](mdc:README.md) - Project overview and setup instructions
+- [tools.md](mdc:docs/tools.md) - Detailed tool documentation
+- [CHANGELOG.md](mdc:CHANGELOG.md) - Version history and changes
+
+## Development Commands
+```bash
+uv sync                    # Install dependencies
+uv run pytest              # Run all tests
+uv run pytest -m unit      # Run only unit tests
+uv run pytest -m integration  # Run only integration tests
+uv run pytest -m parsers   # Run only parser tests
+uv run pytest -m "unit and incidents" # Run only unit tests for the incidents submodule
+uv run python -m pagerduty_mcp_server  # Run the server
+```
+
+## Testing Guidelines
+- Set `PAGERDUTY_API_KEY` in environment before running full test suite
+- Unit tests and parser tests should not require API access
+- Integration tests require API access and for `PAGERDUTY_API_KEY` to be set in environment
+
+## API Response Format
+All responses follow this structure:
+```json
+{
+  "metadata": {
+    "count": <int>,
+    "description": "<str>"
+  },
+  <resource_type>: [
+    {
+      ...
+    }
+  ],
+  "error": {  // Optional
+    "message": "<str>",
+    "code": "<str>"
+  }
+}
+```
+
+## User Context Rules
+- Many functions accept `current_user_context` parameter (defaults to `True`)
+- When `current_user_context=True`:
+  - Cannot use `user_ids` filter
+  - For incidents: cannot use `team_ids` or `service_ids`
+  - For services: cannot use `team_ids`
+  - For escalation policies: cannot use `team_ids`
+  - For on-calls: cannot use `user_ids` (can use `schedule_ids`)
+
+## Version Control
+- Follow Conventional Commits for automated releases:
+  - `feat:` → minor version
+  - `fix:` → patch version
+  - `BREAKING CHANGE:` → major version
+- The [release.yml](mdc:.github/workflows/release.yml) workflow automatically updates [CHANGELOG.md](mdc:CHANGELOG.md) and GitHub releases based on Conventional Commit messages
+- The [publish.yml](mdc:.github/workflows/publish.yml) workflow automatically publishes new releases to PyPi after the Release workflow runs
