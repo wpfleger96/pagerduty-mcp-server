@@ -16,6 +16,8 @@ def build_user_context() -> Dict[str, Any]:
     """Validate and build the current user's context into a dictionary with the following format:
         {
             "user_id": str,
+            "name": str,
+            "email": str,
             "team_ids": List[str],
             "service_ids": List[str],
             "escalation_policy_ids": List[str]
@@ -30,59 +32,52 @@ def build_user_context() -> Dict[str, Any]:
     Returns:
         Dict[str, Any]: A dictionary containing:
             - user_id (str): The current user's PagerDuty ID
+            - name (str): The current user's full name
+            - email (str): The current user's email address
             - team_ids (List[str]): List of team IDs the user belongs to
             - service_ids (List[str]): List of service IDs associated with the user's teams
             - escalation_policy_ids (List[str]): List of escalation policy IDs the user is part of
             If there are API errors or the user context cannot be built, returns a dictionary
-            with empty string for user_id and empty lists for all other fields.
+            with empty string for user_id, name, and email, and empty lists for all other fields.
 
     Raises:
         RuntimeError: If there are API errors while fetching user data
         KeyError: If the API response is missing required fields
     """
-    empty_context = {
-        "user_id": "",
-        "team_ids": [],
-        "service_ids": [],
-        "escalation_policy_ids": []
-    }
-
     try:
         user = show_current_user()
-        if not user or 'id' not in user or not user['id']:
-            return empty_context
+        context = {
+            "user_id": str(user['id']).strip() if user.get('id') else "",
+            "name": user.get('name', ''),
+            "email": user.get('email', ''),
+            "team_ids": [],
+            "service_ids": [],
+            "escalation_policy_ids": []
+        }
 
-        user_id = str(user['id'])
-        context = {**empty_context, "user_id": user_id}
+        if not context["user_id"]:
+            raise ValueError("Invalid user ID")
 
-        try:
-            team_ids = teams.fetch_team_ids(user=user)
-            team_ids = [str(tid) for tid in team_ids if tid and isinstance(tid, str) and str(tid).strip()]
-            context["team_ids"] = team_ids
-        except Exception as e:
-            logger.error(f"Failed to fetch team IDs: {e}")
-            return context
+        team_ids = teams.fetch_team_ids(user=user)
+        context["team_ids"] = [str(tid).strip() for tid in team_ids if tid]
 
-        try:
-            service_ids = services.fetch_service_ids(team_ids=team_ids) if team_ids else []
-            service_ids = [str(sid) for sid in service_ids if sid and isinstance(sid, str) and str(sid).strip()]
-            context["service_ids"] = service_ids
-        except Exception as e:
-            logger.error(f"Failed to fetch service IDs: {e}")
-            return context
+        service_ids = services.fetch_service_ids(team_ids=context["team_ids"]) if context["team_ids"] else []
+        context["service_ids"] = [str(sid).strip() for sid in service_ids if sid]
 
-        try:
-            escalation_policy_ids = escalation_policies.fetch_escalation_policy_ids(user_id=user_id)
-            escalation_policy_ids = [str(epid) for epid in escalation_policy_ids if epid and isinstance(epid, str) and str(epid).strip()]
-            context["escalation_policy_ids"] = escalation_policy_ids
-        except Exception as e:
-            logger.error(f"Failed to fetch escalation policy IDs: {e}")
-            return context
+        escalation_policy_ids = escalation_policies.fetch_escalation_policy_ids(user_id=context["user_id"])
+        context["escalation_policy_ids"] = [str(epid).strip() for epid in escalation_policy_ids if epid]
 
         return context
-    except Exception as e:
+    except (ValueError, KeyError, RuntimeError) as e:
         logger.error(f"Failed to build user context: {e}")
-        return empty_context
+        return {
+            "user_id": "",
+            "name": "",
+            "email": "",
+            "team_ids": [],
+            "service_ids": [],
+            "escalation_policy_ids": []
+        }
 
 USERS_URL = '/users'
 
@@ -114,12 +109,15 @@ def show_current_user() -> Dict[str, Any]:
     Raises:
         RuntimeError: If the API request fails or response processing fails
         KeyError: If the API response is missing required fields
+        ValueError: If the user object is missing an ID
     """
-
     pd_client = client.get_api_client()
     try:
         response = pd_client.jget(USERS_URL + '/me')['user']
-        return parse_user(result=response)
+        user = parse_user(result=response)
+        if not user or 'id' not in user or not user['id']:
+            raise ValueError("Invalid user object: missing ID")
+        return user
     except Exception as e:
         utils.handle_api_error(e)
 
