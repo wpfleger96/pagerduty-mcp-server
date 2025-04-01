@@ -1,0 +1,212 @@
+[
+    {
+        "user": {
+            "id": "USER1",
+            "type": "user_reference",
+            "summary": "User 1",
+            "self": "https://api.pagerduty.com/users/USER1",
+            "html_url": "https://square.pagerduty.com/users/USER1"
+        },
+        "escalation_policy": {
+            "id": "POLICY1",
+            "type": "escalation_policy_reference",
+            "summary": "Policy 1",
+            "self": "https://api.pagerduty.com/escalation_policies/POLICY1",
+            "html_url": "https://square.pagerduty.com/escalation_policies/POLICY1"
+        },
+        "schedule": {
+            "id": "SCHED1",
+            "type": "schedule_reference",
+            "summary": "Schedule 1",
+            "self": "https://api.pagerduty.com/schedules/SCHED1",
+            "html_url": "https://square.pagerduty.com/schedules/SCHED1"
+        },
+        "escalation_level": 1,
+        "start": "2024-03-17T18:00:00Z",
+        "end": "2024-03-24T18:00:00Z",
+        "self": "https://api.pagerduty.com/oncalls/ONCALL1",
+        "html_url": "https://square.pagerduty.com/oncalls/ONCALL1",
+        "time_zone": "UTC",
+        "rendered_coverage_percentage": 100
+    },
+    {
+        "user": {
+            "id": "USER1",
+            "type": "user_reference",
+            "summary": "User 1",
+            "self": "https://api.pagerduty.com/users/USER1",
+            "html_url": "https://square.pagerduty.com/users/USER1"
+        },
+        "escalation_policy": {
+            "id": "POLICY1",
+            "type": "escalation_policy_reference",
+            "summary": "Policy 1",
+            "self": "https://api.pagerduty.com/escalation_policies/POLICY1",
+            "html_url": "https://square.pagerduty.com/escalation_policies/POLICY1"
+        },
+        "schedule": {
+            "id": "SCHED1",
+            "type": "schedule_reference",
+            "summary": "Schedule 1",
+            "self": "https://api.pagerduty.com/schedules/SCHED1",
+            "html_url": "https://square.pagerduty.com/schedules/SCHED1"
+        },
+        "escalation_level": 1,
+        "start": "2024-03-24T18:00:00Z",
+        "end": "2024-03-31T18:00:00Z",
+        "self": "https://api.pagerduty.com/oncalls/ONCALL2",
+        "html_url": "https://square.pagerduty.com/oncalls/ONCALL2",
+        "time_zone": "UTC",
+        "rendered_coverage_percentage": 100
+    },
+    {
+        "user": {
+            "id": "USER2",
+            "type": "user_reference",
+            "summary": "User 2",
+            "self": "https://api.pagerduty.com/users/USER2",
+            "html_url": "https://square.pagerduty.com/users/USER2"
+        },
+        "escalation_policy": {
+            "id": "POLICY1",
+            "type": "escalation_policy_reference",
+            "summary": "Policy 1",
+            "self": "https://api.pagerduty.com/escalation_policies/POLICY1",
+            "html_url": "https://square.pagerduty.com/escalation_policies/POLICY1"
+        },
+        "schedule": {
+            "id": "SCHED2",
+            "type": "schedule_reference",
+            "summary": "Schedule 2",
+            "self": "https://api.pagerduty.com/schedules/SCHED2",
+            "html_url": "https://square.pagerduty.com/schedules/SCHED2"
+        },
+        "escalation_level": 2,
+        "start": "2024-03-24T13:00:00Z",
+        "end": "2024-03-24T18:00:00Z",
+        "self": "https://api.pagerduty.com/oncalls/ONCALL3",
+        "html_url": "https://square.pagerduty.com/oncalls/ONCALL3",
+        "time_zone": "UTC",
+        "rendered_coverage_percentage": 100
+    },
+    {
+        "user": {
+            "id": "USER2",
+            "type": "user_reference",
+            "summary": "User 2",
+            "self": "https://api.pagerduty.com/users/USER2",
+            "html_url": "https://square.pagerduty.com/users/USER2"
+        },
+        "escalation_policy": {
+            "id": "POLICY1",
+            "type": "escalation_policy_reference",
+            "summary": "Policy 1",
+            "self": "https://api.pagerduty.com/escalation_policies/POLICY1",
+            "html_url": "https://square.pagerduty.com/escalation_policies/POLICY1"
+        },
+        "schedule": {
+            "id": "SCHED2",
+            "type": "schedule_reference",
+            "summary": "Schedule 2",
+            "self": "https://api.pagerduty.com/schedules/SCHED2",
+            "html_url": "https://square.pagerduty.com/schedules/SCHED2"
+        },
+        "escalation_level": 2,
+        "start": "2024-03-25T13:00:00Z",
+        "end": "2024-03-25T21:00:00Z",
+        "self": "https://api.pagerduty.com/oncalls/ONCALL4",
+        "html_url": "https://square.pagerduty.com/oncalls/ONCALL4",
+        "time_zone": "UTC",
+        "rendered_coverage_percentage": 100
+    },
+    {
+        "user": {
+            "id": "USER3",
+            "type": "user_reference",
+            "summary": "User 3",
+            "self": "https://api.pagerduty.com/users/USER3",
+            "html_url": "https://square.pagerduty.com/users/USER3"
+        },
+        "escalation_policy": {
+            "id": "POLICY1",
+            "type": "escalation_policy_reference",
+            "summary": "Policy 1",
+            "self": "https://api.pagerduty.com/escalation_policies/POLICY1",
+            "html_url": "https://square.pagerduty.com/escalation_policies/POLICY1"
+        },
+        "schedule": {
+            "id": "SCHED3",
+            "type": "schedule_reference",
+            "summary": "Schedule 3",
+            "self": "https://api.pagerduty.com/schedules/SCHED3",
+            "html_url": "https://square.pagerduty.com/schedules/SCHED3"
+        },
+        "escalation_level": 2,
+        "start": "2024-03-24T15:00:00Z",
+        "end": "2024-03-25T00:00:00Z",
+        "self": "https://api.pagerduty.com/oncalls/ONCALL5",
+        "html_url": "https://square.pagerduty.com/oncalls/ONCALL5",
+        "time_zone": "UTC",
+        "rendered_coverage_percentage": 100
+    },
+    {
+        "user": {
+            "id": "USER3",
+            "type": "user_reference",
+            "summary": "User 3",
+            "self": "https://api.pagerduty.com/users/USER3",
+            "html_url": "https://square.pagerduty.com/users/USER3"
+        },
+        "escalation_policy": {
+            "id": "POLICY1",
+            "type": "escalation_policy_reference",
+            "summary": "Policy 1",
+            "self": "https://api.pagerduty.com/escalation_policies/POLICY1",
+            "html_url": "https://square.pagerduty.com/escalation_policies/POLICY1"
+        },
+        "schedule": {
+            "id": "SCHED3",
+            "type": "schedule_reference",
+            "summary": "Schedule 3",
+            "self": "https://api.pagerduty.com/schedules/SCHED3",
+            "html_url": "https://square.pagerduty.com/schedules/SCHED3"
+        },
+        "escalation_level": 2,
+        "start": "2024-03-25T15:00:00Z",
+        "end": "2024-03-26T00:00:00Z",
+        "self": "https://api.pagerduty.com/oncalls/ONCALL6",
+        "html_url": "https://square.pagerduty.com/oncalls/ONCALL6",
+        "time_zone": "UTC",
+        "rendered_coverage_percentage": 100
+    },
+    {
+        "user": {
+            "id": "USER4",
+            "type": "user_reference",
+            "summary": "User 4",
+            "self": "https://api.pagerduty.com/users/USER4",
+            "html_url": "https://square.pagerduty.com/users/USER4"
+        },
+        "escalation_policy": {
+            "id": "POLICY1",
+            "type": "escalation_policy_reference",
+            "summary": "Policy 1",
+            "self": "https://api.pagerduty.com/escalation_policies/POLICY1",
+            "html_url": "https://square.pagerduty.com/escalation_policies/POLICY1"
+        },
+        "schedule": {
+            "id": "SCHED4",
+            "type": "schedule_reference",
+            "summary": "Schedule 4",
+            "self": "https://api.pagerduty.com/schedules/SCHED4",
+            "html_url": "https://square.pagerduty.com/schedules/SCHED4"
+        },
+        "escalation_level": 3,
+        "start": "2021-08-04T21:52:39Z",
+        "end": "2025-07-14T20:58:59Z",
+        "self": "https://api.pagerduty.com/oncalls/ONCALL7",
+        "html_url": "https://square.pagerduty.com/oncalls/ONCALL7",
+        "time_zone": "UTC",
+        "rendered_coverage_percentage": 100
+    }
+] 

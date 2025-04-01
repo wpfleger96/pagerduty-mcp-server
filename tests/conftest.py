@@ -87,6 +87,16 @@ def mock_oncalls_parsed(load_fixture):
     return load_fixture("oncalls_parsed.json")
 
 @pytest.fixture
+def mock_oncalls_earliest(load_fixture):
+    """Loads mock oncalls from oncalls_earliest_raw.json."""
+    return load_fixture("oncalls_earliest_raw.json")
+
+@pytest.fixture
+def mock_oncalls_earliest_parsed(load_fixture):
+    """Loads mock oncalls from oncalls_earliest_parsed.json."""
+    return load_fixture("oncalls_earliest_parsed.json")
+
+@pytest.fixture
 def mock_schedules(load_fixture):
     """Loads mock schedules from schedules.json."""
     return load_fixture("schedules_raw.json")

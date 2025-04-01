@@ -258,7 +258,8 @@ def list_oncalls(*,
                 escalation_policy_ids: Optional[List[str]] = None,
                 since: Optional[str] = None,
                 until: Optional[str] = None,
-                limit: Optional[int] = None) -> Dict[str, Any]:
+                limit: Optional[int] = None,
+                earliest: Optional[bool] = None) -> Dict[str, Any]:
     """List the on-call entries during a given time range. An oncall-entry contains the user that is on-call for the given schedule, escalation policy, or time range and also includes the schedule and escalation policy that the user is on-call for.
 
     The behavior of this function differs based on whether time parameters are provided:
@@ -283,6 +284,7 @@ def list_oncalls(*,
         since (str): Start of date range in ISO8601 format (optional). Default is 1 month ago
         until (str): End of date range in ISO8601 format (optional). Default is now
         limit (int): Limit the number of results returned (optional)
+        earliest (bool): If True, only returns the earliest on-call for each combination of escalation policy, escalation level, and user. Useful for determining when the "next" on-calls are for a given set of filters. (optional)
 
     Returns:
         Dict[str, Any]: A dictionary containing:
@@ -323,7 +325,8 @@ def list_oncalls(*,
         escalation_policy_ids=escalation_policy_ids,
         since=since,
         until=until,
-        limit=limit
+        limit=limit,
+        earliest=earliest
     )
 
 """

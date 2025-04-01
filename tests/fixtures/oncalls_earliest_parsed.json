@@ -1,0 +1,82 @@
+[
+    {
+        "user": {
+            "id": "USER1",
+            "summary": "User 1",
+            "html_url": "https://square.pagerduty.com/users/USER1"
+        },
+        "escalation_policy": {
+            "id": "POLICY1",
+            "summary": "Policy 1",
+            "html_url": "https://square.pagerduty.com/escalation_policies/POLICY1"
+        },
+        "schedule": {
+            "id": "SCHED1",
+            "summary": "Schedule 1",
+            "html_url": "https://square.pagerduty.com/schedules/SCHED1"
+        },
+        "escalation_level": 1,
+        "start": "2024-03-17T18:00:00Z",
+        "end": "2024-03-24T18:00:00Z"
+    },
+    {
+        "user": {
+            "id": "USER2",
+            "summary": "User 2",
+            "html_url": "https://square.pagerduty.com/users/USER2"
+        },
+        "escalation_policy": {
+            "id": "POLICY1",
+            "summary": "Policy 1",
+            "html_url": "https://square.pagerduty.com/escalation_policies/POLICY1"
+        },
+        "schedule": {
+            "id": "SCHED2",
+            "summary": "Schedule 2",
+            "html_url": "https://square.pagerduty.com/schedules/SCHED2"
+        },
+        "escalation_level": 2,
+        "start": "2024-03-24T13:00:00Z",
+        "end": "2024-03-24T18:00:00Z"
+    },
+    {
+        "user": {
+            "id": "USER3",
+            "summary": "User 3",
+            "html_url": "https://square.pagerduty.com/users/USER3"
+        },
+        "escalation_policy": {
+            "id": "POLICY1",
+            "summary": "Policy 1",
+            "html_url": "https://square.pagerduty.com/escalation_policies/POLICY1"
+        },
+        "schedule": {
+            "id": "SCHED3",
+            "summary": "Schedule 3",
+            "html_url": "https://square.pagerduty.com/schedules/SCHED3"
+        },
+        "escalation_level": 2,
+        "start": "2024-03-24T15:00:00Z",
+        "end": "2024-03-25T00:00:00Z"
+    },
+    {
+        "user": {
+            "id": "USER4",
+            "summary": "User 4",
+            "html_url": "https://square.pagerduty.com/users/USER4"
+        },
+        "escalation_policy": {
+            "id": "POLICY1",
+            "summary": "Policy 1",
+            "html_url": "https://square.pagerduty.com/escalation_policies/POLICY1"
+        },
+        "schedule": {
+            "id": "SCHED4",
+            "summary": "Schedule 4",
+            "html_url": "https://square.pagerduty.com/schedules/SCHED4"
+        },
+        "escalation_level": 3,
+        "start": "2021-08-04T21:52:39Z",
+        "end": "2025-07-14T20:58:59Z"
+    }
+] 

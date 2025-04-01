@@ -450,6 +450,12 @@ The behavior of this function differs based on whether time parameters are provi
    - Example: list_oncalls(schedule_ids=["SCHEDULE_123"], since="2024-03-20T00:00:00Z", until="2024-03-27T00:00:00Z")
      might return two entries if the schedule has weekly shifts
 
+#### Escalation Levels
+PagerDuty uses a hierarchical escalation system:
+- Level 1: Primary on-call. This is the engineer who is currently on-call and will receive the initial incident notifications.
+- Level 2: Backup on-call. If the primary (Level 1) doesn't acknowledge an incident within the configured delay period, it will be escalated to the backup on-call.
+- Level 3: Final escalation path. This is typically used as a final backup if neither the primary nor backup respond to an incident.
+
 #### Parameters
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
@@ -460,6 +466,7 @@ The behavior of this function differs based on whether time parameters are provi
 | **since** | `str` | No | Start of date range in ISO8601 format (optional). Default is 1 month ago |
 | **until** | `str` | No | End of date range in ISO8601 format (optional). Default is now |
 | **limit** | `int` | No | Limit the number of results returned (optional) |
+| **earliest** | `bool` | No | If True, only returns the earliest on-call for each unique combination of escalation policy, escalation level, and user. For example, if a user has multiple shifts at level 1 for a policy, only their earliest shift will be returned. This is particularly useful for determining upcoming on-call shifts or finding the next on-call for each person/level. (optional) |
 
 #### Returns
 Dict[str, Any]: A dictionary containing:
@@ -520,7 +527,32 @@ Here are common ways an LLM might want to query on-calls:
 
 1. Find who is currently on-call for my team's escalation policies:
 ```python
-list_oncalls()  # Uses current_user_context=True by default
+from datetime import datetime
+
+# Get current on-calls for the user's team's escalation policies
+current_oncalls = list_oncalls()  # Uses current_user_context=True by default
+
+# Get current time in UTC
+now = datetime.utcnow()
+
+# Filter to only show current Level 1 (primary) on-calls
+primary_oncalls = [
+    oncall for oncall in current_oncalls["oncalls"]
+    if oncall["escalation_level"] == 1
+    and datetime.fromisoformat(oncall["start"].replace("Z", "+00:00")) <= now
+    and datetime.fromisoformat(oncall["end"].replace("Z", "+00:00")) > now
+]
+
+# Print current on-calls
+if primary_oncalls:
+    print("Current primary on-calls:")
+    for oncall in primary_oncalls:
+        user = oncall["user"]["summary"]
+        policy = oncall["escalation_policy"]["summary"]
+        schedule = oncall["schedule"]["summary"]
+        print(f"- {user} is on-call for {policy} (Schedule: {schedule})")
+else:
+    print("No one is currently on-call")
 ```
 
 2. Find who is currently on-call for a specific schedule:
@@ -660,6 +692,59 @@ for shift in future_shifts["oncalls"]:
     print(f"On-call shift: {start} to {end}")
 ```
 
+10. Find the earliest on-call shift for each user at each level in a policy:
+```python
+# Query next month's on-call shifts for a specific policy
+next_month_shifts = list_oncalls(
+    current_user_context=False,
+    escalation_policy_ids=["POLICY_123"],
+    since=datetime.utcnow().isoformat(),
+    until=(datetime.utcnow() + timedelta(days=30)).isoformat(),
+    earliest=True  # Get earliest shift for each user/level combination
+)
+
+# Group shifts by level to see all users at each level
+shifts_by_level = {}
+for shift in next_month_shifts["oncalls"]:
+    level = shift["escalation_level"]
+    if level not in shifts_by_level:
+        shifts_by_level[level] = []
+    shifts_by_level[level].append(shift)
+
+for level, shifts in sorted(shifts_by_level.items()):
+    print(f"\nLevel {level} earliest on-calls:")
+    for shift in shifts:
+        user = shift["user"]["summary"]
+        start = datetime.fromisoformat(shift["start"].replace("Z", "+00:00"))
+        print(f"- {user}'s earliest shift starts at {start}")
+```
+
+11. Find the earliest on-call shifts for each user (across all levels and policies):
+```python
+# Get all users in my teams
+users_response = list_users()
+
+# For each user, find their earliest shifts at each level/policy
+for user in users_response["users"]:
+    next_shifts = list_oncalls(
+        current_user_context=False,
+        user_ids=[user["id"]],
+        since=datetime.utcnow().isoformat(),
+        until=(datetime.utcnow() + timedelta(days=30)).isoformat(),
+        earliest=True  # Get earliest shift for each level/policy combination
+    )
+    
+    if next_shifts["oncalls"]:
+        print(f"\n{user['name']}'s earliest on-call shifts:")
+        for shift in next_shifts["oncalls"]:
+            policy = shift["escalation_policy"]["summary"]
+            level = shift["escalation_level"]
+            start = datetime.fromisoformat(shift["start"].replace("Z", "+00:00"))
+            print(f"- {policy} Level {level} starting at {start}")
+    else:
+        print(f"\n{user['name']} has no upcoming on-call shifts in the next 30 days")
+```
+
 When handling on-call queries, keep these tips in mind:
 
 1. When answering "who is currently on-call?" questions:
@@ -670,14 +755,29 @@ When handling on-call queries, keep these tips in mind:
 2. When answering "when is my next on-call?" questions:
    - Use current_user_context=False and specify user_ids=[current_user_id]
    - Specify a future time range with since=now and until=future_date
-   - Sort the results by start time to find the next shift
+   - Use earliest=True to get only the earliest shift for each policy/level combination
+   - Remember you may get multiple shifts if the user is on different levels or policies
 
 3. When answering "who is on-call next week?" questions:
    - Use current_user_context=True to get the team's escalation policies
    - Specify the exact time range for next week
    - Process all entries in the oncalls list as there may be multiple shifts
+   - Use earliest=True if you only want the first shift for each person at each level
 
-4. When handling time ranges:
+4. When using earliest=True:
+   - You'll get one shift per unique combination of (user, policy, level)
+   - If a user has multiple shifts at the same level in a policy, only their earliest shift is returned
+   - A user may still appear multiple times if they're on different levels or policies
+   - Results are ordered by start time within each unique combination
+
+5. When handling escalation levels:
+   - Level 1 is the primary on-call who receives initial incident notifications
+   - Level 2 is the backup who gets escalated after the configured delay period
+   - Level 3 serves as the final escalation path
+   - When users ask about "who is on-call", they usually mean Level 1
+   - When showing future rotations, consider showing all levels to give the full picture
+
+6. When handling time ranges:
    - Always use ISO8601 format for timestamps
    - Consider timezone implications when displaying times
    - Use datetime objects for easier time manipulation and display

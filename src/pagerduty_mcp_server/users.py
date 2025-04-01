@@ -10,6 +10,8 @@ from . import teams
 from . import utils
 from .parsers import parse_user
 
+USERS_URL = '/users'
+
 logger = logging.getLogger(__name__)
 
 def build_user_context() -> Dict[str, Any]:
@@ -37,17 +39,19 @@ def build_user_context() -> Dict[str, Any]:
             - team_ids (List[str]): List of team IDs the user belongs to
             - service_ids (List[str]): List of service IDs associated with the user's teams
             - escalation_policy_ids (List[str]): List of escalation policy IDs the user is part of
-            If there are API errors or the user context cannot be built, returns a dictionary
-            with empty string for user_id, name, and email, and empty lists for all other fields.
 
     Raises:
-        RuntimeError: If there are API errors while fetching user data
+        RuntimeError: If there are API errors while fetching user data or related resources
         KeyError: If the API response is missing required fields
+        ValueError: If the user data is invalid or missing required fields
     """
     try:
         user = show_current_user()
+        if not user:
+            raise ValueError("Failed to get current user data")
+
         context = {
-            "user_id": str(user['id']).strip() if user.get('id') else "",
+            "user_id": str(user.get('id', '')).strip(),
             "name": user.get('name', ''),
             "email": user.get('email', ''),
             "team_ids": [],
@@ -56,30 +60,22 @@ def build_user_context() -> Dict[str, Any]:
         }
 
         if not context["user_id"]:
-            raise ValueError("Invalid user ID")
+            raise ValueError("Invalid user data: missing or empty user ID")
 
         team_ids = teams.fetch_team_ids(user=user)
-        context["team_ids"] = [str(tid).strip() for tid in team_ids if tid]
+        context["team_ids"] = [str(tid).strip() for tid in team_ids if tid and str(tid).strip()]
 
-        service_ids = services.fetch_service_ids(team_ids=context["team_ids"]) if context["team_ids"] else []
-        context["service_ids"] = [str(sid).strip() for sid in service_ids if sid]
+        if context["team_ids"]:
+            service_ids = services.fetch_service_ids(team_ids=context["team_ids"])
+            context["service_ids"] = [str(sid).strip() for sid in service_ids if sid and str(sid).strip()]
 
         escalation_policy_ids = escalation_policies.fetch_escalation_policy_ids(user_id=context["user_id"])
-        context["escalation_policy_ids"] = [str(epid).strip() for epid in escalation_policy_ids if epid]
+        context["escalation_policy_ids"] = [str(epid).strip() for epid in escalation_policy_ids if epid and str(epid).strip()]
 
         return context
-    except (ValueError, KeyError, RuntimeError) as e:
-        logger.error(f"Failed to build user context: {e}")
-        return {
-            "user_id": "",
-            "name": "",
-            "email": "",
-            "team_ids": [],
-            "service_ids": [],
-            "escalation_policy_ids": []
-        }
 
-USERS_URL = '/users'
+    except Exception as e:
+        utils.handle_api_error(e)
 
 """
 Users API Helpers
