@@ -12,8 +12,44 @@ from . import services
 from . import teams
 from . import users
 
+instructions = """
+PagerDuty MCP Server Instructions
+
+PagerDuty is an incident management platform. This server provides tools for interacting with PagerDuty resources like incidents, services, teams, and users. Follow these key guidelines:
+
+1. USER CONTEXT
+   - Most tools use current_user_context=True by default
+   - This restricts results to resources the current user can access
+   - Set current_user_context=False to query resources outside your scope
+
+2. QUERY FILTERING
+   - All list operations support a limit parameter, but prefer chunking queries instead
+   - When dealing with large datasets, split your query into smaller chunks by:
+     * Time periods (e.g., query incidents from last week, then the week before)
+     * Resource types (e.g., query incidents for each service separately)
+     * Using more specific filters (e.g., by team, by status)
+
+3. RESPONSE FORMAT
+   All responses follow this format:
+   {
+     "metadata": { "count": <number>, "description": "<summary>" },
+     "<resource_type>": [ <list of resources> ],
+     "error": { "message": "<error>", "code": "<code>" }  // Optional
+   }
+   Always check for the presence of an error object before processing results.
+
+REQUIRED READING: You MUST read docs/tools.md before using any tools. This file contains:
+- Detailed parameter descriptions for each tool
+- Example queries for common use cases
+- Error handling guidance
+- Rate limiting and pagination rules
+- Complete response format specifications
+Failure to read the tools documentation may result in incorrect or incomplete results.
+"""
+
 server = FastMCP(
-    name="pagerduty_mcp_server"
+    name="pagerduty_mcp_server",
+    instructions=instructions
 )
 
 """
