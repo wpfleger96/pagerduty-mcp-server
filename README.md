@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/wpfleger96-pagerduty-mcp-server-badge.png)](https://mseep.ai/app/wpfleger96-pagerduty-mcp-server)
+
 # PagerDuty MCP Server
 A server that exposes PagerDuty API functionality to LLMs. This server is designed to be used programmatically, with structured inputs and outputs.
 
