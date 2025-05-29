@@ -65,6 +65,21 @@ PAGERDUTY_API_KEY=your_api_key_here
 }
 ```
 
+### Claude/Cursor
+```json
+{
+  "mcpServers": {
+    "pagerduty-mcp-server": {
+      "command": "uvx",
+      "args": [pagerduty-mcp-server"],
+      "env": {
+          "PAGERDUTY_API_KEY": __PAGERDUTY_API_KEY__
+      }
+    }
+  }
+}
+```
+
 ### As Standalone Server
 ```sh
 uv run python -m pagerduty_mcp_server
