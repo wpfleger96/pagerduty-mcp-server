@@ -6,6 +6,7 @@ from importlib.metadata import version
 
 logger = logging.getLogger(__name__)
 
+
 def get_api_client():
     """Get a configured PagerDuty API client.
 

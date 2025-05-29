@@ -6,4 +6,4 @@ from pagerduty_mcp_server import server
 @pytest.mark.server
 def test_server():
     """Test that the server initializes correctly."""
-    assert server.name == 'pagerduty_mcp_server'
+    assert server.mcp.name == 'pagerduty_mcp_server'

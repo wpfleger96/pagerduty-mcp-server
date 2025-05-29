@@ -2,7 +2,7 @@
 
 from typing import List, Dict, Any, Optional, Union
 
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
 
 from . import escalation_policies
 from . import incidents
@@ -47,7 +47,7 @@ REQUIRED READING: You MUST read docs/tools.md before using any tools. This file 
 Failure to read the tools documentation may result in incorrect or incomplete results.
 """
 
-server = FastMCP(
+mcp = FastMCP(
     name="pagerduty_mcp_server",
     instructions=instructions
 )
@@ -55,7 +55,7 @@ server = FastMCP(
 """
 Escalation Policies Tools
 """
-@server.tool()
+@mcp.tool()
 def list_escalation_policies(*,
                             current_user_context: bool = True,
                             query: Optional[str] = None,
@@ -99,7 +99,7 @@ def list_escalation_policies(*,
         limit=limit
     )
 
-@server.tool()
+@mcp.tool()
 def show_escalation_policy(*,
                           policy_id: str) -> Dict[str, Any]:
     """Show details about a given escalation policy.
@@ -126,7 +126,7 @@ def show_escalation_policy(*,
 """
 Incidents Tools
 """
-@server.tool()
+@mcp.tool()
 def list_incidents(*,
                    current_user_context: bool = True,
                    service_ids: Optional[List[str]] = None,
@@ -189,7 +189,7 @@ def list_incidents(*,
         limit=limit
     )
 
-@server.tool()
+@mcp.tool()
 def show_incident(*,
                  incident_id: str) -> Dict[str, Any]:
     """Get detailed information about a given incident.
@@ -212,7 +212,7 @@ def show_incident(*,
     """
     return incidents.show_incident(incident_id=incident_id)
 
-@server.tool()
+@mcp.tool()
 def list_past_incidents(*,
                        incident_id: str,
                        limit: Optional[int] = None,
@@ -252,7 +252,7 @@ def list_past_incidents(*,
         total=total
     )
 
-@server.tool()
+@mcp.tool()
 def list_related_incidents(*,
                          incident_id: str) -> Dict[str, Any]:
     """List the 20 most recent related incidents that are impacting other services and responders.
@@ -286,7 +286,7 @@ def list_related_incidents(*,
 """
 Oncalls Tools
 """
-@server.tool()
+@mcp.tool()
 def list_oncalls(*,
                 current_user_context: bool = True,
                 schedule_ids: Optional[List[str]] = None,
@@ -368,7 +368,7 @@ def list_oncalls(*,
 """
 Schedules Tools
 """
-@server.tool()
+@mcp.tool()
 def list_schedules(*,
                   query: Optional[str] = None,
                   limit: Optional[int] = None) -> Dict[str, Any]:
@@ -394,7 +394,7 @@ def list_schedules(*,
         limit=limit
     )
 
-@server.tool()
+@mcp.tool()
 def show_schedule(*,
                 schedule_id: str,
                 since: Optional[str] = None,
@@ -426,7 +426,7 @@ def show_schedule(*,
         until=until
     )
 
-@server.tool()
+@mcp.tool()
 def list_users_oncall(*,
                      schedule_id: str,
                      since: Optional[str] = None,
@@ -461,7 +461,7 @@ def list_users_oncall(*,
 """
 Services Tools
 """
-@server.tool()
+@mcp.tool()
 def list_services(*,
                   current_user_context: bool = True,
                   team_ids: Optional[List[str]] = None,
@@ -501,7 +501,7 @@ def list_services(*,
         limit=limit
     )
 
-@server.tool()
+@mcp.tool()
 def show_service(*,
                 service_id: str) -> Dict[str, Any]:
     """Get details about a given service.
@@ -528,7 +528,7 @@ def show_service(*,
 """
 Teams Tools
 """
-@server.tool()
+@mcp.tool()
 def list_teams(*,
                query: Optional[str] = None,
                limit: Optional[int] = None) -> Dict[str, Any]:
@@ -554,7 +554,7 @@ def list_teams(*,
         limit=limit
     )
 
-@server.tool()
+@mcp.tool()
 def show_team(*,
               team_id: str) -> Dict[str, Any]:
     """Get detailed information about a given team.
@@ -581,7 +581,7 @@ def show_team(*,
 """
 Users Tools
 """
-@server.tool()
+@mcp.tool()
 def build_user_context() -> Dict[str, Any]:
     """Validate and build the current user's context into a dictionary with the following format:
         {
@@ -607,7 +607,7 @@ def build_user_context() -> Dict[str, Any]:
     """
     return users.build_user_context()
 
-@server.tool()
+@mcp.tool()
 def show_current_user() -> Dict[str, Any]:
     """Get the current user's PagerDuty profile including their teams, contact methods, and notification rules.
 
@@ -634,7 +634,7 @@ def show_current_user() -> Dict[str, Any]:
     """
     return users.show_current_user()
 
-@server.tool()
+@mcp.tool()
 def list_users(*,
                current_user_context: bool = True,
                team_ids: Optional[List[str]] = None,
@@ -674,7 +674,7 @@ def list_users(*,
         limit=limit
     )
 
-@server.tool()
+@mcp.tool()
 def show_user(*,
             user_id: str) -> Dict[str, Any]:
     """Get detailed information about a given user.
