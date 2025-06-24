@@ -1,9 +1,9 @@
 """Parser for PagerDuty users."""
 
-from typing import Dict, Any
+from typing import Any, Dict
 
-def parse_user(*,
-              result: Dict[str, Any]) -> Dict[str, Any]:
+
+def parse_user(*, result: Dict[str, Any]) -> Dict[str, Any]:
     """Parses a raw user API response into a structured format without unneeded fields.
 
     Args:
@@ -12,23 +12,13 @@ def parse_user(*,
     Returns:
         Dict[str, Any]: A dictionary containing:
             - id (str): The user ID
-            - html_url (str): URL to view the user in PagerDuty
             - name (str): The user's name
             - email (str): The user's email
-            - time_zone (str): The user's time zone
-            - color (str): The user's color preference
-            - avatar_url (str): URL to the user's avatar
-            - billed (bool): Whether the user is billed
-            - role (str): The user's role
             - description (str): The user's description
-            - invitation_sent (bool): Whether an invitation was sent
-            - job_title (str): The user's job title
-            - locale (str): The user's locale
             - type (str): The user's type
-            - summary (str): The user's summary
-            - teams (List[Dict]): List of teams with id, type, summary, and html_url
-            - contact_methods (List[Dict]): List of contact methods with id, type, summary, and html_url
-            - notification_rules (List[Dict]): List of notification rules with id, type, summary, and html_url
+            - teams (List[Dict]): List of teams with id, type, and summary
+            - contact_methods (List[Dict]): List of contact methods with id, type, and summary
+            - notification_rules (List[Dict]): List of notification rules with id, type
 
     Note:
         If the input is None or not a dictionary, returns an empty dictionary.
@@ -41,47 +31,79 @@ def parse_user(*,
     if not result:
         return {}
 
-    return {
-        "id": result.get("id"),
-        "html_url": result.get("html_url"),
-        "name": result.get("name"),
-        "email": result.get("email"),
-        "time_zone": result.get("time_zone"),
-        "color": result.get("color"),
-        "avatar_url": result.get("avatar_url"),
-        "billed": result.get("billed"),
-        "role": result.get("role"),
-        "description": result.get("description"),
-        "invitation_sent": result.get("invitation_sent"),
-        "job_title": result.get("job_title"),
-        "locale": result.get("locale"),
-        "type": result.get("type"),
-        "summary": result.get("summary"),
-        "teams": [
-            {
-                "id": team.get("id"),
-                "type": team.get("type"),
-                "summary": team.get("summary"),
-                "html_url": team.get("html_url")
-            }
-            for team in result.get("teams", [])
-        ],
-        "contact_methods": [
-            {
-                "id": method.get("id"),
-                "type": method.get("type"),
-                "summary": method.get("summary"),
-                "html_url": method.get("html_url")
-            }
-            for method in result.get("contact_methods", [])
-        ],
-        "notification_rules": [
-            {
-                "id": rule.get("id"),
-                "type": rule.get("type"),
-                "summary": rule.get("summary"),
-                "html_url": rule.get("html_url")
-            }
-            for rule in result.get("notification_rules", [])
-        ]
-    }
+    parsed_user = {}
+
+    # Simple fields
+    simple_fields = [
+        "id",
+        "name",
+        "email",
+        "description",
+        "type",
+    ]
+    for field in simple_fields:
+        value = result.get(field)
+        if value is not None:
+            parsed_user[field] = value
+
+    # Parse teams
+    teams = result.get("teams", [])
+    if teams:
+        parsed_teams = []
+        for team in teams:
+            if not team:
+                continue
+
+            parsed_team = {}
+            for field in ["id", "type", "summary"]:
+                value = team.get(field)
+                if value is not None:
+                    parsed_team[field] = value
+
+            if parsed_team:  # Only add if we have fields
+                parsed_teams.append(parsed_team)
+
+        if parsed_teams:
+            parsed_user["teams"] = parsed_teams
+
+    # Parse contact methods
+    contact_methods = result.get("contact_methods", [])
+    if contact_methods:
+        parsed_methods = []
+        for method in contact_methods:
+            if not method:
+                continue
+
+            parsed_method = {}
+            for field in ["id", "type", "summary"]:
+                value = method.get(field)
+                if value is not None:
+                    parsed_method[field] = value
+
+            if parsed_method:  # Only add if we have fields
+                parsed_methods.append(parsed_method)
+
+        if parsed_methods:
+            parsed_user["contact_methods"] = parsed_methods
+
+    # Parse notification rules
+    notification_rules = result.get("notification_rules", [])
+    if notification_rules:
+        parsed_rules = []
+        for rule in notification_rules:
+            if not rule:
+                continue
+
+            parsed_rule = {}
+            for field in ["id", "type"]:
+                value = rule.get(field)
+                if value is not None:
+                    parsed_rule[field] = value
+
+            if parsed_rule:  # Only add if we have fields
+                parsed_rules.append(parsed_rule)
+
+        if parsed_rules:
+            parsed_user["notification_rules"] = parsed_rules
+
+    return parsed_user

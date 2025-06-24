@@ -1,9 +1,9 @@
 """Parser for PagerDuty on-calls."""
 
-from typing import Dict, Any
+from typing import Any, Dict
 
-def parse_oncall(*,
-                 result: Dict[str, Any]) -> Dict[str, Any]:
+
+def parse_oncall(*, result: Dict[str, Any]) -> Dict[str, Any]:
     """Parses a raw on-call API response into a structured format without unneeded fields.
 
     Args:
@@ -11,12 +11,12 @@ def parse_oncall(*,
 
     Returns:
         Dict[str, Any]: A dictionary containing:
-            - escalation_policy (Optional[Dict]): Policy information with id, summary, and html_url (None if not present)
-            - escalation_level (Optional[int]): Level in the escalation policy (None if not present)
-            - schedule (Optional[Dict]): Schedule information with id, summary, and html_url (None if not present)
-            - user (Optional[Dict]): User information with id, summary, and html_url (None if not present)
-            - start (Optional[str]): Start time in ISO 8601 format (None if not present)
-            - end (Optional[str]): End time in ISO 8601 format (None if not present)
+            - escalation_policy (Optional[Dict]): Policy information with id and summary
+            - escalation_level (Optional[int]): Level in the escalation policy
+            - schedule (Optional[Dict]): Schedule information with id and summary
+            - user (Optional[Dict]): User information with id and summary
+            - start (Optional[str]): Start time in ISO 8601 format
+            - end (Optional[str]): End time in ISO 8601 format
 
     Note:
         If the input is None or not a dictionary, returns an empty dictionary.
@@ -28,23 +28,37 @@ def parse_oncall(*,
     if not result:
         return {}
 
-    return {
-        "escalation_policy": {
-            "id": result.get("escalation_policy", {}).get("id"),
-            "summary": result.get("escalation_policy", {}).get("summary"),
-            "html_url": result.get("escalation_policy", {}).get("html_url")
-        } if result.get("escalation_policy") else None,
-        "escalation_level": result.get("escalation_level"),
-        "schedule": {
-            "id": result.get("schedule", {}).get("id"),
-            "summary": result.get("schedule", {}).get("summary"),
-            "html_url": result.get("schedule", {}).get("html_url")
-        } if result.get("schedule") else None,
-        "user": {
-            "id": result.get("user", {}).get("id"),
-            "summary": result.get("user", {}).get("summary"),
-            "html_url": result.get("user", {}).get("html_url")
-        } if result.get("user") else None,
-        "start": result.get("start"),
-        "end": result.get("end")
-    }
+    parsed_oncall = {}
+
+    # Simple fields
+    simple_fields = ["escalation_level", "start", "end"]
+    for field in simple_fields:
+        value = result.get(field)
+        if value is not None:
+            parsed_oncall[field] = value
+
+    # Parse escalation policy
+    escalation_policy = result.get("escalation_policy")
+    if escalation_policy and escalation_policy.get("id"):
+        parsed_ep = {"id": escalation_policy.get("id")}
+        if escalation_policy.get("summary"):
+            parsed_ep["summary"] = escalation_policy.get("summary")
+        parsed_oncall["escalation_policy"] = parsed_ep
+
+    # Parse schedule
+    schedule = result.get("schedule")
+    if schedule and schedule.get("id"):
+        parsed_schedule = {"id": schedule.get("id")}
+        if schedule.get("summary"):
+            parsed_schedule["summary"] = schedule.get("summary")
+        parsed_oncall["schedule"] = parsed_schedule
+
+    # Parse user
+    user = result.get("user")
+    if user and user.get("id"):
+        parsed_user = {"id": user.get("id")}
+        if user.get("summary"):
+            parsed_user["summary"] = user.get("summary")
+        parsed_oncall["user"] = parsed_user
+
+    return parsed_oncall

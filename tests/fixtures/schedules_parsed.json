@@ -1,28 +1,23 @@
 [
     {
         "id": "66c19f3b01",
-        "html_url": "https://pagerduty.com/schedules/66c19f3b01",
         "name": "Anonymized Schedule",
         "summary": "Anonymized Schedule",
-        "description": null,
         "time_zone": "America/Los_Angeles",
         "escalation_policies": [
             {
                 "id": "67863e198e",
-                "summary": "Anonymized Policy",
-                "html_url": "https://pagerduty.com/escalation_policies/67863e198e"
+                "summary": "Anonymized Policy"
             }
         ],
         "teams": [
             {
                 "id": "5fc61f8dfd",
-                "summary": "Anonymized Team",
-                "html_url": "https://pagerduty.com/teams/5fc61f8dfd"
+                "summary": "Anonymized Team"
             },
             {
                 "id": "ac7ae09a2a",
-                "summary": "Anonymized Team",
-                "html_url": "https://pagerduty.com/teams/ac7ae09a2a"
+                "summary": "Anonymized Team"
             }
         ],
         "schedule_layers": [
@@ -34,8 +29,7 @@
                 "users": [
                     {
                         "id": "c46a8c13b7",
-                        "summary": "Anonymized User",
-                        "html_url": "https://pagerduty.com/users/c46a8c13b7"
+                        "summary": "Anonymized User"
                     }
                 ]
             }

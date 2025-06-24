@@ -1,93 +1,86 @@
 """PagerDuty team operations."""
 
-from typing import List, Dict, Any, Optional
 import logging
+from typing import Any, Dict, List, Optional
 
-from . import client
-from .parsers import parse_team
 from . import utils
+from .client import create_client
+from .parsers import parse_team
 
 logger = logging.getLogger(__name__)
 
-TEAMS_URL = '/teams'
+TEAMS_URL = "/teams"
 
 """
 Teams API Helpers
 """
 
-def list_teams(*,
-               query: Optional[str] = None,
-               limit: Optional[int] = None) -> Dict[str, Any]:
-    """List teams in your PagerDuty account.
+
+def list_teams(
+    *, query: Optional[str] = None, limit: Optional[int] = None
+) -> Dict[str, Any]:
+    """List teams in your PagerDuty account. Exposed as MCP server tool.
 
     Args:
         query (str): Filter teams whose names contain the search query (optional)
         limit (int): Limit the number of results returned (optional)
 
     Returns:
-        Dict[str, Any]: A dictionary containing:
-            - teams (List[Dict[str, Any]]): List of team objects matching the specified criteria
-            - metadata (Dict[str, Any]): Metadata about the response including:
-                - count (int): Total number of results
-                - description (str): Description of the results
-            - error (Optional[Dict[str, Any]]): Error information if the API request fails
+        See the "Standard Response Format" section in `tools.md` for the complete standard response structure.
+        The response will contain a list of teams with their configuration and member information.
 
     Raises:
-        RuntimeError: If the API request fails or response processing fails
-        KeyError: If the API response is missing required fields
+        See the "Error Handling" section in `tools.md` for common error scenarios.
     """
 
-    pd_client = client.get_api_client()
+    pd_client = create_client()
 
     params = {}
     if query:
-        params['query'] = query
+        params["query"] = query
     if limit:
-        params['limit'] = limit
+        params["limit"] = limit
 
     try:
         response = pd_client.list_all(TEAMS_URL, params=params)
         parsed_response = [parse_team(result=team) for team in response]
-        return utils.api_response_handler(results=parsed_response, resource_name='teams')
+        return utils.api_response_handler(
+            results=parsed_response, resource_name="teams"
+        )
     except Exception as e:
         utils.handle_api_error(e)
 
-def show_team(*,
-             team_id: str) -> Dict[str, Any]:
-    """Get detailed information about a given team.
+
+def show_team(*, team_id: str) -> Dict[str, Any]:
+    """Get detailed information about a given team. Exposed as MCP server tool.
 
     Args:
         team_id (str): The ID of the team to get
 
     Returns:
-        Dict[str, Any]: A dictionary containing:
-            - team (Dict[str, Any]): Team object with detailed information
-            - metadata (Dict[str, Any]): Metadata about the response including:
-                - count (int): Always 1 for single resource responses
-                - description (str): Description of the result
-            - error (Optional[Dict[str, Any]]): Error information if the API request fails
+        See the "Standard Response Format" section in `tools.md` for the complete standard response structure.
+        The response will contain a single team with detailed configuration and member information.
 
     Raises:
-        ValueError: If team_id is None or empty
-        RuntimeError: If the API request fails or response processing fails
-        KeyError: If the API response is missing required fields
+        See the "Error Handling" section in `tools.md` for common error scenarios.
     """
 
     if team_id is None:
         raise ValueError("team_id must be specified")
 
-    pd_client = client.get_api_client()
+    pd_client = create_client()
 
     try:
         response = pd_client.jget(f"{TEAMS_URL}/{team_id}")
         try:
-            team_data = response['team']
+            team_data = response["team"]
         except KeyError:
-            raise RuntimeError(f"Failed to fetch team {team_id}: Response missing 'team' field")
-            
+            raise RuntimeError(
+                f"Failed to fetch team {team_id}: Response missing 'team' field"
+            )
+
         return utils.api_response_handler(
-            results=parse_team(result=team_data),
-            resource_name='team'
+            results=parse_team(result=team_data), resource_name="team"
         )
     except Exception as e:
         utils.handle_api_error(e)
@@ -97,9 +90,9 @@ def show_team(*,
 Teams Helpers
 """
 
-def fetch_team_ids(*,
-                   user: Dict[str, Any]) -> List[str]:
-    """Get the team IDs for a user.
+
+def fetch_team_ids(*, user: Dict[str, Any]) -> List[str]:
+    """Get the team IDs for a user. Internal helper function.
 
     Args:
         user (Dict[str, Any]): The user object containing a teams field with team information
@@ -115,4 +108,4 @@ def fetch_team_ids(*,
         KeyError: If user is None or missing the 'teams' field
     """
 
-    return [team['id'] for team in user['teams']]
+    return [team["id"] for team in user["teams"]]

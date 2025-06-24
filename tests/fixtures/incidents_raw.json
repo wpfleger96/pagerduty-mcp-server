@@ -71,7 +71,66 @@
         "title": "Incident 123",
         "type": "incident",
         "updated_at": "2025-02-17T23:27:00Z",
-        "urgency": "high"
+        "urgency": "high",
+        "body": {
+            "details": {
+                "__pd_cef_payload": {
+                    "client": "Datadog",
+                    "client_url": "https://example.datadoghq.com/monitors/123456?group=env%3Aproduction&from_ts=1745234973000&to_ts=1745236173000&event_id=1234567890123456789&link_source=monitor_notif",
+                    "contexts": [
+                        {
+                            "alt": "Snapshot of metric",
+                            "href": "https://example.datadoghq.com/monitors/123456?group=env%3Aproduction&from_ts=1745234973000&to_ts=1745236173000&event_id=1234567890123456789&link_source=monitor_notif",
+                            "src": "https://p.datadoghq.com/snapshot/view/dd-snapshots-prod/org_123456/2025-04-21/8c49ccf7fbaf60d919d1cc7e4dca53f2361f83b8.png",
+                            "type": "image"
+                        },
+                        {
+                            "href": "https://example.datadoghq.com/monitors/123456?group=env%3Aproduction&from_ts=1745234973000&to_ts=1745236173000&event_id=1234567890123456789&link_source=monitor_notif",
+                            "text": "Monitor Status",
+                            "type": "link"
+                        },
+                        {
+                            "href": "https://example.datadoghq.com/monitors/triggered?link_source=monitor_notif",
+                            "text": "Triggered Monitors",
+                            "type": "link"
+                        }
+                    ],
+                    "creation_time": "2025-04-21T11:44:33Z",
+                    "dedup_key": "53ceed2d-dd0d-bdef-3fc2-487bb1c4cc34",
+                    "description": "[ORG][team][service]: Anomaly: Number of Responses - Anomalous 200s Drop for ServiceName on env:production",
+                    "details": {
+                        "body": "The number of 200 responses is anomalous compared to the same 30-minute window a week ago for the ServiceName API.\nOncall engineer should first look into datadog: https://example.datadoghq.com/dashboard/abc-123/service-metrics?fromUser=false&fullscreen_end_ts=1720629828993&fullscreen_paused=false&fullscreen_refresh_mode=sliding&fullscreen_section=overview&fullscreen_start_ts=1720543428993&fullscreen_widget=5166521952505604&refresh_mode=sliding&tile_focus=5166521952505604&view=spans&from_ts=1720543383592&to_ts=1720629783592&live=true\nto check there isn't a spike occurring from something like an enumeration attack or a sudden drop due to an outage. As a potential follow-up, you can consult https://example.com/docs/troubleshooting for relevant logs \n\n\n  @pagerduty-team-service-terraform\n  \n\n\n\n\n\n\n\n\n\nPercent anomalous: 100.0%",
+                        "event_id": "1234567890123456789",
+                        "event_type": "query_alert_monitor",
+                        "monitor_state": "Triggered",
+                        "org": "Example",
+                        "priority": "normal",
+                        "query": "min(last_30m):\nanomalies(sum:framework.actions.service_api.clients.response_codes{service:service AND (env:production) AND region IN (*) AND api:service AND code:200s} by {env}, 'agile', 2, direction='below', alert_window='last_30m', interval=60, count_default_zero='true', seasonality='weekly')\n> 1",
+                        "tags": "api:service, code:200s, env:production, integration:custom, monitor, org:example, service:service, source:https://github.com/example/tf-mod-datadog-monitors/tree/main/modules/anomaly, team:team",
+                        "title": "[ORG][team][service]: Anomaly: Number of Responses - Anomalous 200s Drop for ServiceName on env:production",
+                        "user": null
+                    },
+                    "event_action": "trigger",
+                    "event_class": "[ORG][team][service]: Anomaly: Number of Responses - Anomalous 200s Drop for ServiceName",
+                    "event_id": "78285a8a-bec9-45d7-9fcb-1534c7ba5d58",
+                    "event_storage_id": "2b56b46e-19a8-30b3-8ea6-015fe36a5cdb",
+                    "local_instance_id": null,
+                    "message": "[ORG][team][service]: Anomaly: Number of Responses - Anomalous 200s Drop for ServiceName on env:production",
+                    "mutations": [],
+                    "priority": null,
+                    "reporter_component": null,
+                    "reporter_location": null,
+                    "routing_key": "f7c45bae98a84a0dc054a8a92791b695",
+                    "service_group": "api:service, code:200s, env:production, integration:custom, monitor, org:example, service:service, source:https://github.com/example/tf-mod-datadog-monitors/tree/main/modules/anomaly, team:team",
+                    "severity": "error",
+                    "source_component": "",
+                    "source_location": null,
+                    "source_origin": "https://github.com/example/tf-mod-datadog-monitors/tree/main/modules/anomaly",
+                    "urgency": null,
+                    "version": "1.0"
+                }
+            }
+        }
     },
     {
         "acknowledgements": [],

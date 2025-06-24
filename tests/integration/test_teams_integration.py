@@ -1,7 +1,8 @@
 import pytest
-
 from conftest import skip_if_no_pagerduty_key
+
 from pagerduty_mcp_server import teams
+
 
 @pytest.mark.integration
 @pytest.mark.teams

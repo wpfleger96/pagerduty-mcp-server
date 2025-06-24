@@ -1,9 +1,9 @@
 """Parser for PagerDuty teams."""
 
-from typing import Dict, Any
+from typing import Any, Dict
 
-def parse_team(*,
-              result: Dict[str, Any]) -> Dict[str, Any]:
+
+def parse_team(*, result: Dict[str, Any]) -> Dict[str, Any]:
     """Parses a raw team API response into a structured format without unneeded fields.
 
     Args:
@@ -12,17 +12,11 @@ def parse_team(*,
     Returns:
         Dict[str, Any]: A dictionary containing:
             - id (str): The team ID
-            - html_url (str): URL to view the team in PagerDuty
             - name (str): The team name
             - description (str): The team description
-            - type (str): The team type
-            - summary (str): The team summary
-            - default_role (str): Default role for team members
             - parent (Dict): Parent team information if this is a sub-team, containing:
                 - id (str): Parent team ID
                 - type (str): Parent team type
-                - summary (str): Parent team summary
-                - html_url (str): URL to view the parent team in PagerDuty
 
     Note:
         If the input is None or not a dictionary, returns an empty dictionary.
@@ -36,18 +30,27 @@ def parse_team(*,
     if not result:
         return {}
 
-    return {
-        "id": result.get("id"),
-        "html_url": result.get("html_url"),
-        "name": result.get("name"),
-        "description": result.get("description"),
-        "type": result.get("type"),
-        "summary": result.get("summary"),
-        "default_role": result.get("default_role"),
-        "parent": {
-            "id": result.get("parent", {}).get("id"),
-            "type": result.get("parent", {}).get("type"),
-            "summary": result.get("parent", {}).get("summary"),
-            "html_url": result.get("parent", {}).get("html_url")
-        } if result.get("parent") else None
-    }
+    parsed_team = {}
+
+    # Simple fields
+    simple_fields = ["id", "name", "description"]
+    for field in simple_fields:
+        value = result.get(field)
+        if value is not None:
+            parsed_team[field] = value
+
+    # Parse parent team
+    parent = result.get("parent")
+    if parent and parent.get("id"):
+        parsed_parent = {}
+
+        # Add parent fields
+        for field in ["id", "type"]:
+            value = parent.get(field)
+            if value is not None:
+                parsed_parent[field] = value
+
+        if parsed_parent:  # Only add if we have fields
+            parsed_team["parent"] = parsed_parent
+
+    return parsed_team

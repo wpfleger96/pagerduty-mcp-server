@@ -1,9 +1,10 @@
 import pytest
 
-from pagerduty_mcp_server import server
+from pagerduty_mcp_server import mcp
+
 
 @pytest.mark.unit
 @pytest.mark.server
-def test_server():
+def test_mcp():
     """Test that the server initializes correctly."""
-    assert server.name == 'pagerduty_mcp_server'
+    assert mcp.name == "pagerduty_mcp_server"

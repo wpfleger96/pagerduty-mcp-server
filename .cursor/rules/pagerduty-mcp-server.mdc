@@ -3,12 +3,12 @@ description:
 globs: 
 alwaysApply: true
 ---
-# pagerduty-mcp-server Rules
+# pagerduty_mcp_server Rules
 
-This file provides context for how Goose and large language models should interact with the pagerduty-mcp-server repository.
+This file provides context for how Goose and large language models should interact with the pagerduty_mcp_server repository.
 
 ## Repository Overview
-`pagerduty-mcp-server` is an MCP server that allows Goose and other LLMs to interact with the PagerDuty API. It provides a structured interface for querying and managing PagerDuty resources like incidents, services, teams, and users.
+`pagerduty_mcp_server` is an MCP server that allows Goose and other LLMs to interact with the PagerDuty API. It provides a structured interface for querying and managing PagerDuty resources like incidents, services, teams, and users.
 
 ### Project Structure
 Reference the following project structure when looking for files but note it is non-exhaustive:
@@ -44,7 +44,7 @@ Reference the following project structure when looking for files but note it is 
 ```
 
 ## Development Guide
-When writing new code for pagerduty-mcp-server, follow these guidelines:
+When writing new code for pagerduty_mcp_server, follow these guidelines:
 1. All API responses must follow the standard format with metadata, resource list, and optional error
 2. Resource names in responses must be pluralized for consistency
 3. All functions that return a single item must return a list with one element

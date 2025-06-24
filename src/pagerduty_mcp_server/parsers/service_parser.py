@@ -1,9 +1,9 @@
 """Parser for PagerDuty services."""
 
-from typing import Dict, Any
+from typing import Any, Dict
 
-def parse_service(*,
-                 result: Dict[str, Any]) -> Dict[str, Any]:
+
+def parse_service(*, result: Dict[str, Any]) -> Dict[str, Any]:
     """Parses a raw service API response into a structured format without unneeded fields.
 
     Args:
@@ -12,14 +12,13 @@ def parse_service(*,
     Returns:
         Dict[str, Any]: A dictionary containing:
             - id (str): The service ID
-            - html_url (str): URL to view the service in PagerDuty
             - name (str): The service name
             - description (str): The service description
             - status (str): Current status of the service
             - created_at (str): Creation timestamp
             - updated_at (str): Last update timestamp
-            - teams (List[Dict]): List of teams with id, summary, and html_url
-            - integrations (List[Dict]): List of integrations with id, summary, and html_url
+            - teams (List[Dict]): List of teams with id and summary
+            - integrations (List[Dict]): List of integrations with id and summary
 
     Note:
         If the input is None or not a dictionary, returns an empty dictionary.
@@ -32,28 +31,49 @@ def parse_service(*,
     if not result:
         return {}
 
-    return {
-        "id": result.get("id"),
-        "html_url": result.get("html_url"),
-        "name": result.get("name"),
-        "description": result.get("description"),
-        "status": result.get("status"),
-        "created_at": result.get("created_at"),
-        "updated_at": result.get("updated_at"),
-        "teams": [
-            {
-                "id": team.get("id"),
-                "summary": team.get("summary"),
-                "html_url": team.get("html_url")
-            }
-            for team in result.get("teams", [])
-        ],
-        "integrations": [
-            {
-                "id": integration.get("id"),
-                "summary": integration.get("summary"),
-                "html_url": integration.get("html_url")
-            }
-            for integration in result.get("integrations", [])
-        ]
-    }
+    parsed_service = {}
+
+    # Simple fields
+    simple_fields = ["id", "name", "description", "status", "created_at", "updated_at"]
+    for field in simple_fields:
+        value = result.get(field)
+        if value is not None:
+            parsed_service[field] = value
+
+    # Parse teams
+    teams = result.get("teams", [])
+    if teams:
+        parsed_teams = []
+        for team in teams:
+            if not team:
+                continue
+
+            team_id = team.get("id")
+            if team_id:
+                parsed_team = {"id": team_id}
+                if team.get("summary"):
+                    parsed_team["summary"] = team.get("summary")
+                parsed_teams.append(parsed_team)
+
+        if parsed_teams:
+            parsed_service["teams"] = parsed_teams
+
+    # Parse integrations
+    integrations = result.get("integrations", [])
+    if integrations:
+        parsed_integrations = []
+        for integration in integrations:
+            if not integration:
+                continue
+
+            integration_id = integration.get("id")
+            if integration_id:
+                parsed_integration = {"id": integration_id}
+                if integration.get("summary"):
+                    parsed_integration["summary"] = integration.get("summary")
+                parsed_integrations.append(parsed_integration)
+
+        if parsed_integrations:
+            parsed_service["integrations"] = parsed_integrations
+
+    return parsed_service
