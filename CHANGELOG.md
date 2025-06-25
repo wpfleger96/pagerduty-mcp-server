@@ -1,6 +1,33 @@
 # CHANGELOG
 
 
+## v3.0.0 (2025-06-25)
+
+### Chores
+
+- Expose 'earliest' param in list_oncalls API
+  ([`7508128`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/75081283933e5d0118914b624db989571c6a6c34))
+
+- Llms are dumb
+  ([`91ccebe`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/91ccebecbe5d323f4afd2cfd02cb99095977cbd8))
+
+- Make user context object human-readable
+  ([`2b91a9c`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/2b91a9c104f6abcdbf122802433ae8e452785c63))
+
+### Documentation
+
+- Documentation fixes
+  ([`a282e30`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/a282e30c2f4f783a497dd095e29b2da119a3e9c5))
+
+- Spaghetti cleanup
+  ([`3bb3182`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/3bb31825b2eda9e31370edf7b5d4b0d2b11fb853))
+
+### Features
+
+- Incorporating upstream bchanges
+  ([`c1380cc`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/c1380cce8ba77fc4c255d5a7be0b6a5b993258b2))
+
+
 ## v2.2.0 (2025-03-31)
 
 ### Features
