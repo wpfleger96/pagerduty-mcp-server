@@ -20,6 +20,7 @@ dependencies = [
     "pagerduty>=1.0.0",
     "pytest>=8.3.5",
     "ruff>=0.11.2",
+    "python-dotenv>=1.0.0",
 ]
 
 [project.urls]

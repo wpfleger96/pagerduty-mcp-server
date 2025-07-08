@@ -22,10 +22,20 @@ cd pagerduty-mcp-server
 brew install uv
 uv sync
 ```
-2. The PagerDuty MCP Server requires a PagerDuty API token to be set in the environment:
-```bash
-export PAGERDUTY_API_TOKEN=your_api_token_here
-```
+2. The PagerDuty MCP Server requires a PagerDuty API token. You can provide this in two ways:
+
+   **Option 1: Environment Variable**
+   ```bash
+   export PAGERDUTY_API_TOKEN=your_api_token_here
+   ```
+
+   **Option 2: .env File (Recommended)**
+   Create a `.env` file in the project root:
+   ```bash
+   echo "PAGERDUTY_API_TOKEN=your_api_token_here" > .env
+   ```
+   
+   The server will automatically load environment variables from the `.env` file if present.
 
 ## Usage
 ### As Goose Extension

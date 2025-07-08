@@ -462,6 +462,7 @@ dependencies = [
     { name = "hatch" },
     { name = "pagerduty" },
     { name = "pytest" },
+    { name = "python-dotenv" },
     { name = "ruff" },
 ]
 
@@ -471,6 +472,7 @@ requires-dist = [
     { name = "hatch", specifier = ">=1.14.1" },
     { name = "pagerduty", specifier = ">=1.0.0" },
     { name = "pytest", specifier = ">=8.3.5" },
+    { name = "python-dotenv", specifier = ">=1.0.0" },
     { name = "ruff", specifier = ">=0.11.2" },
 ]
 
