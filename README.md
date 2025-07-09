@@ -38,15 +38,49 @@ uv sync
    The server will automatically load environment variables from the `.env` file if present.
 
 ## Usage
-### As Goose Extension
+### As Goose Extension (Desktop)
 In Goose:
-1. Go to **Settings > Extensions > Add**.
-2. Set **Type** to **StandardIO**.
-3. Enter the absolute path to this project's CLI in your environment, for example:
+1. Go to **Settings > Advanced Settings > Extensions > Add custom extension**.
+2. Give the extension a name (e.g. `pagerduty-mcp-server`).
+3. Set **Type** to **StandardIO**.
+4. Enter the following in the **Command** field:
    ```bash
-   uv run /path/to/mcp/pagerduty-mcp-server/.venv/bin/pagerduty-mcp-server
+   uvx pagerduty-mcp-server
    ```
+5. Click **Save**.
 4. Enable the extension and confirm that Goose identifies your tools.
+
+### As Goose Extension (CLI)
+```yaml
+  pagerduty:
+    args:
+      - pagerduty-mcp-server
+    bundled: null
+    cmd: uvx
+    description: ''
+    enabled: true
+    env_keys:
+      - PAGERDUTY_API_TOKEN
+    envs: {}
+    name: pagerduty
+    timeout: 300
+    type: stdio
+```
+
+### Claude/Cursor
+```json
+{
+  "mcpServers": {
+    "pagerduty-mcp-server": {
+      "command": "uvx",
+      "args": ["pagerduty-mcp-server"],
+      "env": {
+          "PAGERDUTY_API_TOKEN": <PAGERDUTY_API_TOKEN>
+      }
+    }
+  }
+}
+```
 
 ### As Standalone Server
 ```sh

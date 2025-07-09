@@ -9,9 +9,16 @@ from pagerduty_mcp_server.client import PagerDutyClient, create_client
 
 @pytest.fixture(autouse=True)
 def reset_env_client():
-    """Reset the singleton env client before each test."""
+    """Reset the singleton env client before and after each test."""
+    from pagerduty_mcp_server.client import client as module_client
+
+    # Reset both class attribute and instance attribute
+    module_client._env_client = None
     PagerDutyClient._env_client = None
     yield
+    # Reset again after test
+    module_client._env_client = None
+    PagerDutyClient._env_client = None
 
 
 @pytest.mark.unit

@@ -9,6 +9,7 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -16,7 +17,23 @@ jobs:
           fetch-depth: 0
           ssh-key: ${{ secrets.GH_ACTIONS_PRIVATE_KEY }}
 
-      - name: Action | Semantic Version Release
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run tests before release
+        run: uv run pytest -v
+
+      - name: Semantic Version Release
         id: release
         uses: python-semantic-release/python-semantic-release@v9.21.0
         with:
