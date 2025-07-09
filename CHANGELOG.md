@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v3.1.1 (2025-07-09)
+
+### Bug Fixes
+
+- Fix tests and uvx invocation error, and update GH workflows
+  ([`d3f87a8`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/d3f87a82e48bbc733fe9912ce4b30c55d1302e0e))
+
+
 ## v3.1.0 (2025-07-09)
 
 ### Features
