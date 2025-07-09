@@ -1,17 +1,21 @@
 # CHANGELOG
 
-## Unreleased
+
+## v3.1.0 (2025-07-09)
 
 ### Features
 
-- Add support for loading PagerDuty API token from .env file using python-dotenv
-  - Server now automatically loads environment variables from .env file if present
-  - Existing environment variables take precedence over .env file values
-  - Added python-dotenv dependency for enhanced configuration management
+- Add support for loading PagerDuty API token from .env file
+  ([`6692db0`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/6692db0732ec6e0b392939f1d1c82521e4524246))
 
-### Tests
+- Add python-dotenv dependency to pyproject.toml - Update client.py to automatically load .env file
+  on import - Update README.md to document .env file usage as recommended option - Add comprehensive
+  tests for .env file loading functionality - Update CHANGELOG.md to document new feature - Add
+  .DS_Store to .gitignore
 
-- Add comprehensive tests for .env file loading functionality
+The server now automatically loads environment variables from .env file if present, while existing
+  environment variables take precedence.
+
 
 ## v3.0.0 (2025-06-25)
 
