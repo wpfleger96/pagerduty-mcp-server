@@ -171,4 +171,4 @@ cython_debug/
 .pypirc
 
 # Ignore local logfiles
-log/
+log/.DS_Store

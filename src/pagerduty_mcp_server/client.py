@@ -4,8 +4,12 @@ from importlib.metadata import version
 from typing import Optional
 
 import pagerduty
+from dotenv import load_dotenv
 from fastmcp.server.dependencies import get_http_request
 from starlette.requests import Request
+
+# Load environment variables from .env file
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 

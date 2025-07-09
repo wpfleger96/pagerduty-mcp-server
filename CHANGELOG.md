@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## Unreleased
+
+### Features
+
+- Add support for loading PagerDuty API token from .env file using python-dotenv
+  - Server now automatically loads environment variables from .env file if present
+  - Existing environment variables take precedence over .env file values
+  - Added python-dotenv dependency for enhanced configuration management
+
+### Tests
+
+- Add comprehensive tests for .env file loading functionality
 
 ## v3.0.0 (2025-06-25)
 
