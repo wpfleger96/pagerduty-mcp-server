@@ -17,8 +17,6 @@ REQUIRED READING: You MUST read all tool documentation using the resource `docs:
 mcp = FastMCP(
     name="pagerduty_mcp_server",
     instructions=instructions,
-    json_response=True,
-    stateless_http=True,
 )
 
 """
