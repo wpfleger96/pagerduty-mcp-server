@@ -1,6 +1,114 @@
 # CHANGELOG
 
 
+## v3.1.3 (2026-04-25)
+
+### Bug Fixes
+
+- Remove deprecated FastMCP constructor kwargs
+  ([`15be3a0`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/15be3a080da551d4462f77709ee5ca41e06fa008))
+
+json_response and stateless_http were removed from the FastMCP() constructor in fastmcp 3.x. Neither
+  had any effect — the server only runs via stdio transport.
+
+- Use SSH deploy key for semantic-release push
+  ([`a028def`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/a028def56d19f7f054dce6b9521c2572773376c7))
+
+Branch protection on main requires PRs, which blocks the HTTPS push that python-semantic-release
+  does when GH_TOKEN is set. With ignore_token_for_push, it falls back to the SSH remote configured
+  by actions/checkout's deploy key, which can bypass branch protection.
+
+### Chores
+
+- **deps**: Bump the uv group across 1 directory with 10 updates
+  ([`6e2f1b5`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/6e2f1b5c3577a5d37152d5c58e9d8918e6cec1b4))
+
+Bumps the uv group with 8 updates in the / directory:
+
+| Package | From | To | | --- | --- | --- | | [fastmcp](https://github.com/PrefectHQ/fastmcp) |
+  `2.9.0` | `3.2.0` | | [python-dotenv](https://github.com/theskumar/python-dotenv) | `1.1.1` |
+  `1.2.2` | | [cryptography](https://github.com/pyca/cryptography) | `45.0.4` | `46.0.7` | |
+  [python-multipart](https://github.com/Kludex/python-multipart) | `0.0.20` | `0.0.26` | |
+  [requests](https://github.com/psf/requests) | `2.32.4` | `2.33.0` | |
+  [starlette](https://github.com/Kludex/starlette) | `0.47.1` | `0.49.1` | |
+  [urllib3](https://github.com/urllib3/urllib3) | `2.5.0` | `2.6.3` | |
+  [uv](https://github.com/astral-sh/uv) | `0.7.14` | `0.11.6` |
+
+Updates `fastmcp` from 2.9.0 to 3.2.0 - [Release
+  notes](https://github.com/PrefectHQ/fastmcp/releases) -
+  [Changelog](https://github.com/PrefectHQ/fastmcp/blob/main/docs/changelog.mdx) -
+  [Commits](https://github.com/PrefectHQ/fastmcp/compare/v2.9.0...v3.2.0)
+
+Updates `python-dotenv` from 1.1.1 to 1.2.2 - [Release
+  notes](https://github.com/theskumar/python-dotenv/releases) -
+  [Changelog](https://github.com/theskumar/python-dotenv/blob/main/CHANGELOG.md) -
+  [Commits](https://github.com/theskumar/python-dotenv/compare/v1.1.1...v1.2.2)
+
+Updates `authlib` from 1.6.0 to 1.7.0 - [Release notes](https://github.com/authlib/authlib/releases)
+  - [Commits](https://github.com/authlib/authlib/compare/v1.6.0...v1.7.0)
+
+Updates `cryptography` from 45.0.4 to 46.0.7 -
+  [Changelog](https://github.com/pyca/cryptography/blob/main/CHANGELOG.rst) -
+  [Commits](https://github.com/pyca/cryptography/compare/45.0.4...46.0.7)
+
+Updates `mcp` from 1.9.4 to 1.27.0 - [Release
+  notes](https://github.com/modelcontextprotocol/python-sdk/releases) -
+  [Changelog](https://github.com/modelcontextprotocol/python-sdk/blob/main/RELEASE.md) -
+  [Commits](https://github.com/modelcontextprotocol/python-sdk/compare/v1.9.4...v1.27.0)
+
+Updates `python-multipart` from 0.0.20 to 0.0.26 - [Release
+  notes](https://github.com/Kludex/python-multipart/releases) -
+  [Changelog](https://github.com/Kludex/python-multipart/blob/main/CHANGELOG.md) -
+  [Commits](https://github.com/Kludex/python-multipart/compare/0.0.20...0.0.26)
+
+Updates `requests` from 2.32.4 to 2.33.0 - [Release notes](https://github.com/psf/requests/releases)
+  - [Changelog](https://github.com/psf/requests/blob/main/HISTORY.md) -
+  [Commits](https://github.com/psf/requests/compare/v2.32.4...v2.33.0)
+
+Updates `starlette` from 0.47.1 to 0.49.1 - [Release
+  notes](https://github.com/Kludex/starlette/releases) -
+  [Changelog](https://github.com/Kludex/starlette/blob/main/docs/release-notes.md) -
+  [Commits](https://github.com/Kludex/starlette/compare/0.47.1...0.49.1)
+
+Updates `urllib3` from 2.5.0 to 2.6.3 - [Release notes](https://github.com/urllib3/urllib3/releases)
+  - [Changelog](https://github.com/urllib3/urllib3/blob/main/CHANGES.rst) -
+  [Commits](https://github.com/urllib3/urllib3/compare/2.5.0...2.6.3)
+
+Updates `uv` from 0.7.14 to 0.11.6 - [Release notes](https://github.com/astral-sh/uv/releases) -
+  [Changelog](https://github.com/astral-sh/uv/blob/main/CHANGELOG.md) -
+  [Commits](https://github.com/astral-sh/uv/compare/0.7.14...0.11.6)
+
+--- updated-dependencies: - dependency-name: fastmcp dependency-version: 3.2.0
+
+dependency-type: direct:production
+
+dependency-group: uv
+
+- dependency-name: python-dotenv dependency-version: 1.2.2
+
+- dependency-name: authlib dependency-version: 1.7.0
+
+dependency-type: indirect
+
+- dependency-name: cryptography dependency-version: 46.0.7
+
+- dependency-name: mcp dependency-version: 1.27.0
+
+- dependency-name: python-multipart dependency-version: 0.0.26
+
+- dependency-name: requests dependency-version: 2.33.0
+
+- dependency-name: starlette dependency-version: 0.49.1
+
+- dependency-name: urllib3 dependency-version: 2.6.3
+
+- dependency-name: uv dependency-version: 0.11.6
+
+dependency-group: uv ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+
 ## v3.1.2 (2026-04-25)
 
 ### Bug Fixes
