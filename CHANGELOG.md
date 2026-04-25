@@ -1,6 +1,53 @@
 # CHANGELOG
 
 
+## v3.1.4 (2026-04-25)
+
+### Bug Fixes
+
+- Compatibility with pagerduty SDK 6.x
+  ([`0568276`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/05682763e60064e1de81a1b77a0a61281bd9b9e2))
+
+The 6.x SDK switched from requests to httpx, which changed how User-Agent headers work —
+  prepare_headers() now overwrites User-Agent on every request from a user_agent property, so
+  mutating client.headers has no effect. Subclass RestApiV2Client to override the property instead.
+  Also replace the removed api_key property with trunc_key in the integration test.
+
+### Chores
+
+- **deps**: Bump fastmcp from 3.2.0 to 3.2.4
+  ([`0f793bb`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/0f793bb54410a8c3f210e8f203dad9c3e564d2b4))
+
+Bumps [fastmcp](https://github.com/PrefectHQ/fastmcp) from 3.2.0 to 3.2.4. - [Release
+  notes](https://github.com/PrefectHQ/fastmcp/releases) -
+  [Changelog](https://github.com/PrefectHQ/fastmcp/blob/main/docs/changelog.mdx) -
+  [Commits](https://github.com/PrefectHQ/fastmcp/compare/v3.2.0...v3.2.4)
+
+--- updated-dependencies: - dependency-name: fastmcp dependency-version: 3.2.4
+
+dependency-type: direct:production
+
+update-type: version-update:semver-major ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+- **deps**: Bump pagerduty from 2.1.2 to 6.2.1
+  ([`7430884`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/74308847db7f8845b5b9e960306c9e5c505ea198))
+
+Bumps [pagerduty](https://github.com/PagerDuty/python-pagerduty) from 2.1.2 to 6.2.1. - [Release
+  notes](https://github.com/PagerDuty/python-pagerduty/releases) -
+  [Changelog](https://github.com/PagerDuty/python-pagerduty/blob/main/docs/changelog.html) -
+  [Commits](https://github.com/PagerDuty/python-pagerduty/compare/v2.1.2...v6.2.1)
+
+--- updated-dependencies: - dependency-name: pagerduty dependency-version: 6.2.1
+
+dependency-type: direct:production
+
+update-type: version-update:semver-major ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+
 ## v3.1.3 (2026-04-25)
 
 ### Bug Fixes
