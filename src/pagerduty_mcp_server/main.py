@@ -5,7 +5,7 @@ import logging
 import sys
 from importlib.metadata import version
 
-from .server import mcp
+from pagerduty_mcp_server.server import mcp
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
