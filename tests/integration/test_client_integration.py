@@ -13,4 +13,4 @@ def test_get_api_client():
     test_client = create_client()
 
     assert isinstance(test_client, pagerduty.RestApiV2Client)
-    assert test_client.api_key is not None
+    assert test_client.trunc_key is not None
