@@ -70,7 +70,7 @@ def mock_get_api_client():
 
     # Create patches
     with (
-        patch("pagerduty.RestApiV2Client", mock_client_class),
+        patch("pagerduty_mcp_server.client._RestClient", mock_client_class),
         patch.object(PagerDutyClient, "_get_header_token", return_value="test-token"),
         patch.object(PagerDutyClient, "_get_env_token", return_value=None),
     ):

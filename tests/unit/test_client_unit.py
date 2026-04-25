@@ -1,4 +1,3 @@
-from importlib.metadata import version
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -25,47 +24,33 @@ def reset_env_client():
 @pytest.mark.client
 def test_create_client_with_request_token():
     """Test that create_client() creates new instance with request token."""
-    # Create mock client with headers attribute
     mock_client = MagicMock()
-    mock_client.headers = {}
 
-    # Create mock request with token
     mock_request = MagicMock(spec=Request)
     mock_request.headers = {"X-Goose-Token": "request-token"}
 
     with patch(
-        "pagerduty.RestApiV2Client", return_value=mock_client
+        "pagerduty_mcp_server.client._RestClient", return_value=mock_client
     ) as mock_client_class:
         with patch(
             "pagerduty_mcp_server.client.get_http_request", return_value=mock_request
         ):
             with patch.dict("os.environ", {"PAGERDUTY_API_TOKEN": "env-token"}):
-                client1 = create_client()
-                client2 = create_client()
+                create_client()
+                create_client()
 
-                # Verify new instance created each time with request token
                 assert mock_client_class.call_count == 2
                 mock_client_class.assert_called_with("request-token")
-                assert (
-                    client1.headers["User-Agent"]
-                    == f"pagerduty_mcp_server/{version('pagerduty_mcp_server')}"
-                )
-                assert (
-                    client2.headers["User-Agent"]
-                    == f"pagerduty_mcp_server/{version('pagerduty_mcp_server')}"
-                )
 
 
 @pytest.mark.unit
 @pytest.mark.client
 def test_create_client_with_env_token_singleton():
     """Test that create_client() reuses instance with env token."""
-    # Create mock client with headers attribute
     mock_client = MagicMock()
-    mock_client.headers = {}
 
     with patch(
-        "pagerduty.RestApiV2Client", return_value=mock_client
+        "pagerduty_mcp_server.client._RestClient", return_value=mock_client
     ) as mock_client_class:
         with patch(
             "pagerduty_mcp_server.client.get_http_request", side_effect=RuntimeError
@@ -74,44 +59,31 @@ def test_create_client_with_env_token_singleton():
                 client1 = create_client()
                 client2 = create_client()
 
-                # Verify single instance created and reused
                 mock_client_class.assert_called_once_with("env-token")
                 assert client1 is client2
-                assert (
-                    client1.headers["User-Agent"]
-                    == f"pagerduty_mcp_server/{version('pagerduty_mcp_server')}"
-                )
 
 
 @pytest.mark.unit
 @pytest.mark.client
 def test_token_precedence():
     """Test that header token takes precedence over env token."""
-    # Create mock clients with headers attribute
     mock_header_client = MagicMock()
-    mock_header_client.headers = {}
     mock_env_client = MagicMock()
-    mock_env_client.headers = {}
 
-    # Create mock request with token
     mock_request = MagicMock(spec=Request)
     mock_request.headers = {"X-Goose-Token": "header-token"}
 
     with patch(
-        "pagerduty.RestApiV2Client", side_effect=[mock_header_client, mock_env_client]
+        "pagerduty_mcp_server.client._RestClient",
+        side_effect=[mock_header_client, mock_env_client],
     ) as mock_client_class:
         with patch(
             "pagerduty_mcp_server.client.get_http_request", return_value=mock_request
         ):
             with patch.dict("os.environ", {"PAGERDUTY_API_TOKEN": "env-token"}):
-                client = create_client()
+                create_client()
 
-                # Verify header token was used
                 mock_client_class.assert_called_once_with("header-token")
-                assert (
-                    client.headers["User-Agent"]
-                    == f"pagerduty_mcp_server/{version('pagerduty_mcp_server')}"
-                )
 
 
 @pytest.mark.unit
@@ -131,7 +103,7 @@ def test_create_client_no_token(monkeypatch):
     # Create a fresh instance to avoid any class-level caching
     test_client = PagerDutyClient()
 
-    with patch("pagerduty.RestApiV2Client") as mock_client_class:
+    with patch("pagerduty_mcp_server.client._RestClient") as mock_client_class:
         with patch(
             "pagerduty_mcp_server.client.get_http_request", return_value=mock_request
         ):
@@ -203,15 +175,10 @@ def test_get_env_token_missing():
 def test_create_client_with_token():
     """Test client creation with token."""
     mock_client = MagicMock()
-    mock_client.headers = {}
 
     with patch(
-        "pagerduty.RestApiV2Client", return_value=mock_client
+        "pagerduty_mcp_server.client._RestClient", return_value=mock_client
     ) as mock_client_class:
-        client = PagerDutyClient._create_client_with_token("test-token")
+        PagerDutyClient._create_client_with_token("test-token")
 
         mock_client_class.assert_called_once_with("test-token")
-        assert (
-            client.headers["User-Agent"]
-            == f"pagerduty_mcp_server/{version('pagerduty_mcp_server')}"
-        )

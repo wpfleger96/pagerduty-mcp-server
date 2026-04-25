@@ -14,6 +14,12 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 
+class _RestClient(pagerduty.RestApiV2Client):
+    @property
+    def user_agent(self) -> str:
+        return f"pagerduty_mcp_server/{version('pagerduty_mcp_server')} {super().user_agent}"
+
+
 class PagerDutyClient:
     _env_client: Optional[pagerduty.RestApiV2Client] = None
 
@@ -49,11 +55,7 @@ class PagerDutyClient:
         Returns:
             pagerduty.RestApiV2Client: A configured client
         """
-        client = pagerduty.RestApiV2Client(token)
-        client.headers["User-Agent"] = (
-            f"pagerduty_mcp_server/{version('pagerduty_mcp_server')}"
-        )
-        return client
+        return _RestClient(token)
 
     def get_client(self) -> pagerduty.RestApiV2Client:
         """Get a PagerDuty API client.
