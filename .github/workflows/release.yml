@@ -1,40 +1,56 @@
 name: Automated Release
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]
     branches:
       - main
+    types:
+      - completed
+
+permissions:
+  contents: write
 
 jobs:
   release:
-    name: Release
     runs-on: ubuntu-latest
+    concurrency:
+      group: release
+      cancel-in-progress: false
+    if: github.event.workflow_run.conclusion == 'success'
 
     steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          ssh-key: ${{ secrets.GH_ACTIONS_PRIVATE_KEY }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.13'
+          python-version-file: .python-version
 
       - name: Install uv
         uses: astral-sh/setup-uv@v3
         with:
           version: "latest"
 
-      - name: Install dependencies
-        run: uv sync
+      - name: Install just
+        uses: extractions/setup-just@v4
 
-      - name: Run tests before release
-        run: uv run pytest -v
+      - name: Install dependencies
+        run: just sync
 
       - name: Semantic Version Release
         id: release
-        uses: python-semantic-release/python-semantic-release@v9.21.0
+        uses: python-semantic-release/python-semantic-release@v10.5.3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ steps.app-token.outputs.token }}
