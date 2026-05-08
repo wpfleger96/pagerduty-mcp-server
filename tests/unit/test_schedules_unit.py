@@ -7,7 +7,7 @@ import pytest
 
 from pagerduty_mcp_server import schedules, utils
 from pagerduty_mcp_server.models.user import User
-from tests.conftest import ApiRuntimeError
+from tests.helpers import ApiRuntimeError
 
 
 @pytest.mark.asyncio

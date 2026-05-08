@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from pagerduty_mcp_server import users, utils
-from tests.conftest import ApiRuntimeError
+from tests.helpers import ApiRuntimeError
 
 
 @pytest.mark.asyncio

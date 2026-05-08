@@ -98,7 +98,7 @@ async def list_users(
 
     pd_client = create_client()
 
-    params = {}
+    params: Dict[str, Any] = {}
 
     if team_ids:
         params["team_ids[]"] = team_ids

@@ -26,7 +26,24 @@ KEYRING_KEY_REFRESH_TOKEN = "refresh_token"
 
 OAUTH_TOKEN_URL = "https://identity.pagerduty.com/oauth/token"
 OAUTH_AUTHORIZE_URL = "https://identity.pagerduty.com/oauth/authorize"
-OAUTH_CALLBACK_PORT = int(os.environ.get("PAGERDUTY_OAUTH_CALLBACK_PORT", "5173"))
+
+
+def _parse_callback_port() -> int:
+    raw = os.environ.get("PAGERDUTY_OAUTH_CALLBACK_PORT", "5173")
+    try:
+        port = int(raw)
+    except ValueError:
+        logger.warning("Invalid PAGERDUTY_OAUTH_CALLBACK_PORT=%r, using 5173", raw)
+        return 5173
+    if not (1024 <= port <= 65535):
+        logger.warning(
+            "PAGERDUTY_OAUTH_CALLBACK_PORT=%d out of range, using 5173", port
+        )
+        return 5173
+    return port
+
+
+OAUTH_CALLBACK_PORT = _parse_callback_port()
 OAUTH_REDIRECT_URI = f"http://localhost:{OAUTH_CALLBACK_PORT}/oauth/pagerduty"
 OAUTH_SCOPE = "read write"
 
@@ -197,6 +214,14 @@ class CallbackHandler(BaseHTTPRequestHandler):
             self.end_headers()
             html = "<html><body>PagerDuty authorization successful! You can close this window.</body></html>"
             self.wfile.write(html.encode())
+        else:
+            self.send_response(400)
+            self.send_header("Content-type", "text/html")
+            self.end_headers()
+            self.wfile.write(
+                b"<html><body>Missing authorization code. You can close this window.</body></html>"
+            )
+            CallbackHandler.error = "missing_code"
 
     def log_message(self, format, *args):
         """Suppress HTTP server logging output.
@@ -247,8 +272,12 @@ def get_token():
                 f"Keyring access failed: {e}. On headless Linux, install 'keyrings.alt' or set PAGERDUTY_API_TOKEN instead."
             ) from e
 
-        if expiry_str and time.time() < float(expiry_str):
-            return token
+        if expiry_str:
+            try:
+                if time.time() < float(expiry_str):
+                    return token
+            except ValueError:
+                logger.warning("Corrupt token expiry in keyring: %r", expiry_str)
 
         try:
             refresh_token = keyring.get_password(

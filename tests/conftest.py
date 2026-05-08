@@ -2,7 +2,6 @@ import asyncio
 import json
 import os
 from pathlib import Path
-from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -42,12 +41,6 @@ skip_if_no_pagerduty_key = pytest.mark.skipif(
     not os.getenv("PAGERDUTY_API_TOKEN"),
     reason="Skipping test because PAGERDUTY_API_TOKEN is not set",
 )
-
-
-class ApiRuntimeError(RuntimeError):
-    """RuntimeError with an optional response payload for tests."""
-
-    response: Any | None = None
 
 
 @pytest.fixture(scope="session")

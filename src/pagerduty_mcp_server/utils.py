@@ -3,10 +3,11 @@
 import logging
 import sys
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, NoReturn, Optional, Union
+from typing import Any, Dict, List, NoReturn, Optional, Type, Union
 
 from . import prompts
 from .errors import PagerDutyError, PagerDutyResponseLimitError
+from .models.common import PagerDutyBaseModel
 
 logger = logging.getLogger(__name__)
 
@@ -251,7 +252,7 @@ def count_object_chars(obj: Any) -> int:
 
 def parse_list_response(
     response: List[Dict[str, Any]],
-    model_class,
+    model_class: Type[PagerDutyBaseModel],
     resource_name: str,
     include: Optional[List[str]] = None,
     additional_metadata: Optional[Dict[str, Any]] = None,

@@ -17,8 +17,6 @@ INCIDENTS_URL = "/incidents"
 
 _INCIDENT_ID_RE = re.compile(r"^[A-Za-z0-9]+$")
 
-_cached_user_email: Optional[str] = None
-
 VALID_STATUSES = ["triggered", "acknowledged", "resolved"]
 DEFAULT_STATUSES = ["triggered", "acknowledged", "resolved"]
 VALID_URGENCIES = ["high", "low"]
@@ -256,16 +254,11 @@ async def _get_current_user_email() -> str:
     Raises:
         RuntimeError: If the user email cannot be determined.
     """
-    global _cached_user_email
-
     env_email = os.environ.get("PAGERDUTY_USER_EMAIL")
     if env_email:
         return env_email
 
-    if _cached_user_email:
-        return _cached_user_email
-
-    from . import users  # local import to avoid circular dependency
+    from . import users
 
     user_context = await users.build_user_context()
     email = user_context.get("email")
@@ -274,7 +267,6 @@ async def _get_current_user_email() -> str:
             "Cannot determine current user email for PagerDuty 'From' header. "
             "Set PAGERDUTY_USER_EMAIL environment variable as a fallback."
         )
-    _cached_user_email = email
     return email
 
 
@@ -512,14 +504,15 @@ async def _list_related_incidents(*, incident_id: str) -> Dict[str, Any]:
                 model = Incident.model_validate(incident_data)
                 parsed_incident = model.to_clean_dict()
 
+            relationships = item.get("relationships", [])
             parsed_response.append(
                 {
                     **parsed_incident,
-                    "relationship_type": item["relationships"][0]["type"]
-                    if item["relationships"]
+                    "relationship_type": relationships[0]["type"]
+                    if relationships
                     else None,
-                    "relationship_metadata": item["relationships"][0]["metadata"]
-                    if item["relationships"]
+                    "relationship_metadata": relationships[0]["metadata"]
+                    if relationships
                     else None,
                 }
             )
@@ -586,7 +579,7 @@ def _count_incident_statuses(incidents: List[Dict[str, Any]]) -> Dict[str, int]:
     Returns:
         Dict[str, int]: Dictionary mapping status to count
     """
-    status_counts = {}
+    status_counts: Dict[str, int] = {}
     for incident in incidents:
         status = incident.get("status")
         if status in VALID_STATUSES:

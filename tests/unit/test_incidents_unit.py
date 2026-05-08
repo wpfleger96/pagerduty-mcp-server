@@ -1041,27 +1041,25 @@ async def test_create_incident_note_invalid_response(
 @pytest.mark.unit
 @pytest.mark.incidents
 async def test_get_current_user_email_env_var(monkeypatch):
-    """Test that PAGERDUTY_USER_EMAIL env var is used as fallback."""
-    import pagerduty_mcp_server.incidents as inc_module
-
+    """Test that PAGERDUTY_USER_EMAIL env var takes priority."""
     monkeypatch.setenv("PAGERDUTY_USER_EMAIL", "env@example.com")
-    inc_module._cached_user_email = None
-    email = await inc_module._get_current_user_email()
+    email = await incidents._get_current_user_email()
     assert email == "env@example.com"
-    inc_module._cached_user_email = None
 
 
 @pytest.mark.asyncio
 @pytest.mark.unit
 @pytest.mark.incidents
-async def test_get_current_user_email_cached():
-    """Test that cached email is returned without API calls."""
-    import pagerduty_mcp_server.incidents as inc_module
-
-    inc_module._cached_user_email = "cached@example.com"
-    email = await inc_module._get_current_user_email()
-    assert email == "cached@example.com"
-    inc_module._cached_user_email = None
+async def test_get_current_user_email_api_call(monkeypatch):
+    """Test that build_user_context is called when env var is not set."""
+    monkeypatch.delenv("PAGERDUTY_USER_EMAIL", raising=False)
+    with patch(
+        "pagerduty_mcp_server.users.build_user_context",
+        new_callable=AsyncMock,
+        return_value={"email": "api@example.com"},
+    ):
+        email = await incidents._get_current_user_email()
+    assert email == "api@example.com"
 
 
 @pytest.mark.asyncio
@@ -1069,19 +1067,14 @@ async def test_get_current_user_email_cached():
 @pytest.mark.incidents
 async def test_get_current_user_email_failure(monkeypatch):
     """Test RuntimeError when email cannot be determined."""
-    import pagerduty_mcp_server.incidents as inc_module
-    from unittest.mock import AsyncMock
-
     monkeypatch.delenv("PAGERDUTY_USER_EMAIL", raising=False)
-    inc_module._cached_user_email = None
     with patch(
         "pagerduty_mcp_server.users.build_user_context",
         new_callable=AsyncMock,
         return_value={"email": ""},
     ):
         with pytest.raises(RuntimeError, match="Cannot determine current user email"):
-            await inc_module._get_current_user_email()
-    inc_module._cached_user_email = None
+            await incidents._get_current_user_email()
 
 
 @pytest.mark.unit

@@ -45,7 +45,7 @@ async def list_services(
     if team_ids is not None and not team_ids:
         raise ValueError("team_ids cannot be an empty list")
 
-    params = {}
+    params: Dict[str, Any] = {}
     if team_ids:
         params["team_ids[]"] = (
             team_ids  # PagerDuty API expects array parameters with [] suffix
