@@ -25,10 +25,10 @@
     {
         "id": "adb170ed",
         "name": "Service-2",
-        "description": "Description-2",
         "status": "warning",
         "created_at": "2021-01-21T11:28:10-05:00",
         "updated_at": "2021-01-21T11:28:10-05:00",
+        "description": "Description-2",
         "teams": [
             {
                 "id": "5b038964",
@@ -80,4 +80,4 @@
             }
         ]
     }
-] 
+]

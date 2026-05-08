@@ -1,103 +1,109 @@
+"""Unit tests for the escalation_policies module."""
+
 from unittest.mock import MagicMock
 
 import pytest
 
 from pagerduty_mcp_server import escalation_policies, utils
-from pagerduty_mcp_server.parsers.escalation_policy_parser import (
-    parse_escalation_policy,
-)
+from tests.conftest import ApiRuntimeError
 
 
+@pytest.mark.asyncio
 @pytest.mark.unit
 @pytest.mark.escalation_policies
-def test_list_escalation_policies(mock_get_api_client, mock_escalation_policies):
+async def test_list_escalation_policies(
+    mock_get_api_client, mock_escalation_policies, mock_escalation_policies_parsed
+):
     """Test that escalation policies are fetched correctly."""
-    mock_get_api_client.list_all.return_value = mock_escalation_policies
+    mock_get_api_client.iter_all.return_value = mock_escalation_policies
 
-    policy_list = escalation_policies.list_escalation_policies()
+    policy_list = await escalation_policies.list_escalation_policies()
 
-    mock_get_api_client.list_all.assert_called_once_with(
-        escalation_policies.ESCALATION_POLICIES_URL, params={}
+    mock_get_api_client.iter_all.assert_called_once_with(
+        escalation_policies.ESCALATION_POLICIES_URL, params={}, page_size=100
     )
     assert policy_list == utils.api_response_handler(
-        results=[
-            parse_escalation_policy(result=policy)
-            for policy in mock_escalation_policies
-        ],
+        results=mock_escalation_policies_parsed,
         resource_name="escalation_policies",
     )
 
 
+@pytest.mark.asyncio
 @pytest.mark.unit
 @pytest.mark.escalation_policies
-def test_list_escalation_policies_with_query(
-    mock_get_api_client, mock_escalation_policies
+async def test_list_escalation_policies_with_query(
+    mock_get_api_client, mock_escalation_policies, mock_escalation_policies_parsed
 ):
     """Test that escalation policies can be filtered by query parameter."""
     query = "test"
-    mock_get_api_client.list_all.return_value = mock_escalation_policies
+    mock_get_api_client.iter_all.return_value = mock_escalation_policies
 
-    policy_list = escalation_policies.list_escalation_policies(query=query)
+    policy_list = await escalation_policies.list_escalation_policies(query=query)
 
-    mock_get_api_client.list_all.assert_called_once_with(
-        escalation_policies.ESCALATION_POLICIES_URL, params={"query": query}
+    mock_get_api_client.iter_all.assert_called_once_with(
+        escalation_policies.ESCALATION_POLICIES_URL,
+        params={"query": query},
+        page_size=100,
     )
     assert policy_list == utils.api_response_handler(
-        results=[
-            parse_escalation_policy(result=policy)
-            for policy in mock_escalation_policies
-        ],
+        results=mock_escalation_policies_parsed,
         resource_name="escalation_policies",
     )
 
 
+@pytest.mark.asyncio
 @pytest.mark.unit
 @pytest.mark.escalation_policies
-def test_list_escalation_policies_api_error(mock_get_api_client):
+async def test_list_escalation_policies_api_error(mock_get_api_client):
     """Test that list_escalation_policies handles API errors correctly."""
-    mock_get_api_client.list_all.side_effect = RuntimeError("API Error")
+    mock_get_api_client.iter_all.side_effect = RuntimeError("API Error")
 
     with pytest.raises(RuntimeError) as exc_info:
-        escalation_policies.list_escalation_policies()
+        await escalation_policies.list_escalation_policies()
     assert str(exc_info.value) == "API Error"
 
 
+@pytest.mark.asyncio
 @pytest.mark.unit
 @pytest.mark.escalation_policies
-def test_list_escalation_policies_empty_response(mock_get_api_client):
+async def test_list_escalation_policies_empty_response(mock_get_api_client):
     """Test that list_escalation_policies handles empty response correctly."""
-    mock_get_api_client.list_all.return_value = []
+    mock_get_api_client.iter_all.return_value = []
 
-    policy_list = escalation_policies.list_escalation_policies()
+    policy_list = await escalation_policies.list_escalation_policies()
     assert policy_list == utils.api_response_handler(
         results=[], resource_name="escalation_policies"
     )
 
 
+@pytest.mark.asyncio
 @pytest.mark.unit
 @pytest.mark.escalation_policies
-def test_list_escalation_policies_preserves_full_error_message(mock_get_api_client):
+async def test_list_escalation_policies_preserves_full_error_message(
+    mock_get_api_client,
+):
     """Test that list_escalation_policies preserves the full error message from the API response."""
     mock_response = MagicMock()
     mock_response.text = '{"error":{"message":"Invalid Input Provided","code":2001,"errors":["Invalid team ID format"]}}'
-    mock_error = RuntimeError("API Error")
+    mock_error = ApiRuntimeError("API Error")
     mock_error.response = mock_response
-    mock_get_api_client.list_all.side_effect = mock_error
+    mock_get_api_client.iter_all.side_effect = mock_error
 
     with pytest.raises(RuntimeError) as exc_info:
-        escalation_policies.list_escalation_policies()
+        await escalation_policies.list_escalation_policies()
     assert str(exc_info.value) == "API Error"
 
 
+@pytest.mark.asyncio
 @pytest.mark.unit
 @pytest.mark.escalation_policies
-def test_fetch_escalation_policy_ids(
+async def test_fetch_escalation_policy_ids(
     mock_get_api_client, mock_escalation_policies, mock_user
 ):
     """Test that escalation policy IDs are fetched correctly."""
     mock_get_api_client.list_all.return_value = mock_escalation_policies
 
-    policy_ids = escalation_policies.fetch_escalation_policy_ids(
+    policy_ids = await escalation_policies.fetch_escalation_policy_ids(
         user_id=mock_user["id"]
     )
 
@@ -108,87 +114,115 @@ def test_fetch_escalation_policy_ids(
     assert set(policy_ids) == set([policy["id"] for policy in mock_escalation_policies])
 
 
+@pytest.mark.asyncio
 @pytest.mark.unit
 @pytest.mark.escalation_policies
-def test_fetch_escalation_policy_ids_api_error(mock_get_api_client, mock_user):
+async def test_fetch_escalation_policy_ids_api_error(mock_get_api_client, mock_user):
     """Test that fetch_escalation_policy_ids handles API errors correctly."""
     mock_get_api_client.list_all.side_effect = RuntimeError("API Error")
 
     with pytest.raises(RuntimeError) as exc_info:
-        escalation_policies.fetch_escalation_policy_ids(user_id=mock_user["id"])
+        await escalation_policies.fetch_escalation_policy_ids(user_id=mock_user["id"])
     assert str(exc_info.value) == "API Error"
 
 
+@pytest.mark.asyncio
 @pytest.mark.unit
 @pytest.mark.escalation_policies
-def test_show_escalation_policy(mock_get_api_client, mock_escalation_policies):
+async def test_show_escalation_policy(
+    mock_get_api_client, mock_escalation_policies, mock_escalation_policies_parsed
+):
     """Test that a single escalation policy is fetched correctly."""
     policy_id = mock_escalation_policies[0]["id"]
     mock_get_api_client.jget.return_value = {
         "escalation_policy": mock_escalation_policies[0]
     }
 
-    policy = escalation_policies.show_escalation_policy(policy_id=policy_id)
+    policy = await escalation_policies.show_escalation_policy(policy_id=policy_id)
 
     mock_get_api_client.jget.assert_called_once_with(
         f"{escalation_policies.ESCALATION_POLICIES_URL}/{policy_id}"
     )
     assert policy == utils.api_response_handler(
-        results=parse_escalation_policy(result=mock_escalation_policies[0]),
+        results=mock_escalation_policies_parsed[0],
         resource_name="escalation_policy",
     )
 
 
+@pytest.mark.asyncio
 @pytest.mark.unit
 @pytest.mark.escalation_policies
-def test_show_escalation_policy_invalid_id(mock_get_api_client):
+async def test_show_escalation_policy_invalid_id(mock_get_api_client):
     """Test that show_escalation_policy raises ValueError for invalid policy ID."""
     with pytest.raises(ValueError) as exc_info:
-        escalation_policies.show_escalation_policy(policy_id="")
+        await escalation_policies.show_escalation_policy(policy_id="")
     assert str(exc_info.value) == "policy_id cannot be empty"
 
 
+@pytest.mark.asyncio
 @pytest.mark.unit
 @pytest.mark.escalation_policies
-def test_show_escalation_policy_api_error(mock_get_api_client):
+async def test_show_escalation_policy_api_error(mock_get_api_client):
     """Test that show_escalation_policy handles API errors correctly."""
     policy_id = "123"
     mock_get_api_client.jget.side_effect = RuntimeError("API Error")
 
     with pytest.raises(RuntimeError) as exc_info:
-        escalation_policies.show_escalation_policy(policy_id=policy_id)
+        await escalation_policies.show_escalation_policy(policy_id=policy_id)
     assert str(exc_info.value) == "API Error"
 
 
+@pytest.mark.asyncio
 @pytest.mark.unit
 @pytest.mark.escalation_policies
-def test_show_escalation_policy_invalid_response(mock_get_api_client):
+async def test_show_escalation_policy_invalid_response(mock_get_api_client):
     """Test that show_escalation_policy handles invalid API response correctly."""
     policy_id = "123"
     mock_get_api_client.jget.return_value = {}  # Missing 'escalation_policy' key
 
     with pytest.raises(RuntimeError) as exc_info:
-        escalation_policies.show_escalation_policy(policy_id=policy_id)
+        await escalation_policies.show_escalation_policy(policy_id=policy_id)
     assert (
         str(exc_info.value)
         == "Failed to fetch escalation policy 123: Response missing 'escalation_policy' field"
     )
 
 
+@pytest.mark.asyncio
 @pytest.mark.unit
-@pytest.mark.parsers
 @pytest.mark.escalation_policies
-def test_parse_escalation_policy(
-    mock_escalation_policies, mock_escalation_policies_parsed
+async def test_list_escalation_policies_with_include(
+    mock_get_api_client, mock_escalation_policies
 ):
-    """Test that parse_escalation_policy correctly parses raw escalation policy data."""
-    parsed_policy = parse_escalation_policy(result=mock_escalation_policies[0])
-    assert parsed_policy == mock_escalation_policies_parsed[0]
+    """Test that escalation policies can be filtered to include only specific fields."""
+    mock_get_api_client.iter_all.return_value = mock_escalation_policies
+
+    policy_list = await escalation_policies.list_escalation_policies(
+        include=["id", "name"]
+    )
+
+    assert len(policy_list["escalation_policies"]) > 0
+    for policy in policy_list["escalation_policies"]:
+        assert "id" in policy
+        assert "name" in policy
+        assert len(policy.keys()) == 2
 
 
+@pytest.mark.asyncio
 @pytest.mark.unit
-@pytest.mark.parsers
 @pytest.mark.escalation_policies
-def test_parse_escalation_policy_none():
-    """Test that parse_escalation_policy handles None input correctly."""
-    assert parse_escalation_policy(result=None) == {}
+async def test_show_escalation_policy_with_include(
+    mock_get_api_client, mock_escalation_policies
+):
+    """Test that a single escalation policy can be filtered to include only specific fields."""
+    policy_id = mock_escalation_policies[0]["id"]
+    mock_get_api_client.jget.return_value = {
+        "escalation_policy": mock_escalation_policies[0]
+    }
+
+    policy = await escalation_policies.show_escalation_policy(
+        policy_id=policy_id, include=["id"]
+    )
+
+    assert "id" in policy["escalation_policy"][0]
+    assert len(policy["escalation_policy"][0].keys()) == 1

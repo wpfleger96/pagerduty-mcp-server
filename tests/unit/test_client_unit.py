@@ -4,6 +4,7 @@ import pytest
 from starlette.requests import Request
 
 from pagerduty_mcp_server.client import PagerDutyClient, create_client
+from pagerduty_mcp_server.errors import PagerDutyAuthError
 
 
 @pytest.fixture(autouse=True)
@@ -11,13 +12,15 @@ def reset_env_client():
     """Reset the singleton env client before and after each test."""
     from pagerduty_mcp_server.client import client as module_client
 
-    # Reset both class attribute and instance attribute
     module_client._env_client = None
     PagerDutyClient._env_client = None
+    module_client._env_token = None
+    PagerDutyClient._env_token = None
     yield
-    # Reset again after test
     module_client._env_client = None
     PagerDutyClient._env_client = None
+    module_client._env_token = None
+    PagerDutyClient._env_token = None
 
 
 @pytest.mark.unit
@@ -114,12 +117,12 @@ def test_create_client_no_token(monkeypatch):
             assert test_client._get_env_token() is None
 
             # Test the error is raised
-            with pytest.raises(Exception) as exc_info:
+            with pytest.raises(PagerDutyAuthError) as exc_info:
                 test_client.get_client()
 
-            assert (
-                str(exc_info.value)
-                == "No auth token found in headers or environment variables"
+            # In request context with no token the request-context error fires first
+            assert "PagerDuty credentials are not configured for this request" in str(
+                exc_info.value
             )
             mock_client_class.assert_not_called()
 
@@ -182,3 +185,76 @@ def test_create_client_with_token():
         PagerDutyClient._create_client_with_token("test-token")
 
         mock_client_class.assert_called_once_with("test-token")
+
+
+@pytest.mark.unit
+@pytest.mark.client
+def test_create_client_with_bearer_token():
+    """Test that tokens with pdus+_ prefix use bearer auth_type."""
+    mock_client = MagicMock()
+    bearer_token = "pdus+_abc123xyz"
+
+    with patch(
+        "pagerduty_mcp_server.client._RestClient", return_value=mock_client
+    ) as mock_client_class:
+        PagerDutyClient._create_client_with_token(bearer_token)
+
+        mock_client_class.assert_called_once_with(bearer_token, auth_type="bearer")
+
+
+@pytest.mark.unit
+@pytest.mark.client
+def test_get_oauth_token_returns_none_when_no_client_id(monkeypatch):
+    """Test that _get_oauth_token returns None when no client ID is configured."""
+    monkeypatch.delenv("PAGERDUTY_CLIENT_ID", raising=False)
+
+    with patch("pagerduty_mcp_server.auth.DEFAULT_CLIENT_ID", ""):
+        result = PagerDutyClient._get_oauth_token()
+
+    assert result is None
+
+
+@pytest.mark.unit
+@pytest.mark.client
+def test_env_client_recreated_on_token_rotation():
+    """Test that env client is recreated when PAGERDUTY_API_TOKEN changes."""
+    mock_client_a = MagicMock()
+    mock_client_b = MagicMock()
+
+    with patch(
+        "pagerduty_mcp_server.client._RestClient",
+        side_effect=[mock_client_a, mock_client_b],
+    ) as mock_client_class:
+        with patch(
+            "pagerduty_mcp_server.client.get_http_request", side_effect=RuntimeError
+        ):
+            # First call with token "a"
+            with patch.dict("os.environ", {"PAGERDUTY_API_TOKEN": "token-a"}):
+                client1 = create_client()
+                assert client1 is mock_client_a
+                mock_client_class.assert_called_once_with("token-a")
+
+            # Second call with different token "b"
+            with patch.dict("os.environ", {"PAGERDUTY_API_TOKEN": "token-b"}):
+                client2 = create_client()
+                assert client2 is mock_client_b
+                assert mock_client_class.call_count == 2
+
+
+@pytest.mark.unit
+@pytest.mark.client
+def test_get_oauth_token_raises_auth_error_on_failure(monkeypatch):
+    """Test that _get_oauth_token raises PagerDutyAuthError when OAuth flow fails."""
+    monkeypatch.setenv("PAGERDUTY_CLIENT_ID", "test-client-id")
+
+    with patch(
+        "pagerduty_mcp_server.client.PagerDutyClient._get_oauth_token"
+    ) as mock_oauth:
+        mock_oauth.side_effect = PagerDutyAuthError(
+            "OAuth authorization failed: access_denied"
+        )
+
+        with pytest.raises(PagerDutyAuthError) as exc_info:
+            mock_oauth()
+
+        assert "OAuth authorization failed" in str(exc_info.value)

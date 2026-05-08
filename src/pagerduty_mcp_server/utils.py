@@ -2,10 +2,11 @@
 
 import logging
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, NoReturn, Optional, Union
 
 from . import prompts
+from .errors import PagerDutyError, PagerDutyResponseLimitError
 
 logger = logging.getLogger(__name__)
 
@@ -13,10 +14,8 @@ RESPONSE_CHAR_LIMIT = 400000  # characters
 RESPONSE_SIZE_LIMIT = 400000  # bytes
 
 
-class ValidationError(Exception):
+class ValidationError(PagerDutyError):
     """Raised when data validation fails."""
-
-    pass
 
 
 """
@@ -81,14 +80,12 @@ def api_response_handler(
 
     if exceeded_limits:
         limits_exceeded_str = " and ".join(exceeded_limits)
-        return {
-            "error": {
-                "code": "LIMIT_EXCEEDED",
-                "message": prompts.handle_large_results(
-                    resource_name=resource_name, limits_exceeded=limits_exceeded_str
-                ),
-            }
-        }
+        prompt_message = prompts.handle_large_results(
+            resource_name=resource_name, limits_exceeded=limits_exceeded_str
+        )
+        content = getattr(prompt_message, "content", None)
+        message = getattr(content, "text", str(prompt_message))
+        raise PagerDutyResponseLimitError(message)
 
     metadata = {
         "count": len(results),
@@ -123,6 +120,36 @@ def validate_iso8601_timestamp(timestamp: str, param_name: str) -> None:
         )
 
 
+def validate_timestamp_range(since: str, until: str) -> None:
+    """Validate that a timestamp range is a valid query range in the PagerDuty API.
+
+    The PagerDuty API doesn't allow query ranges longer than 6 months, or querying where since == until, but the API doesn't actually return a helpful error message in either case so LLMs are unable to recover.
+
+    This function validates the range and raises a ValidationError if it's not valid.
+
+    Args:
+        since (str): The start of the date range
+        until (str): The end of the date range
+
+    Raises:
+        ValidationError: If the date range is not valid
+    """
+    if since and until:
+        since_dt = datetime.fromisoformat(since.replace("Z", "+00:00"))
+        until_dt = datetime.fromisoformat(until.replace("Z", "+00:00"))
+
+        if since_dt > until_dt:
+            raise ValidationError("`since` must be before `until`")
+        if since_dt == until_dt:
+            raise ValidationError(
+                "`since` and `until` cannot be the exact same timestamp."
+            )
+        if (until_dt - since_dt) > timedelta(days=180):
+            raise ValidationError(
+                "The maximum query range is 6 months. Try narrowing your query range."
+            )
+
+
 def handle_api_error(e: Exception) -> NoReturn:
     """Log the error and re-raise the original exception.
 
@@ -133,8 +160,9 @@ def handle_api_error(e: Exception) -> NoReturn:
         Exception: The original exception without modification
     """
     # Get the full error message from the response if available
-    if hasattr(e, "response") and e.response is not None:
-        error_message = e.response.text
+    response = getattr(e, "response", None)
+    if response is not None:
+        error_message = response.text
     else:
         error_message = str(e)
 
@@ -219,3 +247,35 @@ def count_object_chars(obj: Any) -> int:
             return len(str(obj))
 
     return _count_chars(obj)
+
+
+def parse_list_response(
+    response: List[Dict[str, Any]],
+    model_class,
+    resource_name: str,
+    include: Optional[List[str]] = None,
+    additional_metadata: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Parse a paginated list response into a standardized API response.
+
+    Args:
+        response (List[Dict[str, Any]]): Raw list of items from the PagerDuty API
+        model_class: Pydantic model class with model_validate and to_clean_dict methods
+        resource_name (str): The name of the resource (e.g., 'services', 'incidents')
+        include (List[str]): Optional list of fields to include in each item
+        additional_metadata (Dict[str, Any]): Optional extra metadata to merge into the response
+
+    Returns:
+        Dict[str, Any]: Standardized API response via api_response_handler
+    """
+    parsed = []
+    for item in response:
+        if not item:
+            continue
+        model = model_class.model_validate(item)
+        parsed.append(model.to_clean_dict(include_fields=include))
+    return api_response_handler(
+        results=parsed,
+        resource_name=resource_name,
+        additional_metadata=additional_metadata,
+    )

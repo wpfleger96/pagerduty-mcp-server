@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 from fastmcp.server.dependencies import get_http_request
 from starlette.requests import Request
 
+from .errors import PagerDutyAuthError
+
 # Load environment variables from .env file
 load_dotenv()
 
@@ -22,19 +24,55 @@ class _RestClient(pagerduty.RestApiV2Client):
 
 class PagerDutyClient:
     _env_client: Optional[pagerduty.RestApiV2Client] = None
+    _env_token: Optional[str] = None
 
     @staticmethod
-    def _get_header_token() -> Optional[str]:
-        """Try to get auth token from HTTP headers.
+    def _get_request_token() -> tuple:
+        """Try to get auth token from the active HTTP request.
 
         Returns:
-            Optional[str]: The token if found in headers, None otherwise
+            tuple[bool, Optional[str]]: A tuple of (has_request_context, token)
         """
         try:
             request: Request = get_http_request()
-            return request.headers.get("X-Goose-Token")
+            return True, request.headers.get("X-Goose-Token")
         except RuntimeError:
+            return False, None
+
+    @classmethod
+    def _get_header_token(cls) -> Optional[str]:
+        """Try to get auth token from HTTP headers."""
+        _, token = cls._get_request_token()
+        return token
+
+    @staticmethod
+    def _get_oauth_token() -> Optional[str]:
+        """Try to get OAuth token from keyring or run interactive OAuth flow for local use.
+
+        OAuth is configured if either:
+        - PAGERDUTY_CLIENT_ID environment variable is set, OR
+        - DEFAULT_CLIENT_ID in auth.py has been updated from placeholder
+
+        Returns:
+            Optional[str]: The token if OAuth succeeds, None if OAuth not configured
+
+        Raises:
+            PagerDutyAuthError: If OAuth is configured but fails (e.g., user denies access)
+        """
+        from .auth import DEFAULT_CLIENT_ID
+
+        client_id = os.environ.get("PAGERDUTY_CLIENT_ID", DEFAULT_CLIENT_ID)
+        if not client_id:
+            logger.debug("OAuth not configured (no client ID available)")
             return None
+
+        try:
+            from .auth import get_token
+
+            return get_token()
+        except Exception as e:
+            logger.error(f"OAuth authentication failed: {e}")
+            raise PagerDutyAuthError(str(e)) from e
 
     @staticmethod
     def _get_env_token() -> Optional[str]:
@@ -55,36 +93,52 @@ class PagerDutyClient:
         Returns:
             pagerduty.RestApiV2Client: A configured client
         """
+        if token.startswith("pdus+_"):
+            return _RestClient(token, auth_type="bearer")
         return _RestClient(token)
 
     def get_client(self) -> pagerduty.RestApiV2Client:
         """Get a PagerDuty API client.
 
-        If a Goose token is present in the request headers, creates a new client.
-        Otherwise, returns or creates a singleton client using the environment token.
+        Authentication priority:
+        1. X-Goose-Token header (kgoose/goosemcp mode)
+        2. PAGERDUTY_API_TOKEN environment variable (if explicitly set)
+        3. OAuth token from keyring (local interactive use only)
 
         Returns:
             pagerduty.RestApiV2Client: A configured PagerDuty API client
 
         Raises:
-            Exception: If no valid auth token is found
+            PagerDutyAuthError: If no valid auth token is found
         """
-        # Try header token first - always create new client if present
-        if token := self._get_header_token():
+        has_request_context, request_token = self._get_request_token()
+
+        if request_token:
+            return self._create_client_with_token(request_token)
+
+        if current_token := self._get_env_token():
+            if (
+                PagerDutyClient._env_client is None
+                or PagerDutyClient._env_token != current_token
+            ):
+                logger.info("Using PAGERDUTY_API_TOKEN environment variable")
+                PagerDutyClient._env_client = self._create_client_with_token(
+                    current_token
+                )
+                PagerDutyClient._env_token = current_token
+            return PagerDutyClient._env_client
+
+        if has_request_context:
+            message = "PagerDuty credentials are not configured for this request. Provide X-Goose-Token or set PAGERDUTY_API_TOKEN."
+            logger.error(message)
+            raise PagerDutyAuthError(message)
+
+        if token := self._get_oauth_token():
             return self._create_client_with_token(token)
 
-        # Use existing env client if we have one
-        if self._env_client is not None:
-            return self._env_client
-
-        # Try to create env client if we don't have one
-        if token := self._get_env_token():
-            self._env_client = self._create_client_with_token(token)
-            return self._env_client
-
-        # No valid token found
-        logger.error("No auth token found in headers or environment variables")
-        raise Exception("No auth token found in headers or environment variables")
+        message = "No auth token found. Set PAGERDUTY_API_TOKEN or authenticate locally via OAuth."
+        logger.error(message)
+        raise PagerDutyAuthError(message)
 
 
 # Singleton instance
@@ -94,14 +148,15 @@ client = PagerDutyClient()
 def create_client() -> pagerduty.RestApiV2Client:
     """Get a PagerDuty API client.
 
-    Creates a new client for each request with a Goose token header,
-    or reuses a singleton client when using environment variable token.
-    Header tokens take precedence over environment variable.
+    Authentication priority:
+    1. X-Goose-Token header (kgoose/goosemcp mode)
+    2. PAGERDUTY_API_TOKEN environment variable (if explicitly set)
+    3. OAuth token from keyring (local interactive use only)
 
     Returns:
         pagerduty.RestApiV2Client: A configured PagerDuty API client
 
     Raises:
-        Exception: If no valid auth token is found
+        PagerDutyAuthError: If no valid auth token is found
     """
     return client.get_client()
