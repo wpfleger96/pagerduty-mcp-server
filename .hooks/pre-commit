@@ -3,10 +3,10 @@
 set -o errexit  # quit on first error
 set -o nounset
 
-echo "Syncing dependencies"
-uv sync
-
-echo "Running ruff check --fix"
-uv run ruff check --fix .
+just sync
+just type-check
+just lint
+just format
+just test
 
 echo "Pre-commit checks complete"

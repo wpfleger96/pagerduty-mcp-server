@@ -35,7 +35,7 @@ def list_teams(
 
     pd_client = create_client()
 
-    params = {}
+    params: Dict[str, Any] = {}
     if query:
         params["query"] = query
     if limit:
@@ -71,7 +71,7 @@ def show_team(*, team_id: str) -> Dict[str, Any]:
     pd_client = create_client()
 
     try:
-        response = pd_client.jget(f"{TEAMS_URL}/{team_id}")
+        response = pd_client.jget(f"{TEAMS_URL}/{team_id}")  # type: ignore[misc]
         try:
             team_data = response["team"]
         except KeyError:

@@ -35,7 +35,7 @@ def list_schedules(
 
     pd_client = create_client()
 
-    params = {}
+    params: Dict[str, Any] = {}
     if query:
         params["query"] = query
     if limit:
@@ -74,7 +74,7 @@ def show_schedule(
 
     pd_client = create_client()
 
-    params = {}
+    params: Dict[str, Any] = {}
     if since:
         utils.validate_iso8601_timestamp(since, "since")
         params["since"] = since
@@ -83,7 +83,7 @@ def show_schedule(
         params["until"] = until
 
     try:
-        response = pd_client.jget(f"{SCHEDULES_URL}/{schedule_id}", params=params)
+        response = pd_client.jget(f"{SCHEDULES_URL}/{schedule_id}", params=params)  # type: ignore[misc]
         try:
             schedule_data = response["schedule"]
         except KeyError:
@@ -121,7 +121,7 @@ def list_users_oncall(
 
     pd_client = create_client()
 
-    params = {}
+    params: Dict[str, Any] = {}
     if since:
         utils.validate_iso8601_timestamp(since, "since")
         params["since"] = since
@@ -130,7 +130,7 @@ def list_users_oncall(
         params["until"] = until
 
     try:
-        response = pd_client.jget(f"{SCHEDULES_URL}/{schedule_id}/users", params=params)
+        response = pd_client.jget(f"{SCHEDULES_URL}/{schedule_id}/users", params=params)  # type: ignore[misc]
         try:
             users_data = response["users"]
         except KeyError:

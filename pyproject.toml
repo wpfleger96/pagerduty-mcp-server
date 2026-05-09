@@ -18,8 +18,6 @@ dependencies = [
     "hatch>=1.14.1",
     "fastmcp>=2.5.1",
     "pagerduty>=1.0.0",
-    "pytest>=8.3.5",
-    "ruff>=0.11.2",
     "python-dotenv>=1.0.0",
 ]
 
@@ -38,26 +36,26 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.semantic_release]
-version_toml = ["pyproject.toml:project.version:tf"]
+version_toml = ["pyproject.toml:project.version"]
 tag_format = "v{version}"
 branch = "main"
 commit_parser = "conventional"
 commit_message = "chore(release): {version}"
+allow_zero_version = true
 
 [tool.semantic_release.commit_parser_opts]
 allowed_types = ["feat", "fix", "chore", "ci", "docs", "style", "refactor", "test"]
 
-[tool.semantic_release.remote]
-ignore_token_for_push = true
-
-[tool.semantic_release.commit_type_map]
-chore = "patch"
-ci = "patch"
-docs = "patch"
-style = "patch"
-refactor = "patch"
-test = "patch"
-
 [[tool.uv.index]]
 name = "default"
 url = "https://pypi.org/simple"
+
+[dependency-groups]
+dev = [
+    "mypy>=2.0.0",
+    "pytest>=9.0.3",
+    "ruff>=0.15.12",
+]
+
+[tool.mypy]
+files = ["src"]
