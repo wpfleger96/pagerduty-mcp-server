@@ -48,7 +48,7 @@ def list_oncalls(
 
     pd_client = create_client()
 
-    params = {}
+    params: Dict[str, Any] = {}
     if schedule_ids:
         params["schedule_ids[]"] = schedule_ids
     if user_ids:

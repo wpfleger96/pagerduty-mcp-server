@@ -95,7 +95,7 @@ def list_users(
 
     pd_client = create_client()
 
-    params = {}
+    params: Dict[str, Any] = {}
 
     if team_ids:
         params["team_ids[]"] = team_ids
@@ -134,7 +134,7 @@ def show_user(*, user_id: str) -> Dict[str, Any]:
     pd_client = create_client()
 
     try:
-        response = pd_client.jget(f"{USERS_URL}/{user_id}")
+        response = pd_client.jget(f"{USERS_URL}/{user_id}")  # type: ignore[misc]
         try:
             user_data = response["user"]
         except KeyError:
@@ -166,7 +166,7 @@ def _show_current_user() -> Dict[str, Any]:
     """
     pd_client = create_client()
     try:
-        response = pd_client.jget(USERS_URL + "/me")["user"]
+        response = pd_client.jget(USERS_URL + "/me")["user"]  # type: ignore[misc]
         user = parse_user(result=response)
         if not user or "id" not in user or not user["id"]:
             raise ValueError("Invalid user object: missing ID")

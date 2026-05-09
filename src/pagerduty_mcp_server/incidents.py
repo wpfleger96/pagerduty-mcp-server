@@ -79,7 +79,7 @@ def list_incidents(
                 f"Invalid urgency values: {invalid_urgencies}. Valid values are: {VALID_URGENCIES}"
             )
 
-    params = {"statuses": statuses, "urgencies": urgencies}
+    params: Dict[str, Any] = {"statuses": statuses, "urgencies": urgencies}
     if service_ids:
         params["service_ids"] = service_ids
     if team_ids:
@@ -139,7 +139,7 @@ def show_incident(
     try:
         incident_metadata = {}
 
-        response = pd_client.jget(f"{INCIDENTS_URL}/{incident_id}", params=params)
+        response = pd_client.jget(f"{INCIDENTS_URL}/{incident_id}", params=params)  # type: ignore[misc]
         try:
             incident_data = response["incident"]
         except KeyError:
@@ -243,7 +243,7 @@ def _list_past_incidents(
 
     params = {"limit": limit, "total": total}
     try:
-        response = pd_client.jget(
+        response = pd_client.jget(  # type: ignore[misc]
             f"{INCIDENTS_URL}/{incident_id}/past_incidents", params=params
         )
         try:
@@ -289,7 +289,7 @@ def _list_related_incidents(*, incident_id: str) -> Dict[str, Any]:
     pd_client = create_client()
 
     try:
-        response = pd_client.jget(f"{INCIDENTS_URL}/{incident_id}/related_incidents")
+        response = pd_client.jget(f"{INCIDENTS_URL}/{incident_id}/related_incidents")  # type: ignore[misc]
         try:
             related_incidents = response["related_incidents"]
         except KeyError:
@@ -337,7 +337,7 @@ def _list_notes(*, incident_id: str) -> Dict[str, Any]:
     pd_client = create_client()
 
     try:
-        response = pd_client.jget(f"{INCIDENTS_URL}/{incident_id}/notes")
+        response = pd_client.jget(f"{INCIDENTS_URL}/{incident_id}/notes")  # type: ignore[misc]
         try:
             notes = response["notes"]
         except KeyError:
@@ -345,7 +345,11 @@ def _list_notes(*, incident_id: str) -> Dict[str, Any]:
                 f"Failed to fetch notes for incident {incident_id}: Response missing 'notes' field"
             )
 
-        parsed_response = [parse_note(note) for note in notes]
+        parsed_response = [
+            parsed
+            for parsed in (parse_note(note) for note in notes)
+            if parsed is not None
+        ]
 
         return utils.api_response_handler(
             results=parsed_response, resource_name="notes"
@@ -363,7 +367,7 @@ def _count_incident_statuses(incidents: List[Dict[str, Any]]) -> Dict[str, int]:
     Returns:
         Dict[str, int]: Dictionary mapping status to count
     """
-    status_counts = {}
+    status_counts: Dict[str, int] = {}
     for incident in incidents:
         status = incident.get("status")
         if status in VALID_STATUSES:

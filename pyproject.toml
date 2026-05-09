@@ -51,8 +51,11 @@ name = "default"
 url = "https://pypi.org/simple"
 
 [dependency-groups]
-development = [
+dev = [
     "mypy>=2.0.0",
     "pytest>=9.0.3",
     "ruff>=0.15.12",
 ]
+
+[tool.mypy]
+files = ["src"]

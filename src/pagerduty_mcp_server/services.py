@@ -42,7 +42,7 @@ def list_services(
     if team_ids is not None and not team_ids:
         raise ValueError("team_ids cannot be an empty list")
 
-    params = {}
+    params: Dict[str, Any] = {}
     if team_ids:
         params["team_ids[]"] = (
             team_ids  # PagerDuty API expects array parameters with [] suffix
@@ -82,7 +82,7 @@ def show_service(*, service_id: str) -> Dict[str, Any]:
     pd_client = create_client()
 
     try:
-        response = pd_client.jget(f"{SERVICES_URL}/{service_id}")
+        response = pd_client.jget(f"{SERVICES_URL}/{service_id}")  # type: ignore[misc]
         try:
             service_data = response["service"]
         except KeyError:

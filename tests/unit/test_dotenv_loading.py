@@ -13,7 +13,7 @@ class TestDotenvLoading:
     def test_dotenv_loads_from_file(self):
         """Test that dotenv can load environment variables from a .env file."""
         # Create a temporary .env file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".env", delete=False) as f:
             f.write("TEST_API_TOKEN=test_token_value\n")
             f.write("ANOTHER_VAR=another_value\n")
             temp_env_file = f.name
@@ -21,7 +21,7 @@ class TestDotenvLoading:
         try:
             # Load the temporary .env file
             load_dotenv(temp_env_file)
-            
+
             # Verify the environment variables were loaded
             assert os.getenv("TEST_API_TOKEN") == "test_token_value"
             assert os.getenv("ANOTHER_VAR") == "another_value"
@@ -38,16 +38,16 @@ class TestDotenvLoading:
         """Test that existing environment variables take precedence over .env file."""
         # Set an environment variable
         os.environ["EXISTING_VAR"] = "existing_value"
-        
+
         # Create a temporary .env file with the same variable
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".env", delete=False) as f:
             f.write("EXISTING_VAR=dotenv_value\n")
             temp_env_file = f.name
 
         try:
             # Load the .env file (should not override existing env var)
             load_dotenv(temp_env_file, override=False)
-            
+
             # Verify the existing environment variable was not overridden
             assert os.getenv("EXISTING_VAR") == "existing_value"
         finally:
@@ -60,7 +60,7 @@ class TestDotenvLoading:
         """Test that the client module imports and uses dotenv."""
         # This test verifies that the import works without errors
         from pagerduty_mcp_server.client import create_client
-        
+
         # The import should succeed, indicating dotenv is properly imported
         assert create_client is not None
 
@@ -68,14 +68,14 @@ class TestDotenvLoading:
     def test_client_loads_pagerduty_token_from_dotenv(self):
         """Test that the client can load PAGERDUTY_API_TOKEN from .env file."""
         # Create a temporary .env file with PAGERDUTY_API_TOKEN
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".env", delete=False) as f:
             f.write("PAGERDUTY_API_TOKEN=test_pd_token\n")
             temp_env_file = f.name
 
         try:
             # Load the .env file
             load_dotenv(temp_env_file)
-            
+
             # Verify the token was loaded
             assert os.getenv("PAGERDUTY_API_TOKEN") == "test_pd_token"
         finally:

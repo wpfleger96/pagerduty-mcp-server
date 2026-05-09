@@ -3,7 +3,7 @@
 import logging
 import sys
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, NoReturn, Optional, Union
 
 from . import prompts
 
@@ -123,7 +123,7 @@ def validate_iso8601_timestamp(timestamp: str, param_name: str) -> None:
         )
 
 
-def handle_api_error(e: Exception) -> None:
+def handle_api_error(e: Exception) -> NoReturn:
     """Log the error and re-raise the original exception.
 
     Args:

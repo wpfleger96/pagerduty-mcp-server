@@ -40,7 +40,7 @@ def list_escalation_policies(
 
     pd_client = create_client()
 
-    params = {}
+    params: Dict[str, Any] = {}
     if query:
         params["query"] = query
     if user_ids:
@@ -81,7 +81,7 @@ def show_escalation_policy(*, policy_id: str) -> Dict[str, Any]:
     pd_client = create_client()
 
     try:
-        response = pd_client.jget(f"{ESCALATION_POLICIES_URL}/{policy_id}")
+        response = pd_client.jget(f"{ESCALATION_POLICIES_URL}/{policy_id}")  # type: ignore[misc]
         try:
             policy_data = response["escalation_policy"]
         except KeyError:

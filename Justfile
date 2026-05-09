@@ -4,7 +4,7 @@ sync:
     uv sync
 
 type-check:
-    uv run mypy .
+    uv run mypy src
 
 lint-check:
     uvx ruff check .

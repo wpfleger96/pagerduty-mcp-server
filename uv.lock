@@ -888,7 +888,7 @@ dependencies = [
 ]
 
 [package.dev-dependencies]
-development = [
+dev = [
     { name = "mypy" },
     { name = "pytest" },
     { name = "ruff" },
@@ -903,7 +903,7 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
-development = [
+dev = [
     { name = "mypy", specifier = ">=2.0.0" },
     { name = "pytest", specifier = ">=9.0.3" },
     { name = "ruff", specifier = ">=0.15.12" },
