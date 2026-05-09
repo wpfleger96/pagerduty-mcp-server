@@ -18,8 +18,6 @@ dependencies = [
     "hatch>=1.14.1",
     "fastmcp>=2.5.1",
     "pagerduty>=1.0.0",
-    "pytest>=8.3.5",
-    "ruff>=0.11.2",
     "python-dotenv>=1.0.0",
 ]
 
@@ -51,3 +49,10 @@ allowed_types = ["feat", "fix", "chore", "ci", "docs", "style", "refactor", "tes
 [[tool.uv.index]]
 name = "default"
 url = "https://pypi.org/simple"
+
+[dependency-groups]
+development = [
+    "mypy>=2.0.0",
+    "pytest>=9.0.3",
+    "ruff>=0.15.12",
+]
