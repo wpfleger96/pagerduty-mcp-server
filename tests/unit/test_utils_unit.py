@@ -3,7 +3,6 @@
 import pytest
 
 from pagerduty_mcp_server import utils
-from pagerduty_mcp_server.errors import PagerDutyResponseLimitError
 
 
 @pytest.mark.unit
@@ -54,27 +53,27 @@ def test_api_response_handler_with_metadata():
 @pytest.mark.unit
 @pytest.mark.utils
 def test_api_response_handler_char_limit_exceeded():
-    """Test that api_response_handler raises PagerDutyResponseLimitError when character limit exceeded."""
+    """Test that api_response_handler returns soft error dict when character limit exceeded."""
     large_string = "x" * (utils.RESPONSE_CHAR_LIMIT + 1000)
     results = [{"data": large_string}]
 
-    with pytest.raises(PagerDutyResponseLimitError) as exc_info:
-        utils.api_response_handler(results=results, resource_name="tests")
+    response = utils.api_response_handler(results=results, resource_name="tests")
 
-    assert f"{utils.RESPONSE_CHAR_LIMIT} characters" in str(exc_info.value)
+    assert response["error"]["code"] == "LIMIT_EXCEEDED"
+    assert f"{utils.RESPONSE_CHAR_LIMIT} characters" in response["error"]["message"]
 
 
 @pytest.mark.unit
 @pytest.mark.utils
 def test_api_response_handler_byte_limit_exceeded():
-    """Test that api_response_handler raises PagerDutyResponseLimitError when byte size limit exceeded."""
+    """Test that api_response_handler returns soft error dict when byte size limit exceeded."""
     binary_like_data = bytearray(range(255)) * (utils.RESPONSE_SIZE_LIMIT // 255 + 100)
     results = [{"data": str(binary_like_data)}]
 
-    with pytest.raises(PagerDutyResponseLimitError) as exc_info:
-        utils.api_response_handler(results=results, resource_name="tests")
+    response = utils.api_response_handler(results=results, resource_name="tests")
 
-    assert f"{utils.RESPONSE_SIZE_LIMIT} bytes" in str(exc_info.value)
+    assert response["error"]["code"] == "LIMIT_EXCEEDED"
+    assert f"{utils.RESPONSE_SIZE_LIMIT} bytes" in response["error"]["message"]
 
 
 @pytest.mark.unit

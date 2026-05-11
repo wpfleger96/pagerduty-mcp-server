@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, NoReturn, Optional, Type, Union
 
 from . import prompts
-from .errors import PagerDutyError, PagerDutyResponseLimitError
+from .errors import PagerDutyError
 from .models.common import PagerDutyBaseModel
 
 logger = logging.getLogger(__name__)
@@ -86,7 +86,12 @@ def api_response_handler(
         )
         content = getattr(prompt_message, "content", None)
         message = getattr(content, "text", str(prompt_message))
-        raise PagerDutyResponseLimitError(message)
+        return {
+            "error": {
+                "code": "LIMIT_EXCEEDED",
+                "message": message,
+            }
+        }
 
     metadata = {
         "count": len(results),

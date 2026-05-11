@@ -9,7 +9,3 @@ class PagerDutyError(ToolError):
 
 class PagerDutyAuthError(PagerDutyError):
     """Raised when PagerDuty credentials are missing or invalid."""
-
-
-class PagerDutyResponseLimitError(PagerDutyError):
-    """Raised when a response is too large to return safely."""
