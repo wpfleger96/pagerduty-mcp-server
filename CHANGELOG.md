@@ -1,6 +1,46 @@
 # CHANGELOG
 
 
+## v4.0.0 (2026-05-11)
+
+### Features
+
+- Full OSS parity — async, Pydantic models, write tools, OAuth PKCE (#16)
+  ([`b44c13d`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/b44c13d9726bb858357c4fddc7ceef46c34039bb))
+
+Ports four major evolutions from the internal mcp_pagerduty v0.9.0 that never landed in OSS. All
+  tool handlers are now async via asyncio.to_thread wrappers. A new models/ directory (9 files)
+  replaces the hand-written parsers/ directory, with a universal "include" parameter on all read
+  tools for field-level response filtering. Three write tools added: acknowledge_incident,
+  resolve_incident, and add_incident_note. A typed error hierarchy (PagerDutyError ->
+  Auth/Api/ResponseLimit) uses FastMCP ToolError for correct isError=true MCP signaling. OAuth 2.0
+  PKCE support added via PAGERDUTY_CLIENT_ID env var, hardened with CSRF state, 5-minute callback
+  timeout, threading lock, and selective keyring wipe.
+
+BREAKING CHANGE: parsers/ removed, tools are async-only, new error types.
+
+### Chores
+
+- **deps**: Bump pygments from 2.19.2 to 2.20.0 (#21)
+  ([`bd71f39`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/bd71f39fbf0d5bb46bde7803a5ede0566ef34a13))
+
+- **deps**: Bump actions/create-github-app-token from 2 to 3 (#20)
+  ([`399ebf9`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/399ebf974bde265f16f42607ca95a3eedf86e543))
+
+- **deps**: Bump astral-sh/setup-uv from 3 to 7 (#19)
+  ([`96e1aa5`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/96e1aa5ce627c1983666b65fd2b164b1dab75823))
+
+- Align CI/CD with golden path (#18)
+  ([`6e6edec`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/6e6edec065e24a70a26738e3e0efa4ad2d52adbb))
+
+- **deps**: Bump python-multipart in the uv group across 1 directory
+  ([`8809132`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/8809132d0aaa0ada7aac0146f075199599851d60))
+
+### Breaking Changes
+
+- parsers/ removed, tools are async-only, new error types
+
+
 ## v3.1.4 (2026-04-25)
 
 ### Bug Fixes
