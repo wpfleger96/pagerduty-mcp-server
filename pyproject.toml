@@ -48,6 +48,10 @@ allow_zero_version = true
 [tool.semantic_release.commit_parser_opts]
 allowed_types = ["feat", "fix", "chore", "ci", "docs", "style", "refactor", "test"]
 
+[tool.semantic_release.changelog]
+changelog_file = "CHANGELOG.md"
+exclude_commit_patterns = ["chore\\(release\\)"]
+
 [dependency-groups]
 dev = [
     "hatch>=1.14.1",
