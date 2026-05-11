@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 license = "MIT"
 authors = [
-    { name = "Will Pfleger", email = "wpfleger@block.xyz" }
+    { name = "Will Pfleger", email = "pfleger.will@gmail.com" }
 ]
 keywords = ["pagerduty", "mcp", "llm", "api", "server"]
 classifiers = [
@@ -15,10 +15,12 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    "hatch>=1.14.1",
-    "fastmcp>=2.5.1",
+    "fastmcp>=3",
+    "keyring>=24.0.0",
     "pagerduty>=1.0.0",
+    "pydantic>=2.0.0",
     "python-dotenv>=1.0.0",
+    "requests>=2.32.3",
 ]
 
 [project.urls]
@@ -46,16 +48,32 @@ allow_zero_version = true
 [tool.semantic_release.commit_parser_opts]
 allowed_types = ["feat", "fix", "chore", "ci", "docs", "style", "refactor", "test"]
 
-[[tool.uv.index]]
-name = "default"
-url = "https://pypi.org/simple"
-
 [dependency-groups]
 dev = [
+    "hatch>=1.14.1",
     "mypy>=2.0.0",
-    "pytest>=9.0.3",
-    "ruff>=0.15.12",
+    "pytest>=8.3.5,<9",
+    "pytest-asyncio>=1.0.0,<2",
+    "ruff>=0.11.2",
+    "types-requests>=2.32.0",
 ]
 
 [tool.mypy]
-files = ["src"]
+explicit_package_bases = true
+mypy_path = "src"
+files = ["src/"]
+
+[[tool.mypy.overrides]]
+module = "pagerduty.*"
+follow_imports = "skip"
+
+[tool.setuptools.package-data]
+pagerduty_mcp_server = ["docs/*.md"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[[tool.uv.index]]
+name = "default"
+url = "https://pypi.org/simple"

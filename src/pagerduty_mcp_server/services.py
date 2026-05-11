@@ -4,8 +4,9 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from . import utils
+from .async_utils import DEFAULT_MAX_RESULTS, paginate, safe_execute_async
 from .client import create_client
-from .parsers import parse_service
+from .models.service import Service
 
 logger = logging.getLogger(__name__)
 
@@ -16,11 +17,12 @@ Services API Helpers
 """
 
 
-def list_services(
+async def list_services(
     *,
     team_ids: Optional[List[str]] = None,
     query: Optional[str] = None,
     limit: Optional[int] = None,
+    include: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """List existing PagerDuty services. Exposed as MCP server tool.
 
@@ -28,6 +30,7 @@ def list_services(
         team_ids (List[str]): Filter results to only services assigned to teams with the given IDs (optional)
         query (str): Filter services whose names contain the search query (optional)
         limit (int): Limit the number of results returned (optional)
+        include (List[str]): List of fields to include in the response. If specified, only these fields will be returned for each service
 
     Returns:
         See the "Standard Response Format" section in `tools.md` for the complete standard response structure.
@@ -49,24 +52,28 @@ def list_services(
         )
     if query:
         params["query"] = query
-    if limit:
-        params["limit"] = limit
 
     try:
-        response = pd_client.list_all(SERVICES_URL, params=params)
-        parsed_response = [parse_service(result=result) for result in response]
-        return utils.api_response_handler(
-            results=parsed_response, resource_name="services"
+        response = await paginate(
+            pd_client,
+            SERVICES_URL,
+            params=params,
+            max_records=limit or DEFAULT_MAX_RESULTS,
+            operation_name="list services",
         )
+        return utils.parse_list_response(response, Service, "services", include=include)
     except Exception as e:
         utils.handle_api_error(e)
 
 
-def show_service(*, service_id: str) -> Dict[str, Any]:
+async def show_service(
+    *, service_id: str, include: Optional[List[str]] = None
+) -> Dict[str, Any]:
     """Get detailed information about a given service. Exposed as MCP server tool.
 
     Args:
         service_id (str): The ID of the service to get
+        include (List[str]): List of fields to include in the response. If specified, only these fields will be returned for the service
 
     Returns:
         See the "Standard Response Format" section in `tools.md` for the complete standard response structure.
@@ -82,7 +89,10 @@ def show_service(*, service_id: str) -> Dict[str, Any]:
     pd_client = create_client()
 
     try:
-        response = pd_client.jget(f"{SERVICES_URL}/{service_id}")  # type: ignore[misc]
+        response = await safe_execute_async(
+            lambda: pd_client.jget(f"{SERVICES_URL}/{service_id}"),
+            f"fetch service {service_id}",
+        )
         try:
             service_data = response["service"]
         except KeyError:
@@ -90,8 +100,13 @@ def show_service(*, service_id: str) -> Dict[str, Any]:
                 f"Failed to fetch service {service_id}: Response missing 'service' field"
             )
 
+        parsed_service = {}
+        if service_data:
+            model = Service.model_validate(service_data)
+            parsed_service = model.to_clean_dict(include_fields=include)
+
         return utils.api_response_handler(
-            results=parse_service(result=service_data), resource_name="service"
+            results=parsed_service, resource_name="service"
         )
     except Exception as e:
         utils.handle_api_error(e)
@@ -102,7 +117,7 @@ Services Helpers
 """
 
 
-def fetch_service_ids(*, team_ids: List[str]) -> List[str]:
+async def fetch_service_ids(*, team_ids: List[str]) -> List[str]:
     """Get the service IDs for a list of team IDs. Internal helper function.
 
     Args:
@@ -129,8 +144,15 @@ def fetch_service_ids(*, team_ids: List[str]) -> List[str]:
         "team_ids[]": team_ids
     }  # PagerDuty API expects array parameters with [] suffix
     try:
-        services_response = pd_client.list_all(SERVICES_URL, params=params)
-        parsed_response = [parse_service(result=result) for result in services_response]
+        services_response = await safe_execute_async(
+            lambda: pd_client.list_all(SERVICES_URL, params=params), "fetch service IDs"
+        )
+        parsed_response = []
+        for result in services_response:
+            if not result:
+                continue
+            model = Service.model_validate(result)
+            parsed_response.append(model.to_clean_dict())
         return [service["id"] for service in parsed_response]
     except Exception as e:
         utils.handle_api_error(e)

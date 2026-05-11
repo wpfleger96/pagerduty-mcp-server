@@ -4,15 +4,16 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from . import escalation_policies, services, teams, utils
+from .async_utils import DEFAULT_MAX_RESULTS, paginate, safe_execute_async
 from .client import create_client
-from .parsers import parse_user
+from .models.user import User
 
 USERS_URL = "/users"
 
 logger = logging.getLogger(__name__)
 
 
-def build_user_context() -> Dict[str, Any]:
+async def build_user_context() -> Dict[str, Any]:
     """Validate and build the current user's context. Exposed as MCP server tool.
 
     See the "Standard Response Format" section in `tools.md` for the complete standard response structure.
@@ -25,7 +26,7 @@ def build_user_context() -> Dict[str, Any]:
         See the "Error Handling" section in `tools.md` for common error scenarios.
     """
     try:
-        user = _show_current_user()
+        user = await _show_current_user()
         if not user:
             raise ValueError("Failed to get current user data")
 
@@ -47,12 +48,12 @@ def build_user_context() -> Dict[str, Any]:
         ]
 
         if context["team_ids"]:
-            service_ids = services.fetch_service_ids(team_ids=context["team_ids"])
+            service_ids = await services.fetch_service_ids(team_ids=context["team_ids"])
             context["service_ids"] = [
                 str(sid).strip() for sid in service_ids if sid and str(sid).strip()
             ]
 
-        escalation_policy_ids = escalation_policies.fetch_escalation_policy_ids(
+        escalation_policy_ids = await escalation_policies.fetch_escalation_policy_ids(
             user_id=context["user_id"]
         )
         context["escalation_policy_ids"] = [
@@ -72,11 +73,12 @@ Users API Helpers
 """
 
 
-def list_users(
+async def list_users(
     *,
     team_ids: Optional[List[str]] = None,
     query: Optional[str] = None,
     limit: Optional[int] = None,
+    include: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """List users in PagerDuty. Exposed as MCP server tool.
 
@@ -84,6 +86,7 @@ def list_users(
         team_ids (List[str]): Filter results to only users assigned to teams with the given IDs (optional)
         query (str): Filter users whose names contain the search query (optional)
         limit (int): Limit the number of results returned (optional)
+        include (List[str]): List of fields to include in the response. If specified, only these fields will be returned for each user
 
     Returns:
         See the "Standard Response Format" section in `tools.md` for the complete standard response structure.
@@ -101,24 +104,28 @@ def list_users(
         params["team_ids[]"] = team_ids
     if query:
         params["query"] = query
-    if limit:
-        params["limit"] = limit
 
     try:
-        response = pd_client.list_all(USERS_URL, params=params)
-        parsed_response = [parse_user(result=result) for result in response]
-        return utils.api_response_handler(
-            results=parsed_response, resource_name="users"
+        response = await paginate(
+            pd_client,
+            USERS_URL,
+            params=params,
+            max_records=limit or DEFAULT_MAX_RESULTS,
+            operation_name="list users",
         )
+        return utils.parse_list_response(response, User, "users", include=include)
     except Exception as e:
         utils.handle_api_error(e)
 
 
-def show_user(*, user_id: str) -> Dict[str, Any]:
+async def show_user(
+    *, user_id: str, include: Optional[List[str]] = None
+) -> Dict[str, Any]:
     """Get detailed information about a given user. Exposed as MCP server tool.
 
     Args:
         user_id (str): The ID of the user to fetch
+        include (List[str]): List of fields to include in the response. If specified, only these fields will be returned for the user
 
     Returns:
         See the "Standard Response Format" section in `tools.md` for the complete standard response structure.
@@ -134,7 +141,9 @@ def show_user(*, user_id: str) -> Dict[str, Any]:
     pd_client = create_client()
 
     try:
-        response = pd_client.jget(f"{USERS_URL}/{user_id}")  # type: ignore[misc]
+        response = await safe_execute_async(
+            lambda: pd_client.jget(f"{USERS_URL}/{user_id}"), f"fetch user {user_id}"
+        )
         try:
             user_data = response["user"]
         except KeyError:
@@ -142,9 +151,12 @@ def show_user(*, user_id: str) -> Dict[str, Any]:
                 f"Failed to fetch user {user_id}: Response missing 'user' field"
             )
 
-        return utils.api_response_handler(
-            results=parse_user(result=user_data), resource_name="user"
-        )
+        parsed_user = {}
+        if user_data:
+            model = User.model_validate(user_data)
+            parsed_user = model.to_clean_dict(include_fields=include)
+
+        return utils.api_response_handler(results=parsed_user, resource_name="user")
     except Exception as e:
         utils.handle_api_error(e)
 
@@ -154,7 +166,7 @@ Users Private Helpers
 """
 
 
-def _show_current_user() -> Dict[str, Any]:
+async def _show_current_user() -> Dict[str, Any]:
     """Get the current user's PagerDuty profile including their teams, contact methods, and notification rules.
 
     Returns:
@@ -166,8 +178,14 @@ def _show_current_user() -> Dict[str, Any]:
     """
     pd_client = create_client()
     try:
-        response = pd_client.jget(USERS_URL + "/me")["user"]  # type: ignore[misc]
-        user = parse_user(result=response)
+        result = await safe_execute_async(
+            lambda: pd_client.jget(USERS_URL + "/me"), "fetch current user"
+        )
+        response = result["user"]
+        user = {}
+        if response:
+            model = User.model_validate(response)
+            user = model.to_clean_dict()
         if not user or "id" not in user or not user["id"]:
             raise ValueError("Invalid user object: missing ID")
         return user

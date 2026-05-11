@@ -149,7 +149,7 @@
         "assignments": [
             {
                 "assignee": {
-                    "html_url": "https://square.pagerduty.com/users/456",
+                    "html_url": "https://example.pagerduty.com/users/456",
                     "id": "456",
                     "self": "https://api.pagerduty.com/users/456",
                     "summary": "User 456",
@@ -162,20 +162,20 @@
         "created_at": "2025-02-18T00:31:12Z",
         "description": "REDACTED",
         "escalation_policy": {
-            "html_url": "https://square.pagerduty.com/escalation_policies/456",
+            "html_url": "https://example.pagerduty.com/escalation_policies/456",
             "id": "456",
             "self": "https://api.pagerduty.com/escalation_policies/456",
             "summary": "Escalation Policy 456",
             "type": "escalation_policy_reference"
         },
         "first_trigger_log_entry": {
-            "html_url": "https://square.pagerduty.com/incidents/456/log_entries/456",
+            "html_url": "https://example.pagerduty.com/incidents/456/log_entries/456",
             "id": "456",
             "self": "https://api.pagerduty.com/log_entries/456",
             "summary": "Log entry 456",
             "type": "trigger_log_entry_reference"
         },
-        "html_url": "https://square.pagerduty.com/incidents/456",
+        "html_url": "https://example.pagerduty.com/incidents/456",
         "id": "456",
         "incident_key": null,
         "incident_number": 456,
@@ -186,7 +186,7 @@
         "is_mergeable": true,
         "last_status_change_at": "2025-02-18T00:31:12Z",
         "last_status_change_by": {
-            "html_url": "https://square.pagerduty.com/service-directory/456",
+            "html_url": "https://example.pagerduty.com/service-directory/456",
             "id": "456",
             "self": "https://api.pagerduty.com/services/456",
             "summary": "Service 456",
@@ -198,7 +198,7 @@
         "responder_requests": [],
         "self": "https://api.pagerduty.com/incidents/456",
         "service": {
-            "html_url": "https://square.pagerduty.com/service-directory/456",
+            "html_url": "https://example.pagerduty.com/service-directory/456",
             "id": "456",
             "self": "https://api.pagerduty.com/services/456",
             "summary": "Service 456",
@@ -209,7 +209,7 @@
         "summary": "REDACTED",
         "teams": [
             {
-                "html_url": "https://square.pagerduty.com/teams/456",
+                "html_url": "https://example.pagerduty.com/teams/456",
                 "id": "456",
                 "self": "https://api.pagerduty.com/teams/456",
                 "summary": "Team 456",
@@ -225,7 +225,7 @@
         "acknowledgements": [
             {
                 "acknowledger": {
-                    "html_url": "https://square.pagerduty.com/users/789",
+                    "html_url": "https://example.pagerduty.com/users/789",
                     "id": "789",
                     "self": "https://api.pagerduty.com/users/789",
                     "summary": "User 789",
@@ -249,7 +249,7 @@
         "assignments": [
             {
                 "assignee": {
-                    "html_url": "https://square.pagerduty.com/users/789",
+                    "html_url": "https://example.pagerduty.com/users/789",
                     "id": "789",
                     "self": "https://api.pagerduty.com/users/789",
                     "summary": "User 789",
@@ -262,20 +262,20 @@
         "created_at": "2025-02-18T00:24:36Z",
         "description": "REDACTED",
         "escalation_policy": {
-            "html_url": "https://square.pagerduty.com/escalation_policies/789",
+            "html_url": "https://example.pagerduty.com/escalation_policies/789",
             "id": "789",
             "self": "https://api.pagerduty.com/escalation_policies/789",
             "summary": "Escalation Policy 789",
             "type": "escalation_policy_reference"
         },
         "first_trigger_log_entry": {
-            "html_url": "https://square.pagerduty.com/incidents/789/log_entries/789",
+            "html_url": "https://example.pagerduty.com/incidents/789/log_entries/789",
             "id": "789",
             "self": "https://api.pagerduty.com/log_entries/789",
             "summary": "Log entry 789",
             "type": "trigger_log_entry_reference"
         },
-        "html_url": "https://square.pagerduty.com/incidents/789",
+        "html_url": "https://example.pagerduty.com/incidents/789",
         "id": "789",
         "incident_key": null,
         "incident_number": 789,
@@ -286,7 +286,7 @@
         "is_mergeable": true,
         "last_status_change_at": "2025-02-18T00:54:51Z",
         "last_status_change_by": {
-            "html_url": "https://square.pagerduty.com/users/789",
+            "html_url": "https://example.pagerduty.com/users/789",
             "id": "789",
             "self": "https://api.pagerduty.com/users/789",
             "summary": "User 789",
@@ -298,7 +298,7 @@
         "responder_requests": [],
         "self": "https://api.pagerduty.com/incidents/789",
         "service": {
-            "html_url": "https://square.pagerduty.com/service-directory/789",
+            "html_url": "https://example.pagerduty.com/service-directory/789",
             "id": "789",
             "self": "https://api.pagerduty.com/services/789",
             "summary": "Service 789",
@@ -309,7 +309,7 @@
         "summary": "REDACTED",
         "teams": [
             {
-                "html_url": "https://square.pagerduty.com/teams/789",
+                "html_url": "https://example.pagerduty.com/teams/789",
                 "id": "789",
                 "self": "https://api.pagerduty.com/teams/789",
                 "summary": "Team 789",

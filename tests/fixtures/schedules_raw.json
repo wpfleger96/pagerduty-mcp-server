@@ -16,7 +16,7 @@
             "rendered_schedule_entries": []
         },
         "html_url": "https://pagerduty.com/schedules/66c19f3b01",
-        "http_cal_url": "https://square.pagerduty.com/private/1e6b6c717275435833cddaaecc33dbdb56b98956bd4eaf45f78338cbfc23b660/feed/PB80OV7",
+        "http_cal_url": "https://example.pagerduty.com/private/0000000000000000000000000000000000000000000000000000000000000000/feed/PB80OV7",
         "id": "66c19f3b01",
         "name": "Anonymized Schedule",
         "overrides_subschedule": {

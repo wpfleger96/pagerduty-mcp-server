@@ -1,16 +1,21 @@
 """PagerDuty incident operations."""
 
 import logging
+import os
+import re
 from typing import Any, Dict, List, Optional
 
 from . import utils
+from .async_utils import DEFAULT_MAX_RESULTS, paginate, safe_execute_async
 from .client import create_client
-from .parsers import parse_incident
-from .parsers.notes_parser import parse_note
+from .models.incident import Incident
+from .models.note import Note
 
 logger = logging.getLogger(__name__)
 
 INCIDENTS_URL = "/incidents"
+
+_INCIDENT_ID_RE = re.compile(r"^[A-Za-z0-9]+$")
 
 VALID_STATUSES = ["triggered", "acknowledged", "resolved"]
 DEFAULT_STATUSES = ["triggered", "acknowledged", "resolved"]
@@ -24,7 +29,7 @@ Incidents API Helpers
 """
 
 
-def list_incidents(
+async def list_incidents(
     *,
     service_ids: Optional[List[str]] = None,
     team_ids: Optional[List[str]] = None,
@@ -33,6 +38,7 @@ def list_incidents(
     since: Optional[str] = None,
     until: Optional[str] = None,
     limit: Optional[int] = None,
+    include: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """List PagerDuty incidents based on specified filters. Exposed in `get_incidents`.
 
@@ -51,6 +57,7 @@ def list_incidents(
         since (str): Start of date range in ISO8601 format (optional). Default is 1 month ago
         until (str): End of date range in ISO8601 format (optional). Default is now
         limit (int): Limit the number of results returned (optional)
+        include (List[str]): List of fields to include in the response. If specified, only these fields will be returned for each incident.
 
     Returns:
         See the "Standard Response Format" section in `tools.md` for the complete standard response structure.
@@ -90,29 +97,34 @@ def list_incidents(
     if until is not None:
         utils.validate_iso8601_timestamp(until, "until")
         params["until"] = until
-    if limit:
-        params["limit"] = limit
 
     try:
-        response = pd_client.list_all(INCIDENTS_URL, params=params)
+        response = await paginate(
+            pd_client,
+            INCIDENTS_URL,
+            params=params,
+            max_records=limit or DEFAULT_MAX_RESULTS,
+            operation_name="list incidents",
+        )
         metadata = _calculate_incident_metadata(response)
-        parsed_response = [parse_incident(result=result) for result in response]
-
-        return utils.api_response_handler(
-            results=parsed_response,
-            resource_name="incidents",
+        return utils.parse_list_response(
+            response,
+            Incident,
+            "incidents",
+            include=include,
             additional_metadata=metadata,
         )
     except Exception as e:
         utils.handle_api_error(e)
 
 
-def show_incident(
+async def show_incident(
     *,
     incident_id: str,
     include_past_incidents: Optional[bool] = False,
     include_related_incidents: Optional[bool] = False,
     include_notes: Optional[bool] = False,
+    include: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """Get detailed information about a given incident. Exposed as MCP server tool.
 
@@ -121,6 +133,7 @@ def show_incident(
         include_past_incidents (Optional[bool]): If True, includes similar past incidents. Defaults to False.
         include_related_incidents (Optional[bool]): If True, includes related incidents. Defaults to False.
         include_notes (Optional[bool]): If True, includes notes for the incident. Defaults to False.
+        include (List[str]): List of fields to include in the response. If specified, only these fields will be returned for the incident.
 
     Returns:
         See the "Standard Response Format" section in `tools.md` for the complete standard response structure.
@@ -132,6 +145,7 @@ def show_incident(
 
     if not incident_id:
         raise ValueError("incident_id cannot be empty")
+    _validate_incident_id(incident_id)
 
     pd_client = create_client()
     params = {"include[]": "body"}
@@ -139,7 +153,10 @@ def show_incident(
     try:
         incident_metadata = {}
 
-        response = pd_client.jget(f"{INCIDENTS_URL}/{incident_id}", params=params)  # type: ignore[misc]
+        response = await safe_execute_async(
+            lambda: pd_client.jget(f"{INCIDENTS_URL}/{incident_id}", params=params),
+            f"fetch incident {incident_id}",
+        )
         try:
             incident_data = response["incident"]
         except KeyError:
@@ -147,11 +164,16 @@ def show_incident(
                 f"Failed to fetch or process incident {incident_id}: 'incident'"
             )
 
-        parsed_main_incident = parse_incident(result=incident_data)
+        parsed_main_incident = {}
+        if incident_data:
+            model = Incident.model_validate(incident_data)
+            parsed_main_incident = model.to_clean_dict(include_fields=include)
 
         if include_past_incidents:
             try:
-                past_incidents_response = _list_past_incidents(incident_id=incident_id)
+                past_incidents_response = await _list_past_incidents(
+                    incident_id=incident_id
+                )
                 if past_incidents_response and past_incidents_response.get("incidents"):
                     parsed_main_incident["past_incidents"] = past_incidents_response[
                         "incidents"
@@ -168,7 +190,7 @@ def show_incident(
 
         if include_related_incidents:
             try:
-                related_incidents_response = _list_related_incidents(
+                related_incidents_response = await _list_related_incidents(
                     incident_id=incident_id
                 )
                 if related_incidents_response and related_incidents_response.get(
@@ -189,7 +211,7 @@ def show_incident(
 
         if include_notes:
             try:
-                notes_response = _list_notes(incident_id=incident_id)
+                notes_response = await _list_notes(incident_id=incident_id)
                 if notes_response and notes_response.get("notes"):
                     parsed_main_incident["notes"] = notes_response["notes"]
 
@@ -212,11 +234,177 @@ def show_incident(
 
 
 """
+Incidents Write Operations
+"""
+
+
+def _validate_incident_id(incident_id: str) -> None:
+    if not _INCIDENT_ID_RE.match(incident_id):
+        raise ValueError(
+            f"Invalid incident_id format: '{incident_id}'. Must contain only alphanumeric characters."
+        )
+
+
+async def _get_current_user_email() -> str:
+    """Get the current user's email for the From header required by PagerDuty write APIs.
+
+    Returns:
+        str: The current user's email address.
+
+    Raises:
+        RuntimeError: If the user email cannot be determined.
+    """
+    env_email = os.environ.get("PAGERDUTY_USER_EMAIL")
+    if env_email:
+        return env_email
+
+    from . import users
+
+    user_context = await users.build_user_context()
+    email = user_context.get("email")
+    if not email:
+        raise RuntimeError(
+            "Cannot determine current user email for PagerDuty 'From' header. "
+            "Set PAGERDUTY_USER_EMAIL environment variable as a fallback."
+        )
+    return email
+
+
+async def update_incident_status(
+    *,
+    incident_id: str,
+    status: str,
+    include: Optional[List[str]] = None,
+) -> Dict[str, Any]:
+    """Update the status of a PagerDuty incident (acknowledge or resolve).
+
+    Args:
+        incident_id (str): The ID of the incident to update
+        status (str): The new status ('acknowledged' or 'resolved')
+        include (List[str]): List of fields to include in the response
+
+    Returns:
+        Dict with the updated incident in standard response format.
+
+    Raises:
+        ValueError: If incident_id is empty or status is invalid
+    """
+    if not incident_id:
+        raise ValueError("incident_id cannot be empty")
+    _validate_incident_id(incident_id)
+
+    valid_statuses = ["acknowledged", "resolved"]
+    if status not in valid_statuses:
+        raise ValueError(
+            f"Invalid status '{status}'. Valid values are: {valid_statuses}"
+        )
+
+    pd_client = create_client()
+    from_email = await _get_current_user_email()
+
+    payload = {
+        "incident": {
+            "type": "incident_reference",
+            "status": status,
+        }
+    }
+
+    try:
+        response = await safe_execute_async(
+            lambda: pd_client.jput(
+                f"{INCIDENTS_URL}/{incident_id}",
+                json=payload,
+                headers={"From": from_email},
+            ),
+            f"{status} incident {incident_id}",
+        )
+        try:
+            incident_data = response["incident"]
+        except KeyError:
+            raise RuntimeError(
+                f"Failed to update incident {incident_id}: Response missing 'incident' field"
+            )
+
+        parsed_incident = {}
+        if incident_data:
+            model = Incident.model_validate(incident_data)
+            parsed_incident = model.to_clean_dict(include_fields=include)
+
+        return utils.api_response_handler(
+            results=parsed_incident,
+            resource_name="incident",
+        )
+    except Exception as e:
+        utils.handle_api_error(e)
+
+
+async def create_incident_note(
+    *,
+    incident_id: str,
+    content: str,
+) -> Dict[str, Any]:
+    """Add a note to a PagerDuty incident.
+
+    Args:
+        incident_id (str): The ID of the incident to add a note to
+        content (str): The note content
+
+    Returns:
+        Dict with the created note in standard response format.
+
+    Raises:
+        ValueError: If incident_id or content is empty
+    """
+    if not incident_id:
+        raise ValueError("incident_id cannot be empty")
+    _validate_incident_id(incident_id)
+    if not content or not content.strip():
+        raise ValueError("content cannot be empty")
+
+    pd_client = create_client()
+    from_email = await _get_current_user_email()
+
+    payload = {
+        "note": {
+            "content": content,
+        }
+    }
+
+    try:
+        response = await safe_execute_async(
+            lambda: pd_client.jpost(
+                f"{INCIDENTS_URL}/{incident_id}/notes",
+                json=payload,
+                headers={"From": from_email},
+            ),
+            f"add note to incident {incident_id}",
+        )
+        try:
+            note_data = response["note"]
+        except KeyError:
+            raise RuntimeError(
+                f"Failed to add note to incident {incident_id}: Response missing 'note' field"
+            )
+
+        parsed_note = {}
+        if note_data:
+            model = Note.model_validate(note_data)
+            parsed_note = model.to_clean_dict()
+
+        return utils.api_response_handler(
+            results=parsed_note,
+            resource_name="note",
+        )
+    except Exception as e:
+        utils.handle_api_error(e)
+
+
+"""
 Incidents Private Helpers
 """
 
 
-def _list_past_incidents(
+async def _list_past_incidents(
     *, incident_id: str, limit: Optional[int] = None, total: Optional[bool] = None
 ) -> Dict[str, Any]:
     """List incidents from the past 6 months that are similar to the input incident, and were generated on the same service as the parent incident.
@@ -238,13 +426,17 @@ def _list_past_incidents(
 
     if not incident_id:
         raise ValueError("incident_id cannot be empty")
+    _validate_incident_id(incident_id)
 
     pd_client = create_client()
 
     params = {"limit": limit, "total": total}
     try:
-        response = pd_client.jget(  # type: ignore[misc]
-            f"{INCIDENTS_URL}/{incident_id}/past_incidents", params=params
+        response = await safe_execute_async(
+            lambda: pd_client.jget(
+                f"{INCIDENTS_URL}/{incident_id}/past_incidents", params=params
+            ),
+            f"fetch past incidents for {incident_id}",
         )
         try:
             past_incidents = response["past_incidents"]
@@ -253,13 +445,20 @@ def _list_past_incidents(
                 f"Failed to fetch past incidents for {incident_id}: Response missing 'past_incidents' field"
             )
 
-        parsed_response = [
-            {
-                **parse_incident(result=item.get("incident", {})),
-                "similarity_score": item.get("score", 0.0),
-            }
-            for item in past_incidents
-        ]
+        parsed_response = []
+        for item in past_incidents:
+            incident_data = item.get("incident", {})
+            parsed_incident = {}
+            if incident_data:
+                model = Incident.model_validate(incident_data)
+                parsed_incident = model.to_clean_dict()
+
+            parsed_response.append(
+                {
+                    **parsed_incident,
+                    "similarity_score": item.get("score", 0.0),
+                }
+            )
         parsed_response.sort(key=lambda x: x["similarity_score"], reverse=True)
 
         return utils.api_response_handler(
@@ -269,7 +468,7 @@ def _list_past_incidents(
         utils.handle_api_error(e)
 
 
-def _list_related_incidents(*, incident_id: str) -> Dict[str, Any]:
+async def _list_related_incidents(*, incident_id: str) -> Dict[str, Any]:
     """List the 20 most recent related incidents that are impacting other services and responders.
 
     Args:
@@ -285,11 +484,15 @@ def _list_related_incidents(*, incident_id: str) -> Dict[str, Any]:
 
     if not incident_id:
         raise ValueError("incident_id cannot be empty")
+    _validate_incident_id(incident_id)
 
     pd_client = create_client()
 
     try:
-        response = pd_client.jget(f"{INCIDENTS_URL}/{incident_id}/related_incidents")  # type: ignore[misc]
+        response = await safe_execute_async(
+            lambda: pd_client.jget(f"{INCIDENTS_URL}/{incident_id}/related_incidents"),
+            f"fetch related incidents for {incident_id}",
+        )
         try:
             related_incidents = response["related_incidents"]
         except KeyError:
@@ -297,18 +500,26 @@ def _list_related_incidents(*, incident_id: str) -> Dict[str, Any]:
                 f"Failed to fetch related incidents for {incident_id}: Response missing 'related_incidents' field"
             )
 
-        parsed_response = [
-            {
-                **parse_incident(result=item["incident"]),
-                "relationship_type": item["relationships"][0]["type"]
-                if item["relationships"]
-                else None,
-                "relationship_metadata": item["relationships"][0]["metadata"]
-                if item["relationships"]
-                else None,
-            }
-            for item in related_incidents
-        ]
+        parsed_response = []
+        for item in related_incidents:
+            incident_data = item["incident"]
+            parsed_incident = {}
+            if incident_data:
+                model = Incident.model_validate(incident_data)
+                parsed_incident = model.to_clean_dict()
+
+            relationships = item.get("relationships", [])
+            parsed_response.append(
+                {
+                    **parsed_incident,
+                    "relationship_type": relationships[0]["type"]
+                    if relationships
+                    else None,
+                    "relationship_metadata": relationships[0]["metadata"]
+                    if relationships
+                    else None,
+                }
+            )
 
         return utils.api_response_handler(
             results=parsed_response, resource_name="incidents"
@@ -317,7 +528,7 @@ def _list_related_incidents(*, incident_id: str) -> Dict[str, Any]:
         utils.handle_api_error(e)
 
 
-def _list_notes(*, incident_id: str) -> Dict[str, Any]:
+async def _list_notes(*, incident_id: str) -> Dict[str, Any]:
     """List notes for a PagerDuty incident. Exposed as MCP server tool.
 
     Args:
@@ -333,11 +544,15 @@ def _list_notes(*, incident_id: str) -> Dict[str, Any]:
 
     if not incident_id:
         raise ValueError("incident_id cannot be empty")
+    _validate_incident_id(incident_id)
 
     pd_client = create_client()
 
     try:
-        response = pd_client.jget(f"{INCIDENTS_URL}/{incident_id}/notes")  # type: ignore[misc]
+        response = await safe_execute_async(
+            lambda: pd_client.jget(f"{INCIDENTS_URL}/{incident_id}/notes"),
+            f"fetch notes for incident {incident_id}",
+        )
         try:
             notes = response["notes"]
         except KeyError:
@@ -345,11 +560,12 @@ def _list_notes(*, incident_id: str) -> Dict[str, Any]:
                 f"Failed to fetch notes for incident {incident_id}: Response missing 'notes' field"
             )
 
-        parsed_response = [
-            parsed
-            for parsed in (parse_note(note) for note in notes)
-            if parsed is not None
-        ]
+        parsed_response = []
+        for note in notes:
+            if not note:
+                continue
+            model = Note.model_validate(note)
+            parsed_response.append(model.to_clean_dict())
 
         return utils.api_response_handler(
             results=parsed_response, resource_name="notes"

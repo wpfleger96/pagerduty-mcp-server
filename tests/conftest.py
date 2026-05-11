@@ -1,5 +1,7 @@
+import asyncio
 import json
 import os
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -30,6 +32,9 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "users: Tests for the users sub-module")
     config.addinivalue_line("markers", "utils: Tests for the utils sub-module")
     config.addinivalue_line("markers", "parsers: Tests for the parsers sub-module")
+    config.addinivalue_line(
+        "markers", "validation: Tests for the validation sub-module"
+    )
 
 
 skip_if_no_pagerduty_key = pytest.mark.skipif(
@@ -45,14 +50,19 @@ def user_context():
     This fixture has session scope, meaning it will be created once per test session
     and reused across all tests, avoiding redundant API calls to build the user context.
     Only runs when integration tests are being run (when PAGERDUTY_API_TOKEN is set).
+
+    Note: Uses asyncio.run() instead of async fixture to avoid scope mismatch errors
+    with pytest-asyncio's function-scoped event loop.
     """
-    return users.build_user_context()
+    return asyncio.run(users.build_user_context())
 
 
 @pytest.fixture
 def load_fixture():
+    fixtures_dir = Path(__file__).resolve().parent / "fixtures"
+
     def _load_file(filename):
-        with open(os.path.join("tests", "fixtures", filename)) as f:
+        with (fixtures_dir / filename).open() as f:
             return json.load(f)
 
     return _load_file
@@ -71,10 +81,19 @@ def mock_get_api_client():
     # Create patches
     with (
         patch("pagerduty_mcp_server.client._RestClient", mock_client_class),
-        patch.object(PagerDutyClient, "_get_header_token", return_value="test-token"),
+        patch.object(
+            PagerDutyClient, "_get_request_token", return_value=(False, "test-token")
+        ),
         patch.object(PagerDutyClient, "_get_env_token", return_value=None),
+        patch.object(PagerDutyClient, "_get_oauth_token", return_value=None),
     ):
         yield mock_api_client
+
+
+@pytest.fixture
+def mock_user_email():
+    """Provides a mock user email for write operation tests."""
+    return "test@example.com"
 
 
 @pytest.fixture

@@ -4,8 +4,9 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from . import utils
+from .async_utils import DEFAULT_MAX_RESULTS, paginate
 from .client import create_client
-from .parsers import parse_oncall
+from .models.oncall import Oncall
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +17,7 @@ On-Calls API Helpers
 """
 
 
-def list_oncalls(
+async def list_oncalls(
     *,
     schedule_ids: Optional[List[str]] = None,
     user_ids: Optional[List[str]] = None,
@@ -25,6 +26,7 @@ def list_oncalls(
     until: Optional[str] = None,
     limit: Optional[int] = None,
     earliest: Optional[bool] = None,
+    include: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """List the on-call entries during a given time range.
     An oncall-entry contains the user that is on-call for the given schedule, escalation policy, or time range and also includes the schedule and escalation policy that the user is on-call for. Exposed in `get_oncalls`.
@@ -37,6 +39,7 @@ def list_oncalls(
         until (str): End of date range in ISO8601 format (optional). Default is now
         limit (int): Limit the number of results returned (optional)
         earliest (bool): If True, only returns the earliest on-call for each combination of escalation policy, escalation level, and user. Useful for determining when the "next" on-calls are for a given set of filters. (optional)
+        include (List[str]): List of fields to include in the response. If specified, only these fields will be returned for each on-call entry
 
     Returns:
         See the "Standard Response Format" section in `tools.md` for the complete standard response structure.
@@ -61,16 +64,17 @@ def list_oncalls(
     if until:
         utils.validate_iso8601_timestamp(until, "until")
         params["until"] = until
-    if limit:
-        params["limit"] = limit
     if earliest is not None:
         params["earliest"] = earliest
 
     try:
-        response = pd_client.list_all(ONCALLS_URL, params=params)
-        parsed_response = [parse_oncall(result=result) for result in response]
-        return utils.api_response_handler(
-            results=parsed_response, resource_name="oncalls"
+        response = await paginate(
+            pd_client,
+            ONCALLS_URL,
+            params=params,
+            max_records=limit or DEFAULT_MAX_RESULTS,
+            operation_name="list oncalls",
         )
+        return utils.parse_list_response(response, Oncall, "oncalls", include=include)
     except Exception as e:
         utils.handle_api_error(e)

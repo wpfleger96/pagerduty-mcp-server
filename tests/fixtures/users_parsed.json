@@ -6,40 +6,40 @@
     "teams": [
         {
             "id": "5fc61f8dfd",
-            "type": "team_reference",
-            "summary": "Anonymized Team"
+            "summary": "Anonymized Team",
+            "type": "team_reference"
         },
         {
             "id": "ac7ae09a2a",
-            "type": "team_reference",
-            "summary": "Anonymized Team"
+            "summary": "Anonymized Team",
+            "type": "team_reference"
         },
         {
             "id": "f29d37098d",
-            "type": "team_reference",
-            "summary": "Anonymized Team"
+            "summary": "Anonymized Team",
+            "type": "team_reference"
         },
         {
             "id": "30216a30a1",
-            "type": "team_reference",
-            "summary": "Anonymized Team"
+            "summary": "Anonymized Team",
+            "type": "team_reference"
         }
     ],
     "contact_methods": [
         {
             "id": "6d3be97280",
-            "type": "email_contact_method_reference",
-            "summary": "Default"
+            "summary": "Default",
+            "type": "email_contact_method_reference"
         },
         {
             "id": "91a67ef88a",
-            "type": "phone_contact_method_reference",
-            "summary": "Mobile"
+            "summary": "Mobile",
+            "type": "phone_contact_method_reference"
         },
         {
             "id": "b43752f77a",
-            "type": "push_notification_contact_method_reference",
-            "summary": "iPhone"
+            "summary": "iPhone",
+            "type": "push_notification_contact_method_reference"
         }
     ],
     "notification_rules": [
@@ -48,4 +48,4 @@
             "type": "assignment_notification_rule_reference"
         }
     ]
-} 
+}

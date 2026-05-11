@@ -4,8 +4,9 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from . import utils
+from .async_utils import DEFAULT_MAX_RESULTS, paginate, safe_execute_async
 from .client import create_client
-from .parsers import parse_team
+from .models.team import Team
 
 logger = logging.getLogger(__name__)
 
@@ -16,14 +17,18 @@ Teams API Helpers
 """
 
 
-def list_teams(
-    *, query: Optional[str] = None, limit: Optional[int] = None
+async def list_teams(
+    *,
+    query: Optional[str] = None,
+    limit: Optional[int] = None,
+    include: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """List teams in your PagerDuty account. Exposed as MCP server tool.
 
     Args:
         query (str): Filter teams whose names contain the search query (optional)
         limit (int): Limit the number of results returned (optional)
+        include (List[str]): List of fields to include in the response. If specified, only these fields will be returned for each team
 
     Returns:
         See the "Standard Response Format" section in `tools.md` for the complete standard response structure.
@@ -35,27 +40,31 @@ def list_teams(
 
     pd_client = create_client()
 
-    params: Dict[str, Any] = {}
+    params = {}
     if query:
         params["query"] = query
-    if limit:
-        params["limit"] = limit
 
     try:
-        response = pd_client.list_all(TEAMS_URL, params=params)
-        parsed_response = [parse_team(result=team) for team in response]
-        return utils.api_response_handler(
-            results=parsed_response, resource_name="teams"
+        response = await paginate(
+            pd_client,
+            TEAMS_URL,
+            params=params,
+            max_records=limit or DEFAULT_MAX_RESULTS,
+            operation_name="list teams",
         )
+        return utils.parse_list_response(response, Team, "teams", include=include)
     except Exception as e:
         utils.handle_api_error(e)
 
 
-def show_team(*, team_id: str) -> Dict[str, Any]:
+async def show_team(
+    *, team_id: str, include: Optional[List[str]] = None
+) -> Dict[str, Any]:
     """Get detailed information about a given team. Exposed as MCP server tool.
 
     Args:
         team_id (str): The ID of the team to get
+        include (List[str]): List of fields to include in the response. If specified, only these fields will be returned for the team
 
     Returns:
         See the "Standard Response Format" section in `tools.md` for the complete standard response structure.
@@ -71,7 +80,9 @@ def show_team(*, team_id: str) -> Dict[str, Any]:
     pd_client = create_client()
 
     try:
-        response = pd_client.jget(f"{TEAMS_URL}/{team_id}")  # type: ignore[misc]
+        response = await safe_execute_async(
+            lambda: pd_client.jget(f"{TEAMS_URL}/{team_id}"), f"fetch team {team_id}"
+        )
         try:
             team_data = response["team"]
         except KeyError:
@@ -79,9 +90,12 @@ def show_team(*, team_id: str) -> Dict[str, Any]:
                 f"Failed to fetch team {team_id}: Response missing 'team' field"
             )
 
-        return utils.api_response_handler(
-            results=parse_team(result=team_data), resource_name="team"
-        )
+        parsed_team = {}
+        if team_data:
+            model = Team.model_validate(team_data)
+            parsed_team = model.to_clean_dict(include_fields=include)
+
+        return utils.api_response_handler(results=parsed_team, resource_name="team")
     except Exception as e:
         utils.handle_api_error(e)
 

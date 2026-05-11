@@ -2,7 +2,7 @@
 The MCP server tools below expose PagerDuty API functionality to LLMs. These tools are designed to be used programmatically, with structured inputs and outputs.
 
 ## General Information
-The following general information in this sectionapplies to all tools.
+The following general information in this section applies to all tools.
 
 ### Timestamp Format
 - All timestamps MUST be in ISO8601 format (YYYY-MM-DDTHH:MM:SSZ), for example `2025-02-26T00:00:00Z`
@@ -30,6 +30,7 @@ Get PagerDuty escalation policies by filters or get details for a specific polic
 | user_ids | `List[str]` | No | Filter results to escalation policies that include any of the given user IDs. Cannot be used with `current_user_context`. |
 | team_ids | `List[str]` | No | Filter results to escalation policies that belong to any of the given teams. Cannot be used with `current_user_context`. |
 | limit | `int` | No | Limit the number of results returned. |
+| include | `List[str]` | No | List of fields to include in the response. If specified, only these fields will be returned for each escalation policy. Available fields: `id`, `name`, `description`, `escalation_rules`, `services`, `teams`. |
 
 #### Returns
 Each escalation policy object contains:
@@ -106,6 +107,19 @@ get_escalation_policies(query="SEARCH_STRING")
 
 # Get details for a specific escalation policy
 get_escalation_policies(policy_id="POLICY_123")
+
+# Get only specific fields for escalation policies (using include parameter)
+get_escalation_policies(include=["id", "name"])
+
+# Get escalation policies with specific fields and filters combined
+get_escalation_policies(
+    query="production",
+    include=["id", "name", "description"],
+    limit=10
+)
+
+# Get details for a specific escalation policy with only certain fields
+get_escalation_policies(policy_id="POLICY_123", include=["id", "name", "escalation_rules"])
 ```
 
 ## Incidents Tools
@@ -122,12 +136,14 @@ Get PagerDuty incidents by filters or get details for a specific incident ID or 
 | service_ids | `List[str]` | No | Filter incidents by specific service IDs. Cannot be used with `current_user_context`. |
 | team_ids | `List[str]` | No | Filter incidents by specific team IDs. Cannot be used with `current_user_context`. |
 | statuses | `List[str]` | No | Filter incidents by status. Must be input as a list of strings, valid values are `["triggered", "acknowledged", "resolved"]`. Defaults to all three. |
+| urgencies | `List[str]` | No | Filter incidents by urgency. Valid values are `["high", "low"]`. Defaults to both. |
 | since | `str` | No | Start of date range in ISO8601 format. Default range: 1 month, max range: 6 months. |
 | until | `str` | No | End of date range in ISO8601 format. Default range: 1 month, max range: 6 months. |
 | limit | `int` | No | Limit the number of results returned. |
 | include_past_incidents | `bool` | No | If `True` and `incident_id` is provided, includes similar past incidents. Defaults to `False`. |
 | include_related_incidents | `bool` | No | If `True` and `incident_id` is provided, includes related incidents. Defaults to `False`. |
 | include_notes | `bool` | No | If `True` and `incident_id` is provided, includes notes for the incident. Defaults to `False`. |
+| include | `List[str]` | No | List of fields to include in the response. If specified, only these fields will be returned for each incident. Available fields: `id`, `incident_number`, `title`, `status`, `urgency`, `created_at`, `updated_at`, `resolved_at`, `assignments`, `acknowledgements`, `service`, `teams`, `alert_counts`, `description`, `escalation_policy`, `last_status_change_at`, `last_status_change_by`, `body_details`. |
 
 #### Returns
 Each incident object contains:
@@ -339,6 +355,90 @@ get_incidents(
     include_related_incidents=True,
     include_notes=True
 )
+
+# Get only specific fields for incidents (using include parameter)
+get_incidents(include=["id", "title", "status", "created_at"])
+
+# Get incidents with specific fields and filters combined
+get_incidents(
+    statuses=["triggered", "acknowledged"],
+    include=["id", "incident_number", "title", "status", "urgency"],
+    limit=10
+)
+
+# Get details for a specific incident with only certain fields
+get_incidents(incident_id="INCIDENT_ABC", include=["id", "title", "status", "assignments"])
+```
+
+### acknowledge_incident
+Acknowledge a PagerDuty incident. This signals that someone is actively working on the incident.
+
+#### Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| incident_id | `str` | Yes | The ID of the incident to acknowledge. |
+| include | `List[str]` | No | List of fields to include in the response. If specified, only these fields will be returned for the incident. |
+
+#### Returns
+The updated incident object in the standard response format (same fields as `get_incidents` single-incident response).
+
+#### Example Queries
+```python
+# Acknowledge an incident
+acknowledge_incident(incident_id="INCIDENT_ABC")
+
+# Acknowledge and return only key fields
+acknowledge_incident(incident_id="INCIDENT_ABC", include=["id", "title", "status"])
+```
+
+### resolve_incident
+Resolve a PagerDuty incident. This marks the incident as resolved and stops any further escalations.
+
+#### Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| incident_id | `str` | Yes | The ID of the incident to resolve. |
+| include | `List[str]` | No | List of fields to include in the response. If specified, only these fields will be returned for the incident. |
+
+#### Returns
+The updated incident object in the standard response format (same fields as `get_incidents` single-incident response).
+
+#### Example Queries
+```python
+# Resolve an incident
+resolve_incident(incident_id="INCIDENT_ABC")
+
+# Resolve and return only key fields
+resolve_incident(incident_id="INCIDENT_ABC", include=["id", "title", "status", "resolved_at"])
+```
+
+### add_incident_note
+Add a note to a PagerDuty incident. Notes are used to record additional context, investigation progress, or resolution details.
+
+#### Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| incident_id | `str` | Yes | The ID of the incident to add a note to. |
+| content | `str` | Yes | The text content of the note. |
+
+#### Returns
+The created note object in the standard response format:
+- `id` (str): The unique identifier for the note.
+- `content` (str): The content of the note.
+- `created_at` (str): Timestamp when the note was created.
+- `user` (Dict): The user who created the note, containing:
+  - `id` (str): The user's PagerDuty ID
+  - `name` (str): The user's name
+- `channel` (Dict): How the note was created, containing:
+  - `summary` (str): Description of the channel
+
+#### Example Queries
+```python
+# Add a note to an incident
+add_incident_note(incident_id="INCIDENT_ABC", content="Investigating root cause - appears to be a database connection issue")
+
+# Add a resolution note
+add_incident_note(incident_id="INCIDENT_ABC", content="Resolved by restarting the database connection pool")
 ```
 
 ## On-Call Tools
@@ -363,6 +463,7 @@ List the on-call entries during a given time range.
 | until | `str` | No | End of date range in ISO8601 format. Default is current datetime, max range: 90 days in the future. Cannot be before `since`. |
 | limit | `int` | No | Limit the number of results returned |
 | earliest | `bool` | No | If True, only returns the earliest on-call for each unique combination of escalation policy, escalation level, and user |
+| include | `List[str]` | No | List of fields to include in the response. If specified, only these fields will be returned for each on-call entry. Available fields: `user`, `escalation_policy`, `schedule`, `escalation_level`, `start`, `end`. |
 
 #### Returns
 Each on-call object contains:
@@ -423,6 +524,19 @@ get_oncalls(
     until=(datetime.utcnow() + timedelta(days=30)).isoformat(),
     earliest=True
 )
+
+# Get only specific fields for on-call entries (using include parameter)
+get_oncalls(include=["user", "escalation_level", "start", "end"])
+
+# Get on-call entries with specific fields and filters combined
+get_oncalls(
+    schedule_ids=["SCHEDULE_123"],
+    include=["user", "schedule", "start", "end"],
+    limit=10
+)
+
+# Get minimal on-call information for quick overview
+get_oncalls(include=["user", "escalation_policy"], earliest=True)
 ```
 
 ## Schedule Tools
@@ -439,6 +553,7 @@ Get PagerDuty schedules by filters or get details for a specific schedule ID.
 | limit | `int` | No | Limit the number of results returned. |
 | since | `str` | No | Start time for overrides/final schedule details (ISO8601). Only used if `schedule_id` is provided. Default range: 2 weeks before `until` if `until` is provided. |
 | until | `str` | No | End time for overrides/final schedule details (ISO8601). Only used if `schedule_id` is provided. Default range: 2 weeks after `since` if `since` is provided. |
+| include | `List[str]` | No | List of fields to include in the response. If specified, only these fields will be returned for each schedule. Available fields: `id`, `name`, `description`, `time_zone`, `escalation_policies`, `teams`, `schedule_layers`. |
 
 #### Returns
 Each schedule object contains:
@@ -573,6 +688,19 @@ get_schedules(
     since="2025-02-27T00:00:00Z",
     until="2025-03-13T00:00:00Z"
 )
+
+# Get only specific fields for schedules (using include parameter)
+get_schedules(include=["id", "name", "time_zone"])
+
+# Get schedules with specific fields and filters combined
+get_schedules(
+    query="production",
+    include=["id", "name", "description", "teams"],
+    limit=5
+)
+
+# Get details for a specific schedule with only certain fields
+get_schedules(schedule_id="SCHEDULE_123", include=["id", "name", "final_schedule"])
 ```
 
 ### list_users_oncall
@@ -651,6 +779,7 @@ Get PagerDuty services by filters or get details for a specific service ID.
 | team_ids | `List[str]` | No | Filter services by specific team IDs. Cannot be used with `current_user_context`. |
 | query | `str` | No | Filter services whose names contain the search query. |
 | limit | `int` | No | Limit the number of results returned. |
+| include | `List[str]` | No | List of fields to include in the response. If specified, only these fields will be returned for each service. Available fields: `id`, `name`, `description`, `status`, `created_at`, `updated_at`, `teams`, `integrations`. |
 
 #### Returns
 Each service object contains:
@@ -700,7 +829,7 @@ When getting a specific service (with `service_id`):
 {
     "metadata": {
         "count": 1,
-        "description": "Found 1 result for resource type service" 
+        "description": "Found 1 result for resource type service"
     },
     "services": [
         {
@@ -730,6 +859,19 @@ get_services(service_id="SERVICE_123")
 
 # Search for services by name
 get_services(query="Payment Processing")
+
+# Get only specific fields for services (using include parameter)
+get_services(include=["id", "name", "status"])
+
+# Get services with specific fields and filters combined
+get_services(
+    team_ids=["TEAM_123"],
+    include=["id", "name", "description", "teams"],
+    limit=10
+)
+
+# Get details for a specific service with only certain fields
+get_services(service_id="SERVICE_123", include=["id", "name", "integrations"])
 ```
 
 ## Team Tools
@@ -744,6 +886,7 @@ Get PagerDuty teams by filters or get details for a specific team ID.
 | team_id | `str` | No | The team ID to retrieve. Cannot be used with any other parameters. |
 | query | `str` | No | Filter teams whose names contain the search query. |
 | limit | `int` | No | Limit the number of results returned. |
+| include | `List[str]` | No | List of fields to include in the response. If specified, only these fields will be returned for each team. Available fields: `id`, `name`, `description`, `parent`. |
 
 #### Returns
 Each team object contains:
@@ -815,6 +958,19 @@ get_teams(query="Team Name")
 
 # Get details for a specific team
 get_teams(team_id="TEAM_123")
+
+# Get only specific fields for teams (using include parameter)
+get_teams(include=["id", "name", "type"])
+
+# Get teams with specific fields and filters combined
+get_teams(
+    query="engineering",
+    include=["id", "name", "description", "parent"],
+    limit=10
+)
+
+# Get details for a specific team with only certain fields
+get_teams(team_id="TEAM_123", include=["id", "name", "default_role"])
 ```
 
 ## User Tools
@@ -855,6 +1011,7 @@ Get PagerDuty users by filters or get details for a specific user ID.
 | team_ids | `List[str]` | No | Filter users by specific team IDs. Cannot be used with `current_user_context`. |
 | query | `str` | No | Filter users whose names contain the search query. |
 | limit | `int` | No | Limit the number of results returned. |
+| include | `List[str]` | No | List of fields to include in the response. If specified, only these fields will be returned for each user. Available fields: `id`, `name`, `email`, `description`, `teams`, `contact_methods`, `notification_rules`. |
 
 #### Returns
 Each user object contains:
@@ -888,4 +1045,17 @@ get_users(query="John")
 
 # Get details for a specific user
 get_users(user_id="USER_123")
+
+# Get only specific fields for users (using include parameter)
+get_users(include=["id", "name", "email"])
+
+# Get users with specific fields and filters combined
+get_users(
+    team_ids=["TEAM_123"],
+    include=["id", "name", "email", "teams"],
+    limit=10
+)
+
+# Get details for a specific user with only certain fields
+get_users(user_id="USER_123", include=["id", "name", "contact_methods"])
 ```

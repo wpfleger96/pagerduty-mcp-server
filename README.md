@@ -22,51 +22,42 @@ cd pagerduty-mcp-server
 brew install uv
 uv sync
 ```
-2. The PagerDuty MCP Server requires a PagerDuty API token. You can provide this in two ways:
+2. Configure authentication (see [Authentication](#authentication) below).
 
-   **Option 1: Environment Variable**
-   ```bash
-   export PAGERDUTY_API_TOKEN=your_api_token_here
-   ```
+## Authentication
 
-   **Option 2: .env File (Recommended)**
-   Create a `.env` file in the project root:
-   ```bash
-   echo "PAGERDUTY_API_TOKEN=your_api_token_here" > .env
-   ```
-   
-   The server will automatically load environment variables from the `.env` file if present.
+**Priority**: `X-PagerDuty-Token` HTTP header > `PAGERDUTY_API_TOKEN` environment variable > OAuth 2.0 PKCE
 
-## Usage
-### As Goose Extension (Desktop)
-In Goose:
-1. Go to **Settings > Advanced Settings > Extensions > Add custom extension**.
-2. Give the extension a name (e.g. `pagerduty-mcp-server`).
-3. Set **Type** to **StandardIO**.
-4. Enter the following in the **Command** field:
-   ```bash
-   uvx pagerduty-mcp-server
-   ```
-5. Click **Save**.
-4. Enable the extension and confirm that Goose identifies your tools.
+### Option 1: X-PagerDuty-Token Header (Platform Integration)
+When running as part of a platform that injects per-request credentials, the server reads the `X-PagerDuty-Token` HTTP header. This takes highest priority and does not require any local configuration.
 
-### As Goose Extension (CLI)
-```yaml
-  pagerduty:
-    args:
-      - pagerduty-mcp-server
-    bundled: null
-    cmd: uvx
-    description: ''
-    enabled: true
-    env_keys:
-      - PAGERDUTY_API_TOKEN
-    envs: {}
-    name: pagerduty
-    timeout: 300
-    type: stdio
+### Option 2: API Token (Recommended for Most Users)
+Set the `PAGERDUTY_API_TOKEN` environment variable, or add it to a `.env` file in the project root. The server will automatically load environment variables from the `.env` file if present.
+
+**Environment variable:**
+```bash
+export PAGERDUTY_API_TOKEN=your_api_token_here
 ```
 
+**`.env` file (recommended):**
+```bash
+echo "PAGERDUTY_API_TOKEN=your_api_token_here" > .env
+```
+
+### Option 3: OAuth 2.0 PKCE (Local Interactive Use)
+OAuth is available for local standalone usage. It opens a browser for authentication and stores tokens securely in the OS keyring. OAuth is opt-in — it only activates when `PAGERDUTY_CLIENT_ID` is set and no API token is present.
+
+**Setup:**
+1. Register a PagerDuty OAuth application at **Integrations → Developer Tools → My Apps**.
+2. Set the required scope to `read write`.
+3. Set the redirect URI to `http://localhost:5173/oauth/pagerduty` (default port).
+4. Set the `PAGERDUTY_CLIENT_ID` environment variable to your application's client ID.
+
+**Optional configuration:**
+- Set `PAGERDUTY_CLIENT_SECRET` to enable token refresh (confidential client).
+- Set `PAGERDUTY_OAUTH_CALLBACK_PORT` to override the default callback port (`5173`).
+
+## Usage
 ### Claude/Cursor
 ```json
 {
@@ -75,7 +66,7 @@ In Goose:
       "command": "uvx",
       "args": ["pagerduty-mcp-server"],
       "env": {
-          "PAGERDUTY_API_TOKEN": <PAGERDUTY_API_TOKEN>
+          "PAGERDUTY_API_TOKEN": "<PAGERDUTY_API_TOKEN>"
       }
     }
   }
@@ -87,26 +78,58 @@ In Goose:
 uv run path/to/repo/pagerduty-mcp-server/.venv/bin/pagerduty-mcp-server
 ```
 
+## Available Tools
+
+### Read Tools
+- `get_escalation_policies` — List or get details for escalation policies
+- `get_incidents` — List or get details for incidents (supports filtering by status, urgency, service, team, and time range)
+- `get_oncalls` — List on-call entries for a time range
+- `get_schedules` — List or get details for schedules
+- `get_services` — List or get details for services
+- `get_teams` — List or get details for teams
+- `get_users` — List or get details for users
+- `list_users_oncall` — List users on call for a specific schedule
+- `build_user_context` — Build a context object for the current authenticated user
+
+### Write Tools
+- `acknowledge_incident` — Acknowledge an incident (signals active investigation)
+- `resolve_incident` — Resolve an incident (stops further escalations)
+- `add_incident_note` — Add a note to an incident (for recording investigation progress or context)
+
+## The `include` Parameter
+Most read tools accept an optional `include` parameter — a list of field names to return. When specified, only those fields are included in each response object, which reduces token usage in LLM contexts.
+
+```python
+# Return only id, title, and status for each incident
+get_incidents(include=["id", "title", "status"])
+
+# Return only id and name for each service
+get_services(include=["id", "name"])
+```
+
+See the [tool documentation](./src/pagerduty_mcp_server/docs/tools.md) for the full list of available fields per tool.
+
 ## Response Format
 All API responses follow a consistent format:
 ```json
 {
   "metadata": {
-    "count": <int>,  // Number of results
-    "description": "<str>"  // A short summary of the results
+    "count": "<int>",
+    "description": "<str>"
   },
-  <resource_type>: [ // Always pluralized for consistency, even if one result is returned
+  "<resource_type>": [
     {
-      ...
-    },
-    ...
+      "...": "..."
+    }
   ],
-  "error": {  // Only present if there's an error
-    "message": "<str>",  // Human-readable error description
-    "code": "<str>"  // Machine-readable error code
+  "error": {
+    "message": "<str>",
+    "code": "<str>"
   }
 }
 ```
+
+The `error` field is only present when an error occurs. Resource names in responses are always pluralized for consistency, even when a single item is returned.
 
 ### Error Handling
 When an error occurs, the response will include an error object with the following structure:
@@ -136,7 +159,7 @@ Common error scenarios include:
 - List parameters (e.g., `statuses`, `team_ids`) must contain valid values
 - Invalid values in list parameters will be ignored
 - Required parameters cannot be `None` or empty strings
-- For `statuses` in `list_incidents`, only `triggered`, `acknowledged`, and `resolved` are valid values
+- For `statuses` in `get_incidents`, only `triggered`, `acknowledged`, and `resolved` are valid values
 - For `urgency` in incidents, only `high` and `low` are valid values
 - The `limit` parameter can be used to restrict the number of results returned by list operations
 
@@ -144,7 +167,7 @@ Common error scenarios include:
 - The server respects PagerDuty's rate limits
 - The server automatically handles pagination for you
 - The `limit` parameter can be used to control the number of results returned by list operations
-- If no limit is specified, the server will return up to {pagerduty-mcp-server.utils.RESPONSE_LIMIT} results by default
+- If no limit is specified, the server will return up to `pagerduty_mcp_server.utils.RESPONSE_LIMIT` results by default
 
 ## User Context
 Many functions accept a `current_user_context` parameter (defaults to `True`) which automatically filters results based on this context. When `current_user_context` is `True`, you cannot use certain filter parameters as they would conflict with the automatic filtering:
@@ -201,7 +224,7 @@ npx @modelcontextprotocol/inspector uv run path/to/repo/pagerduty-mcp-server/.ve
 ```
 
 ### Documentation
-[Tool Documentation](./docs/tools.md) - Detailed information about available tools including parameters, return types, and example queries
+[Tool Documentation](./src/pagerduty_mcp_server/docs/tools.md) - Detailed information about available tools including parameters, return types, and example queries
 
 ### Conventions
 - All API responses follow the standard format with metadata, resource list, and optional error

@@ -1,7 +1,6 @@
 """Unit tests for the utils module."""
 
 import pytest
-from mcp.server.fastmcp.prompts import base
 
 from pagerduty_mcp_server import utils
 
@@ -54,37 +53,27 @@ def test_api_response_handler_with_metadata():
 @pytest.mark.unit
 @pytest.mark.utils
 def test_api_response_handler_char_limit_exceeded():
-    """Test that api_response_handler handles character limit exceeded correctly."""
+    """Test that api_response_handler returns soft error dict when character limit exceeded."""
     large_string = "x" * (utils.RESPONSE_CHAR_LIMIT + 1000)
     results = [{"data": large_string}]
 
     response = utils.api_response_handler(results=results, resource_name="tests")
 
-    assert "error" in response
     assert response["error"]["code"] == "LIMIT_EXCEEDED"
-    assert isinstance(response["error"]["message"], base.AssistantMessage)
-    assert (
-        f"{utils.RESPONSE_CHAR_LIMIT} characters"
-        in response["error"]["message"].content.text
-    )
+    assert f"{utils.RESPONSE_CHAR_LIMIT} characters" in response["error"]["message"]
 
 
 @pytest.mark.unit
 @pytest.mark.utils
 def test_api_response_handler_byte_limit_exceeded():
-    """Test that api_response_handler handles byte size limit exceeded correctly."""
+    """Test that api_response_handler returns soft error dict when byte size limit exceeded."""
     binary_like_data = bytearray(range(255)) * (utils.RESPONSE_SIZE_LIMIT // 255 + 100)
     results = [{"data": str(binary_like_data)}]
 
     response = utils.api_response_handler(results=results, resource_name="tests")
 
-    assert "error" in response
     assert response["error"]["code"] == "LIMIT_EXCEEDED"
-    assert isinstance(response["error"]["message"], base.AssistantMessage)
-    assert (
-        f"{utils.RESPONSE_SIZE_LIMIT} bytes"
-        in response["error"]["message"].content.text
-    )
+    assert f"{utils.RESPONSE_SIZE_LIMIT} bytes" in response["error"]["message"]
 
 
 @pytest.mark.unit
@@ -94,3 +83,54 @@ def test_api_response_handler_empty_resource_name():
     with pytest.raises(utils.ValidationError) as exc_info:
         utils.api_response_handler(results={"id": "123"}, resource_name="")
     assert str(exc_info.value) == "resource_name cannot be empty"
+
+
+@pytest.mark.unit
+@pytest.mark.utils
+def test_validate_timestamp_range_valid_range():
+    """Test that validate_timestamp_range accepts valid timestamp ranges."""
+    since = "2024-01-01T00:00:00Z"
+    until = "2024-03-01T00:00:00Z"
+
+    # Should not raise any exception
+    utils.validate_timestamp_range(since, until)
+
+
+@pytest.mark.unit
+@pytest.mark.utils
+def test_validate_timestamp_range_since_after_until():
+    """Test that validate_timestamp_range raises error when since is after until."""
+    since = "2024-03-01T00:00:00Z"
+    until = "2024-01-01T00:00:00Z"
+
+    with pytest.raises(utils.ValidationError) as exc_info:
+        utils.validate_timestamp_range(since, until)
+
+    assert str(exc_info.value) == "`since` must be before `until`"
+
+
+@pytest.mark.unit
+@pytest.mark.utils
+def test_validate_timestamp_range_exceeds_6_months():
+    """Test that validate_timestamp_range raises error when range exceeds 6 months."""
+    since = "2024-01-01T00:00:00Z"
+    until = "2024-08-01T00:00:00Z"  # 7 months later
+
+    with pytest.raises(utils.ValidationError) as exc_info:
+        utils.validate_timestamp_range(since, until)
+
+    assert (
+        str(exc_info.value)
+        == "The maximum query range is 6 months. Try narrowing your query range."
+    )
+
+
+@pytest.mark.unit
+@pytest.mark.utils
+def test_validate_timestamp_range_invalid_format():
+    """Test that validate_timestamp_range propagates datetime parsing errors."""
+    since = "invalid-date-format"
+    until = "2024-03-01T00:00:00Z"
+
+    with pytest.raises(ValueError):
+        utils.validate_timestamp_range(since, until)
