@@ -35,7 +35,7 @@ class PagerDutyClient:
         """
         try:
             request: Request = get_http_request()
-            return True, request.headers.get("X-Goose-Token")
+            return True, request.headers.get("X-PagerDuty-Token")
         except RuntimeError:
             return False, None
 
@@ -101,7 +101,7 @@ class PagerDutyClient:
         """Get a PagerDuty API client.
 
         Authentication priority:
-        1. X-Goose-Token header (kgoose/goosemcp mode)
+        1. X-PagerDuty-Token HTTP header (platform/server integration)
         2. PAGERDUTY_API_TOKEN environment variable (if explicitly set)
         3. OAuth token from keyring (local interactive use only)
 
@@ -129,7 +129,7 @@ class PagerDutyClient:
             return PagerDutyClient._env_client
 
         if has_request_context:
-            message = "PagerDuty credentials are not configured for this request. Provide X-Goose-Token or set PAGERDUTY_API_TOKEN."
+            message = "PagerDuty credentials are not configured for this request. Provide X-PagerDuty-Token header or set PAGERDUTY_API_TOKEN."
             logger.error(message)
             raise PagerDutyAuthError(message)
 
@@ -149,7 +149,7 @@ def create_client() -> pagerduty.RestApiV2Client:
     """Get a PagerDuty API client.
 
     Authentication priority:
-    1. X-Goose-Token header (kgoose/goosemcp mode)
+    1. X-PagerDuty-Token HTTP header (platform/server integration)
     2. PAGERDUTY_API_TOKEN environment variable (if explicitly set)
     3. OAuth token from keyring (local interactive use only)
 

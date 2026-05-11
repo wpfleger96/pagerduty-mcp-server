@@ -30,7 +30,7 @@ def test_create_client_with_request_token():
     mock_client = MagicMock()
 
     mock_request = MagicMock(spec=Request)
-    mock_request.headers = {"X-Goose-Token": "request-token"}
+    mock_request.headers = {"X-PagerDuty-Token": "request-token"}
 
     with patch(
         "pagerduty_mcp_server.client._RestClient", return_value=mock_client
@@ -74,7 +74,7 @@ def test_token_precedence():
     mock_env_client = MagicMock()
 
     mock_request = MagicMock(spec=Request)
-    mock_request.headers = {"X-Goose-Token": "header-token"}
+    mock_request.headers = {"X-PagerDuty-Token": "header-token"}
 
     with patch(
         "pagerduty_mcp_server.client._RestClient",
@@ -132,7 +132,7 @@ def test_create_client_no_token(monkeypatch):
 def test_get_header_token():
     """Test header token retrieval."""
     mock_request = MagicMock(spec=Request)
-    mock_request.headers = {"X-Goose-Token": "header-token"}
+    mock_request.headers = {"X-PagerDuty-Token": "header-token"}
 
     with patch(
         "pagerduty_mcp_server.client.get_http_request", return_value=mock_request

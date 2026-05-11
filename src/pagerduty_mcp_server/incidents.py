@@ -325,8 +325,10 @@ async def update_incident_status(
                 f"Failed to update incident {incident_id}: Response missing 'incident' field"
             )
 
-        model = Incident.model_validate(incident_data)
-        parsed_incident = model.to_clean_dict(include_fields=include)
+        parsed_incident = {}
+        if incident_data:
+            model = Incident.model_validate(incident_data)
+            parsed_incident = model.to_clean_dict(include_fields=include)
 
         return utils.api_response_handler(
             results=parsed_incident,
@@ -384,8 +386,10 @@ async def create_incident_note(
                 f"Failed to add note to incident {incident_id}: Response missing 'note' field"
             )
 
-        model = Note.model_validate(note_data)
-        parsed_note = model.to_clean_dict()
+        parsed_note = {}
+        if note_data:
+            model = Note.model_validate(note_data)
+            parsed_note = model.to_clean_dict()
 
         return utils.api_response_handler(
             results=parsed_note,

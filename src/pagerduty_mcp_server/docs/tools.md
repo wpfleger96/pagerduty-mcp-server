@@ -143,7 +143,7 @@ Get PagerDuty incidents by filters or get details for a specific incident ID or 
 | include_past_incidents | `bool` | No | If `True` and `incident_id` is provided, includes similar past incidents. Defaults to `False`. |
 | include_related_incidents | `bool` | No | If `True` and `incident_id` is provided, includes related incidents. Defaults to `False`. |
 | include_notes | `bool` | No | If `True` and `incident_id` is provided, includes notes for the incident. Defaults to `False`. |
-| include | `List[str]` | No | List of fields to include in the response. If specified, only these fields will be returned for each incident. Available fields: `id`, `incident_number`, `title`, `status`, `urgency`, `priority`, `created_at`, `updated_at`, `resolved_at`, `resolve_reason`, `assignments`, `acknowledgements`, `service`, `teams`, `alert_counts`, `summary`, `description`, `escalation_policy`, `incident_key`, `last_status_change_at`, `last_status_change_by`, `body_details`. |
+| include | `List[str]` | No | List of fields to include in the response. If specified, only these fields will be returned for each incident. Available fields: `id`, `incident_number`, `title`, `status`, `urgency`, `created_at`, `updated_at`, `resolved_at`, `assignments`, `acknowledgements`, `service`, `teams`, `alert_counts`, `description`, `escalation_policy`, `last_status_change_at`, `last_status_change_by`, `body_details`. |
 
 #### Returns
 Each incident object contains:
@@ -553,7 +553,7 @@ Get PagerDuty schedules by filters or get details for a specific schedule ID.
 | limit | `int` | No | Limit the number of results returned. |
 | since | `str` | No | Start time for overrides/final schedule details (ISO8601). Only used if `schedule_id` is provided. Default range: 2 weeks before `until` if `until` is provided. |
 | until | `str` | No | End time for overrides/final schedule details (ISO8601). Only used if `schedule_id` is provided. Default range: 2 weeks after `since` if `since` is provided. |
-| include | `List[str]` | No | List of fields to include in the response. If specified, only these fields will be returned for each schedule. Available fields: `id`, `name`, `summary`, `description`, `time_zone`, `escalation_policies`, `teams`, `schedule_layers`, `final_schedule`, `overrides`. |
+| include | `List[str]` | No | List of fields to include in the response. If specified, only these fields will be returned for each schedule. Available fields: `id`, `name`, `description`, `time_zone`, `escalation_policies`, `teams`, `schedule_layers`. |
 
 #### Returns
 Each schedule object contains:
@@ -886,7 +886,7 @@ Get PagerDuty teams by filters or get details for a specific team ID.
 | team_id | `str` | No | The team ID to retrieve. Cannot be used with any other parameters. |
 | query | `str` | No | Filter teams whose names contain the search query. |
 | limit | `int` | No | Limit the number of results returned. |
-| include | `List[str]` | No | List of fields to include in the response. If specified, only these fields will be returned for each team. Available fields: `id`, `name`, `description`, `type`, `summary`, `default_role`, `parent`. |
+| include | `List[str]` | No | List of fields to include in the response. If specified, only these fields will be returned for each team. Available fields: `id`, `name`, `description`, `parent`. |
 
 #### Returns
 Each team object contains:
@@ -1011,7 +1011,7 @@ Get PagerDuty users by filters or get details for a specific user ID.
 | team_ids | `List[str]` | No | Filter users by specific team IDs. Cannot be used with `current_user_context`. |
 | query | `str` | No | Filter users whose names contain the search query. |
 | limit | `int` | No | Limit the number of results returned. |
-| include | `List[str]` | No | List of fields to include in the response. If specified, only these fields will be returned for each user. Available fields: `id`, `name`, `email`, `description`, `type`, `teams`, `contact_methods`, `notification_rules`. |
+| include | `List[str]` | No | List of fields to include in the response. If specified, only these fields will be returned for each user. Available fields: `id`, `name`, `email`, `description`, `teams`, `contact_methods`, `notification_rules`. |
 
 #### Returns
 Each user object contains:

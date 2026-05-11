@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 license = "MIT"
 authors = [
-    { name = "Will Pfleger", email = "wpfleger@block.xyz" }
+    { name = "Will Pfleger", email = "pfleger.will@gmail.com" }
 ]
 keywords = ["pagerduty", "mcp", "llm", "api", "server"]
 classifiers = [

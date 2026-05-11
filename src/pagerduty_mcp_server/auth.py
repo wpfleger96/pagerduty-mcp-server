@@ -291,21 +291,40 @@ def get_token():
         client_secret = os.getenv("PAGERDUTY_CLIENT_SECRET")
 
         if refresh_token and client_secret:
-            try:
-                token_data = refresh_access_token(refresh_token)
-                return _store_tokens(token_data)
-            except requests.exceptions.HTTPError as e:
-                if e.response is not None and 400 <= e.response.status_code < 500:
-                    logger.warning(
-                        f"Token refresh failed ({e.response.status_code}), clearing stored tokens"
-                    )
-                    safe_delete_password(KEYRING_SERVICE, KEYRING_KEY_ACCESS_TOKEN)
-                    safe_delete_password(KEYRING_SERVICE, KEYRING_KEY_TOKEN_EXPIRY)
-                    safe_delete_password(KEYRING_SERVICE, KEYRING_KEY_REFRESH_TOKEN)
-                else:
-                    logger.warning(f"Token refresh failed (server error): {e}")
-            except Exception as e:
-                logger.warning(f"Token refresh failed: {e}")
+            max_retries = 3
+            last_error = None
+            for attempt in range(max_retries):
+                try:
+                    token_data = refresh_access_token(refresh_token)
+                    return _store_tokens(token_data)
+                except requests.exceptions.HTTPError as e:
+                    if e.response is not None and 400 <= e.response.status_code < 500:
+                        logger.warning(
+                            f"Token refresh failed ({e.response.status_code}), clearing stored tokens"
+                        )
+                        safe_delete_password(KEYRING_SERVICE, KEYRING_KEY_ACCESS_TOKEN)
+                        safe_delete_password(KEYRING_SERVICE, KEYRING_KEY_TOKEN_EXPIRY)
+                        safe_delete_password(KEYRING_SERVICE, KEYRING_KEY_REFRESH_TOKEN)
+                        break
+                    last_error = e
+                    if attempt < max_retries - 1:
+                        delay = 2**attempt
+                        logger.warning(
+                            f"Token refresh failed (attempt {attempt + 1}/{max_retries}): {e}, retrying in {delay}s"
+                        )
+                        time.sleep(delay)
+                except Exception as e:
+                    last_error = e
+                    if attempt < max_retries - 1:
+                        delay = 2**attempt
+                        logger.warning(
+                            f"Token refresh failed (attempt {attempt + 1}/{max_retries}): {e}, retrying in {delay}s"
+                        )
+                        time.sleep(delay)
+            else:
+                raise PagerDutyAuthError(
+                    f"Token refresh failed after {max_retries} attempts: {last_error}"
+                )
         else:
             safe_delete_password(KEYRING_SERVICE, KEYRING_KEY_ACCESS_TOKEN)
             safe_delete_password(KEYRING_SERVICE, KEYRING_KEY_TOKEN_EXPIRY)

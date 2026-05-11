@@ -26,10 +26,10 @@ uv sync
 
 ## Authentication
 
-**Priority**: `X-Goose-Token` HTTP header > `PAGERDUTY_API_TOKEN` environment variable > OAuth 2.0 PKCE
+**Priority**: `X-PagerDuty-Token` HTTP header > `PAGERDUTY_API_TOKEN` environment variable > OAuth 2.0 PKCE
 
-### Option 1: X-Goose-Token Header (Platform Integration)
-When running as part of a platform that injects per-request credentials, the server reads the `X-Goose-Token` HTTP header. This takes highest priority and does not require any local configuration.
+### Option 1: X-PagerDuty-Token Header (Platform Integration)
+When running as part of a platform that injects per-request credentials, the server reads the `X-PagerDuty-Token` HTTP header. This takes highest priority and does not require any local configuration.
 
 ### Option 2: API Token (Recommended for Most Users)
 Set the `PAGERDUTY_API_TOKEN` environment variable, or add it to a `.env` file in the project root. The server will automatically load environment variables from the `.env` file if present.
@@ -58,35 +58,6 @@ OAuth is available for local standalone usage. It opens a browser for authentica
 - Set `PAGERDUTY_OAUTH_CALLBACK_PORT` to override the default callback port (`5173`).
 
 ## Usage
-### As Goose Extension (Desktop)
-In Goose:
-1. Go to **Settings > Advanced Settings > Extensions > Add custom extension**.
-2. Give the extension a name (e.g. `pagerduty-mcp-server`).
-3. Set **Type** to **StandardIO**.
-4. Enter the following in the **Command** field:
-   ```bash
-   uvx pagerduty-mcp-server
-   ```
-5. Click **Save**.
-4. Enable the extension and confirm that Goose identifies your tools.
-
-### As Goose Extension (CLI)
-```yaml
-  pagerduty:
-    args:
-      - pagerduty-mcp-server
-    bundled: null
-    cmd: uvx
-    description: ''
-    enabled: true
-    env_keys:
-      - PAGERDUTY_API_TOKEN
-    envs: {}
-    name: pagerduty
-    timeout: 300
-    type: stdio
-```
-
 ### Claude/Cursor
 ```json
 {
