@@ -1,5 +1,30 @@
 # CHANGELOG
 
+<!-- version list -->
+
+
+## v4.0.1 (2026-05-11)
+
+### Bug Fixes
+
+- Re-enable automatic CHANGELOG generation
+  ([#24](https://github.com/wpfleger96/pagerduty-mcp-server/pull/24),
+  [`2f177b5`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/2f177b53123a03dd7e43970bc42f860f998a9fe4))
+
+PSR v10 removed the default changelog config that v9 inferred automatically. Without an explicit
+  [tool.semantic_release.changelog] section, v10 silently skips CHANGELOG generation on release.
+  Also backfills the v4.0.0 entry that was missing due to this breakage.
+
+### Chores
+
+- **deps-dev**: Bump pytest from 8.4.2 to 9.0.3
+  ([#22](https://github.com/wpfleger96/pagerduty-mcp-server/pull/22),
+  [`5506e99`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/5506e9945bf1276120ec1ebcf21961dcbe59922c))
+
+- **deps**: Bump python-multipart from 0.0.26 to 0.0.27
+  ([#23](https://github.com/wpfleger96/pagerduty-mcp-server/pull/23),
+  [`7bb2450`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/7bb24500c4cf833d757b25034568ce62ce8688c7))
+
 
 ## v4.0.0 (2026-05-11)
 
