@@ -59,6 +59,7 @@ dev = [
     "mypy>=2.0.0",
     "pytest>=8.3.5,<10",
     "pytest-asyncio>=1.0.0,<2",
+    "pytest-cov>=7.0.0",
     "ruff>=0.11.2",
     "types-requests>=2.32.0",
 ]
