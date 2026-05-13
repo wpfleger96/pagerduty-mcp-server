@@ -49,8 +49,10 @@ allow_zero_version = true
 allowed_types = ["feat", "fix", "chore", "ci", "docs", "style", "refactor", "test"]
 
 [tool.semantic_release.changelog]
-changelog_file = "CHANGELOG.md"
 exclude_commit_patterns = ["chore\\(release\\)"]
+
+[tool.semantic_release.changelog.default_templates]
+changelog_file = "CHANGELOG.md"
 
 [dependency-groups]
 dev = [
