@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v4.0.2 (2026-05-13)
+
+### Bug Fixes
+
+- Add PSR v10 changelog insertion flag and backfill missing entries
+  ([#25](https://github.com/wpfleger96/pagerduty-mcp-server/pull/25),
+  [`6940543`](https://github.com/wpfleger96/pagerduty-mcp-server/commit/6940543ee04a19dfe76ea1f774c10044b77fa820))
+
 
 ## v4.0.1 (2026-05-11)
 
