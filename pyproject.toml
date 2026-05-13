@@ -44,6 +44,7 @@ branch = "main"
 commit_parser = "conventional"
 commit_message = "chore(release): {version}"
 allow_zero_version = true
+build_command = "uv sync"
 
 [tool.semantic_release.commit_parser_opts]
 allowed_types = ["feat", "fix", "chore", "ci", "docs", "style", "refactor", "test"]
@@ -56,10 +57,10 @@ changelog_file = "CHANGELOG.md"
 
 [dependency-groups]
 dev = [
-    "hatch>=1.14.1",
     "mypy>=2.0.0",
     "pytest>=8.3.5,<10",
     "pytest-asyncio>=1.0.0,<2",
+    "pytest-cov>=7.0.0",
     "ruff>=0.11.2",
     "types-requests>=2.32.0",
 ]

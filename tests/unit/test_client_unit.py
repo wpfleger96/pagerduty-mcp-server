@@ -113,7 +113,7 @@ def test_create_client_no_token(monkeypatch):
             # Verify our setup is clean
             assert test_client._env_client is None
             assert PagerDutyClient._env_client is None
-            assert test_client._get_header_token() is None
+            assert test_client._get_request_token() == (True, None)
             assert test_client._get_env_token() is None
 
             # Test the error is raised
@@ -129,29 +129,31 @@ def test_create_client_no_token(monkeypatch):
 
 @pytest.mark.unit
 @pytest.mark.client
-def test_get_header_token():
-    """Test header token retrieval."""
+def test_get_request_token():
+    """Test request token retrieval from HTTP header."""
     mock_request = MagicMock(spec=Request)
     mock_request.headers = {"X-PagerDuty-Token": "header-token"}
 
     with patch(
         "pagerduty_mcp_server.client.get_http_request", return_value=mock_request
     ):
-        token = PagerDutyClient._get_header_token()
+        has_context, token = PagerDutyClient._get_request_token()
+        assert has_context is True
         assert token == "header-token"
 
 
 @pytest.mark.unit
 @pytest.mark.client
-def test_get_header_token_missing():
-    """Test header token retrieval when missing."""
+def test_get_request_token_missing():
+    """Test request token retrieval when header is absent."""
     mock_request = MagicMock(spec=Request)
     mock_request.headers = {}
 
     with patch(
         "pagerduty_mcp_server.client.get_http_request", return_value=mock_request
     ):
-        token = PagerDutyClient._get_header_token()
+        has_context, token = PagerDutyClient._get_request_token()
+        assert has_context is True
         assert token is None
 
 

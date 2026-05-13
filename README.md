@@ -75,7 +75,7 @@ OAuth is available for local standalone usage. It opens a browser for authentica
 
 ### As Standalone Server
 ```sh
-uv run path/to/repo/pagerduty-mcp-server/.venv/bin/pagerduty-mcp-server
+uv run pagerduty-mcp-server
 ```
 
 ## Available Tools
@@ -208,11 +208,6 @@ To run only integration tests (requires `PAGERDUTY_API_TOKEN` set in environment
 uv run pytest -m integration [--cov=src --cov-report=term-missing]
 ```
 
-To run only parser tests:
-```bash
-uv run pytest -m parsers [--cov=src --cov-report=term-missing]
-```
-
 To run only tests related to a specific submodule:
 ```bash
 uv run pytest -m <client|escalation_policies|...> [--cov=src --cov-report=term-missing]
@@ -220,7 +215,7 @@ uv run pytest -m <client|escalation_policies|...> [--cov=src --cov-report=term-m
 
 ### Debug Server with MCP Inspector
 ```bash
-npx @modelcontextprotocol/inspector uv run path/to/repo/pagerduty-mcp-server/.venv/bin/pagerduty-mcp-server
+npx @modelcontextprotocol/inspector uv run pagerduty-mcp-server
 ```
 
 ### Documentation
@@ -232,7 +227,7 @@ npx @modelcontextprotocol/inspector uv run path/to/repo/pagerduty-mcp-server/.ve
 - All functions that return a single item still return a list with one element
 - Error responses include both a message and a code
 - All timestamps are in ISO8601 format
-- Tests are marked with pytest markers to indicate their type (unit/integration), the resource they test (incidents, teams, etc.), and whether they test parsing functionality ("parsers" marker)
+- Tests are marked with pytest markers to indicate their type (unit/integration) and the resource they test (incidents, teams, etc.)
 
 
 ### Example Queries

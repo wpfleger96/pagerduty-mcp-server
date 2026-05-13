@@ -50,7 +50,7 @@ build: sync
     uv build
 
 clean-build:
-    rm -rf dist/ build/ *.egg-info
+    rm -rf dist/ build/ src/*.egg-info
 
 rebuild: clean-build build
 
