@@ -44,7 +44,7 @@ branch = "main"
 commit_parser = "conventional"
 commit_message = "chore(release): {version}"
 allow_zero_version = true
-build_command = "uv sync"
+build_command = "pip install uv && uv sync"
 
 [tool.semantic_release.commit_parser_opts]
 allowed_types = ["feat", "fix", "chore", "ci", "docs", "style", "refactor", "test"]
