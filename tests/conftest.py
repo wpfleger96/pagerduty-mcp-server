@@ -31,7 +31,6 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "teams: Tests for the teams sub-module")
     config.addinivalue_line("markers", "users: Tests for the users sub-module")
     config.addinivalue_line("markers", "utils: Tests for the utils sub-module")
-    config.addinivalue_line("markers", "parsers: Tests for the parsers sub-module")
     config.addinivalue_line(
         "markers", "validation: Tests for the validation sub-module"
     )

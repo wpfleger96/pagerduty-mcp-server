@@ -39,12 +39,6 @@ class PagerDutyClient:
         except RuntimeError:
             return False, None
 
-    @classmethod
-    def _get_header_token(cls) -> Optional[str]:
-        """Try to get auth token from HTTP headers."""
-        _, token = cls._get_request_token()
-        return token
-
     @staticmethod
     def _get_oauth_token() -> Optional[str]:
         """Try to get OAuth token from keyring or run interactive OAuth flow for local use.

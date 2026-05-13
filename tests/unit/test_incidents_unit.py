@@ -521,21 +521,8 @@ async def test_show_incident_error_handling(
 @pytest.mark.asyncio
 @pytest.mark.unit
 @pytest.mark.incidents
-@pytest.mark.parametrize(
-    "params, expected_api_params, mock_response_slice",
-    [
-        ({}, {"limit": None, "total": None}, slice(None)),
-        (
-            {"limit": 1, "total": True},
-            {"limit": 1, "total": True},
-            slice(0, 1),
-        ),
-    ],
-)
-async def test_list_past_incidents_success(
-    mock_get_api_client, params, expected_api_params, mock_response_slice
-):
-    """Test that past incidents are fetched correctly with various parameters."""
+async def test_list_past_incidents_success(mock_get_api_client):
+    """Test that past incidents are fetched correctly."""
     incident_id = "123"
     mock_past_incidents = [
         {
@@ -558,17 +545,12 @@ async def test_list_past_incidents_success(
         },
     ]
 
-    mock_get_api_client.jget.return_value = {
-        "past_incidents": mock_past_incidents[mock_response_slice]
-    }
+    mock_get_api_client.jget.return_value = {"past_incidents": mock_past_incidents}
 
-    past_incidents = await incidents._list_past_incidents(
-        incident_id=incident_id, **params
-    )
+    past_incidents = await incidents._list_past_incidents(incident_id=incident_id)
 
     mock_get_api_client.jget.assert_called_once_with(
         f"{incidents.INCIDENTS_URL}/{incident_id}/past_incidents",
-        params=expected_api_params,
     )
 
     expected_response = utils.api_response_handler(
@@ -579,7 +561,7 @@ async def test_list_past_incidents_success(
                 "title": item["incident"]["title"],
                 "similarity_score": item["score"],
             }
-            for item in mock_past_incidents[mock_response_slice]
+            for item in mock_past_incidents
         ],
         resource_name="incidents",
     )

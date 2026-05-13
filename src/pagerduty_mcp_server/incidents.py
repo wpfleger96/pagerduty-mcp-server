@@ -404,17 +404,11 @@ Incidents Private Helpers
 """
 
 
-async def _list_past_incidents(
-    *, incident_id: str, limit: Optional[int] = None, total: Optional[bool] = None
-) -> Dict[str, Any]:
+async def _list_past_incidents(*, incident_id: str) -> Dict[str, Any]:
     """List incidents from the past 6 months that are similar to the input incident, and were generated on the same service as the parent incident.
 
     Args:
         incident_id (str): The ID or number of the incident to find similar incidents for
-        limit (int): The maximum number of past incidents to return (optional). This parameter is passed
-            directly to the PagerDuty API. Default in the API is 5.
-        total (bool): Whether to return the total number of incidents that match the criteria (optional).
-            This parameter is passed directly to the PagerDuty API. Default is False.
 
     Returns:
         See the "Standard Response Format" section in `tools.md` for the complete standard response structure.
@@ -430,12 +424,9 @@ async def _list_past_incidents(
 
     pd_client = create_client()
 
-    params = {"limit": limit, "total": total}
     try:
         response = await safe_execute_async(
-            lambda: pd_client.jget(
-                f"{INCIDENTS_URL}/{incident_id}/past_incidents", params=params
-            ),
+            lambda: pd_client.jget(f"{INCIDENTS_URL}/{incident_id}/past_incidents"),
             f"fetch past incidents for {incident_id}",
         )
         try:

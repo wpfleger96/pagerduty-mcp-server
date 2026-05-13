@@ -56,7 +56,6 @@ changelog_file = "CHANGELOG.md"
 
 [dependency-groups]
 dev = [
-    "hatch>=1.14.1",
     "mypy>=2.0.0",
     "pytest>=8.3.5,<10",
     "pytest-asyncio>=1.0.0,<2",
