@@ -1,0 +1,53 @@
+name: Auto-approve
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  renovate:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login == 'wpfleger-release-bot[bot]'
+    steps:
+      # Renovate enables GitHub native auto-merge only on updates it deems safe
+      # (non-major, non-Actions, non-runtime per the shared preset). Supplying the
+      # one required approval lets that auto-merge complete once CI passes; PRs
+      # without auto-merge enabled are left for a human.
+      - name: Approve if auto-merge is enabled
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          auto_merge="$(gh pr view "$PR_URL" --json autoMergeRequest -q '.autoMergeRequest')"
+          if [ "$auto_merge" = "null" ] || [ -z "$auto_merge" ]; then
+            echo "Auto-merge not enabled; leaving for human review."
+            exit 0
+          fi
+          gh pr review --approve "$PR_URL"
+
+  dependabot:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    steps:
+      - name: Fetch Dependabot metadata
+        id: meta
+        uses: dependabot/fetch-metadata@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Auto-merge only security fixes, and never majors or GitHub Actions updates.
+      - name: Approve and auto-merge security updates
+        if: >-
+          steps.meta.outputs.ghsa-id != '' &&
+          steps.meta.outputs.update-type != 'version-update:semver-major' &&
+          steps.meta.outputs.package-ecosystem != 'github_actions'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          gh pr review --approve "$PR_URL"
+          gh pr merge --auto --squash "$PR_URL"
