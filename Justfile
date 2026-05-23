@@ -57,3 +57,5 @@ rebuild: clean-build build
 # CI workflow (matches CI steps)
 ci: sync type-check lint-check format-check test
     @echo "CI checks passed"
+
+import? 'local.just'
