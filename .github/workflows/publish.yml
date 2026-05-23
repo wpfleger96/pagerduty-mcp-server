@@ -29,10 +29,13 @@ jobs:
         with:
           version: "latest"
 
+      - name: Install just
+        uses: extractions/setup-just@v4
+
       - name: Install dependencies and build
         run: |
-          uv sync
-          uv build
+          just sync
+          just build
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
