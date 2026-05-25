@@ -3,7 +3,7 @@ name = "pagerduty_mcp_server"
 version = "4.0.2"
 description = "MCP server for LLM agents to interact with PagerDuty SaaS"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.14"
 license = "MIT"
 authors = [
     { name = "Will Pfleger", email = "pfleger.will@gmail.com" }
