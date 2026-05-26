@@ -1,3 +1,6 @@
+# This file is managed by github-config. Do not edit manually.
+# https://github.com/wpfleger96/github-config
+
 # Settings
 set dotenv-load := false
 
