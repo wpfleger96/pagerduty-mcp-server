@@ -37,25 +37,6 @@ pagerduty-mcp-server = "pagerduty_mcp_server:main"
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.semantic_release]
-version_toml = ["pyproject.toml:project.version"]
-tag_format = "v{version}"
-branch = "main"
-commit_parser = "conventional"
-commit_message = "chore(release): {version}"
-allow_zero_version = true
-build_command = "pip install uv && uv lock"
-assets = ["uv.lock"]
-
-[tool.semantic_release.commit_parser_opts]
-allowed_types = ["feat", "fix", "chore", "ci", "docs", "style", "refactor", "test"]
-
-[tool.semantic_release.changelog]
-exclude_commit_patterns = ["chore\\(release\\)"]
-
-[tool.semantic_release.changelog.default_templates]
-changelog_file = "CHANGELOG.md"
-
 [dependency-groups]
 dev = [
     "mypy>=2.0.0",
