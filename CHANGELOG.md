@@ -1,7 +1,5 @@
 # CHANGELOG
 
-<!-- version list -->
-
 ## v4.0.2 (2026-05-13)
 
 ### Bug Fixes
