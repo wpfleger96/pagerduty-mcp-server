@@ -1,26 +1,20 @@
-# This file is managed by github-config. Do not edit manually.
-# https://github.com/wpfleger96/github-config
-name: Automated Release
+name: Release
 
 on:
-  workflow_run:
-    workflows: ["CI"]
+  push:
     branches:
       - main
-    types:
-      - completed
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
-  release:
+  release-please:
     runs-on: ubuntu-latest
-    concurrency:
-      group: release
-      cancel-in-progress: false
-    if: github.event.workflow_run.conclusion == 'success'
-
+    outputs:
+      pr_branch: ${{ steps.release.outputs.pr && fromJSON(steps.release.outputs.pr).headBranchName || '' }}
+      release_created: ${{ steps.release.outputs.release_created }}
     steps:
       - name: Generate GitHub App token
         id: app-token
@@ -29,10 +23,30 @@ jobs:
           client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
 
-      - name: Checkout
+      - uses: google-github-actions/release-please-action@v4
+        id: release
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+
+  update-lockfile:
+    needs: release-please
+    if: needs.release-please.outputs.pr_branch != ''
+    runs-on: ubuntu-latest
+    concurrency:
+      group: release-lockfile
+      cancel-in-progress: true
+    steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
+      - name: Checkout release PR branch
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          ref: ${{ needs.release-please.outputs.pr_branch }}
           token: ${{ steps.app-token.outputs.token }}
 
       - name: Set up Python
@@ -46,14 +60,12 @@ jobs:
           version: "latest"
           enable-cache: false
 
-      - name: Install just
-        uses: extractions/setup-just@v4
+      - name: Update lockfile
+        run: uv lock
 
-      - name: Install dependencies
-        run: just sync
-
-      - name: Semantic Version Release
-        id: release
-        uses: python-semantic-release/python-semantic-release@v10.5.3
-        with:
-          github_token: ${{ steps.app-token.outputs.token }}
+      - name: Commit lockfile if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add uv.lock
+          git diff --cached --quiet || (git commit -m "chore: update uv.lock" && git push)
