@@ -1,3 +1,6 @@
+# This file is managed by github-config. Do not edit manually.
+# https://github.com/wpfleger96/github-config
+
 # Settings
 set dotenv-load := false
 
@@ -57,3 +60,5 @@ rebuild: clean-build build
 # CI workflow (matches CI steps)
 ci: sync type-check lint-check format-check test
     @echo "CI checks passed"
+
+import? 'local.just'

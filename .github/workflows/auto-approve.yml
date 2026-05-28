@@ -1,3 +1,5 @@
+# This file is managed by github-config. Do not edit manually.
+# https://github.com/wpfleger96/github-config
 name: Auto-approve
 
 on:
@@ -11,7 +13,7 @@ permissions:
 jobs:
   renovate:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.user.login == 'wpfleger-release-bot[bot]'
+    if: github.event.pull_request.user.login == 'renovate[bot]'
     steps:
       # Renovate enables GitHub native auto-merge only on updates it deems safe
       # (non-major, non-Actions, non-runtime per the shared preset). Supplying the
