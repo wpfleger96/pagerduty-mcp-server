@@ -1,5 +1,52 @@
 # CHANGELOG
 
+## [5.0.0](https://github.com/wpfleger96/pagerduty-mcp-server/compare/v4.0.2...v5.0.0) (2026-05-28)
+
+
+### ⚠ BREAKING CHANGES
+
+* parsers/ removed, async-only tools, new error types.
+* incorporating upstream bchanges
+* go straight to 2.0.0 to make Pypi happy
+* clean start, skipping 1.0.0 to make Pypi happy
+
+### Features
+
+* actual initial release ([9b3426a](https://github.com/wpfleger96/pagerduty-mcp-server/commit/9b3426a7d5273d4fef04659bb859642d4e621865))
+* add support for loading PagerDuty API token from .env file ([275fa26](https://github.com/wpfleger96/pagerduty-mcp-server/commit/275fa26a0df2247a0701aae389a08746c850e9e2))
+* add support for loading PagerDuty API token from .env file ([6692db0](https://github.com/wpfleger96/pagerduty-mcp-server/commit/6692db0732ec6e0b392939f1d1c82521e4524246))
+* expose list_past_incidents API ([49059a1](https://github.com/wpfleger96/pagerduty-mcp-server/commit/49059a1cddd3c6603292b3d59e9e66df6f1af099))
+* full OSS parity — async, Pydantic models, write tools, OAuth PKCE ([#16](https://github.com/wpfleger96/pagerduty-mcp-server/issues/16)) ([b44c13d](https://github.com/wpfleger96/pagerduty-mcp-server/commit/b44c13d9726bb858357c4fddc7ceef46c34039bb))
+* implement list_related_incidents and list_users_oncall APIs ([74bad51](https://github.com/wpfleger96/pagerduty-mcp-server/commit/74bad51e882f74ae2afcf74ea57ae944d0590f9c))
+* incorporating upstream bchanges ([c1380cc](https://github.com/wpfleger96/pagerduty-mcp-server/commit/c1380cce8ba77fc4c255d5a7be0b6a5b993258b2))
+* initial release ([8871b39](https://github.com/wpfleger96/pagerduty-mcp-server/commit/8871b39982c4a648e7181cd2daf5e27e49d227a0))
+* initial release ([658a4c5](https://github.com/wpfleger96/pagerduty-mcp-server/commit/658a4c55ea81ace2b9f9d23ae5cc983fa04ddc02))
+
+
+### Bug Fixes
+
+* add PSR v10 changelog insertion flag and backfill missing entries ([#25](https://github.com/wpfleger96/pagerduty-mcp-server/issues/25)) ([6940543](https://github.com/wpfleger96/pagerduty-mcp-server/commit/6940543ee04a19dfe76ea1f774c10044b77fa820))
+* compatibility with pagerduty SDK 6.x ([0568276](https://github.com/wpfleger96/pagerduty-mcp-server/commit/05682763e60064e1de81a1b77a0a61281bd9b9e2))
+* fix tests and uvx invocation error, and update GH workflows ([d3f87a8](https://github.com/wpfleger96/pagerduty-mcp-server/commit/d3f87a82e48bbc733fe9912ce4b30c55d1302e0e))
+* install uv in PSR Docker container before lockfile sync ([#28](https://github.com/wpfleger96/pagerduty-mcp-server/issues/28)) ([9585736](https://github.com/wpfleger96/pagerduty-mcp-server/commit/9585736579b7e3623d08460ea523254f4e78db02))
+* re-enable automatic CHANGELOG generation ([#24](https://github.com/wpfleger96/pagerduty-mcp-server/issues/24)) ([2f177b5](https://github.com/wpfleger96/pagerduty-mcp-server/commit/2f177b53123a03dd7e43970bc42f860f998a9fe4))
+* **release:** include uv.lock in semantic-release commit ([#40](https://github.com/wpfleger96/pagerduty-mcp-server/issues/40)) ([fa1c355](https://github.com/wpfleger96/pagerduty-mcp-server/commit/fa1c355e01c5492e029868c2ed138625d6ef95c1))
+* remove deprecated FastMCP constructor kwargs ([15be3a0](https://github.com/wpfleger96/pagerduty-mcp-server/commit/15be3a080da551d4462f77709ee5ca41e06fa008))
+* trigger PyPI publish only on actual releases ([d17571c](https://github.com/wpfleger96/pagerduty-mcp-server/commit/d17571c26409d8cb71cc77731d982f4e9cc9b870))
+* use SSH deploy key for semantic-release push ([9d75146](https://github.com/wpfleger96/pagerduty-mcp-server/commit/9d7514666a1f7d75b3b0f79f26bc475c8fc6a764))
+* use SSH deploy key for semantic-release push ([a028def](https://github.com/wpfleger96/pagerduty-mcp-server/commit/a028def56d19f7f054dce6b9521c2572773376c7))
+
+
+### Documentation
+
+* documentation fixes ([a282e30](https://github.com/wpfleger96/pagerduty-mcp-server/commit/a282e30c2f4f783a497dd095e29b2da119a3e9c5))
+* spaghetti cleanup ([3bb3182](https://github.com/wpfleger96/pagerduty-mcp-server/commit/3bb31825b2eda9e31370edf7b5d4b0d2b11fb853))
+
+
+### Refactoring
+
+* remove dead code, ghost parsers directory, and fix stale docs ([#27](https://github.com/wpfleger96/pagerduty-mcp-server/issues/27)) ([b17b781](https://github.com/wpfleger96/pagerduty-mcp-server/commit/b17b781cc0b10f7375f4045cba23aabd5b67b326))
+
 ## v4.0.2 (2026-05-13)
 
 ### Bug Fixes
