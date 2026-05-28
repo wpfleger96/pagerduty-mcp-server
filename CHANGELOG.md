@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## [4.0.3](https://github.com/wpfleger96/pagerduty-mcp-server/compare/v4.0.2...v4.0.3) (2026-05-28)
+
+
+### Bug Fixes
+
+* install uv in PSR Docker container before lockfile sync ([#28](https://github.com/wpfleger96/pagerduty-mcp-server/issues/28)) ([9585736](https://github.com/wpfleger96/pagerduty-mcp-server/commit/9585736579b7e3623d08460ea523254f4e78db02))
+* **release:** include uv.lock in semantic-release commit ([#40](https://github.com/wpfleger96/pagerduty-mcp-server/issues/40)) ([fa1c355](https://github.com/wpfleger96/pagerduty-mcp-server/commit/fa1c355e01c5492e029868c2ed138625d6ef95c1))
+
+
+### Refactoring
+
+* remove dead code, ghost parsers directory, and fix stale docs ([#27](https://github.com/wpfleger96/pagerduty-mcp-server/issues/27)) ([b17b781](https://github.com/wpfleger96/pagerduty-mcp-server/commit/b17b781cc0b10f7375f4045cba23aabd5b67b326))
+
 ## v4.0.2 (2026-05-13)
 
 ### Bug Fixes
