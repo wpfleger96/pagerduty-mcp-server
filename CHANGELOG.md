@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## [4.0.4](https://github.com/wpfleger96/pagerduty-mcp-server/compare/v4.0.3...v4.0.4) (2026-06-01)
+
+
+### Chores
+
+* **deps:** Lock file maintenance ([#49](https://github.com/wpfleger96/pagerduty-mcp-server/issues/49)) ([f2355b5](https://github.com/wpfleger96/pagerduty-mcp-server/commit/f2355b51eca32c68755e2e3b4c714b233b40e703))
+* **deps:** Lock file maintenance ([#50](https://github.com/wpfleger96/pagerduty-mcp-server/issues/50)) ([b9d82c0](https://github.com/wpfleger96/pagerduty-mcp-server/commit/b9d82c04510bc8af35f07afcfde5b1fbaccfb211))
+* **deps:** Lock file maintenance ([#51](https://github.com/wpfleger96/pagerduty-mcp-server/issues/51)) ([6b4b6fe](https://github.com/wpfleger96/pagerduty-mcp-server/commit/6b4b6fe5113e829b0a2e32301f590492ca13e64b))
+
+
+### Continuous Integration
+
+* sync CI workflow ([dc150f4](https://github.com/wpfleger96/pagerduty-mcp-server/commit/dc150f4381c46a161283a123f5eeb8d366ddaddb))
+* sync release workflow ([18b8a19](https://github.com/wpfleger96/pagerduty-mcp-server/commit/18b8a195c3b77308788a657860cd06d1ae334206))
+
 ## [4.0.3](https://github.com/wpfleger96/pagerduty-mcp-server/compare/v4.0.2...v4.0.3) (2026-05-28)
 
 
