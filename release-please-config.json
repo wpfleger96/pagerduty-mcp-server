@@ -10,12 +10,12 @@
       "changelog-sections": [
         {"type": "feat", "section": "Features"},
         {"type": "fix", "section": "Bug Fixes"},
-        {"type": "chore", "section": "Chores", "hidden": true},
-        {"type": "ci", "section": "Continuous Integration", "hidden": true},
+        {"type": "chore", "section": "Chores"},
+        {"type": "ci", "section": "Continuous Integration"},
         {"type": "docs", "section": "Documentation"},
-        {"type": "style", "section": "Code Style", "hidden": true},
+        {"type": "style", "section": "Code Style"},
         {"type": "refactor", "section": "Refactoring"},
-        {"type": "test", "section": "Testing", "hidden": true}
+        {"type": "test", "section": "Testing"}
       ]
     }
   }
