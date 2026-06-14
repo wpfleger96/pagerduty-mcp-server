@@ -1,0 +1,8 @@
+*.md
+*.json
+*.yaml
+*.yml
+*.toml
+*.lock
+*.mdc
+*.typed
