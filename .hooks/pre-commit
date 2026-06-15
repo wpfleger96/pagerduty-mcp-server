@@ -1,12 +1,20 @@
 #!/usr/bin/env bash
+# This file is managed by github-config. Do not edit manually.
+# https://github.com/wpfleger96/github-config
 
-set -o errexit  # quit on first error
-set -o nounset
+set -euo pipefail
 
-just sync
-just type-check
-just lint
-just format
-just test
+UNSTAGED_BEFORE=$(git diff --name-only 2>/dev/null || true)
 
-echo "Pre-commit checks complete"
+just pre-commit
+
+while IFS= read -r file; do
+    if [ -n "$file" ] && [ -f "$file" ]; then
+        if echo "$UNSTAGED_BEFORE" | grep -qxF "$file" 2>/dev/null; then
+            echo "Skipping re-stage (has prior unstaged changes): $file"
+        else
+            echo "Re-staging formatted/linted file: $file"
+            git add "$file"
+        fi
+    fi
+done < <(git diff --name-only 2>/dev/null)
