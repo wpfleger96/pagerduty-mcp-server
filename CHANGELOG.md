@@ -1,5 +1,36 @@
 # CHANGELOG
 
+## [4.0.5](https://github.com/wpfleger96/pagerduty-mcp-server/compare/v4.0.4...v4.0.5) (2026-06-19)
+
+
+### Chores
+
+* add .tokeignore and LOC badge to README ([#63](https://github.com/wpfleger96/pagerduty-mcp-server/issues/63)) ([e528484](https://github.com/wpfleger96/pagerduty-mcp-server/commit/e528484c850244ae98e03c02e4a9696c4a8982e0))
+* **deps:** Lock file maintenance ([#53](https://github.com/wpfleger96/pagerduty-mcp-server/issues/53)) ([9e9b5d0](https://github.com/wpfleger96/pagerduty-mcp-server/commit/9e9b5d01e209eeedd332a9f1bd03839d4650b18b))
+* **deps:** Lock file maintenance ([#55](https://github.com/wpfleger96/pagerduty-mcp-server/issues/55)) ([ae52064](https://github.com/wpfleger96/pagerduty-mcp-server/commit/ae52064f9068cfefffcd17d0380e220385a29303))
+* **deps:** Lock file maintenance ([#56](https://github.com/wpfleger96/pagerduty-mcp-server/issues/56)) ([28047c8](https://github.com/wpfleger96/pagerduty-mcp-server/commit/28047c8fbf4703bf5b09372d1b21246eb93001da))
+* **deps:** Lock file maintenance ([#57](https://github.com/wpfleger96/pagerduty-mcp-server/issues/57)) ([13742f5](https://github.com/wpfleger96/pagerduty-mcp-server/commit/13742f5c58cb18d3ae02cc9cf767cde8e179f986))
+* **deps:** Lock file maintenance ([#58](https://github.com/wpfleger96/pagerduty-mcp-server/issues/58)) ([4c265e3](https://github.com/wpfleger96/pagerduty-mcp-server/commit/4c265e3e6b63345200776b1c8f0f4cbd6e48510c))
+* **deps:** Lock file maintenance ([#60](https://github.com/wpfleger96/pagerduty-mcp-server/issues/60)) ([6bea57a](https://github.com/wpfleger96/pagerduty-mcp-server/commit/6bea57a8a2cced92a1f83da2919f7a4c3c4cb970))
+* **deps:** Lock file maintenance ([#61](https://github.com/wpfleger96/pagerduty-mcp-server/issues/61)) ([35013f1](https://github.com/wpfleger96/pagerduty-mcp-server/commit/35013f1c3a49f4475369415e26df7fccdf6fa281))
+* **deps:** Lock file maintenance ([#64](https://github.com/wpfleger96/pagerduty-mcp-server/issues/64)) ([3d6c4a5](https://github.com/wpfleger96/pagerduty-mcp-server/commit/3d6c4a51213a332070bef739feea4fa9bf851ca9))
+* **deps:** Lock file maintenance ([#65](https://github.com/wpfleger96/pagerduty-mcp-server/issues/65)) ([5c8274a](https://github.com/wpfleger96/pagerduty-mcp-server/commit/5c8274a27776f7532187496a3fff5951571283dd))
+* downgrade Python 3.14 to 3.13 ([#66](https://github.com/wpfleger96/pagerduty-mcp-server/issues/66)) ([e2d5e2f](https://github.com/wpfleger96/pagerduty-mcp-server/commit/e2d5e2fa82b66d1027ae85af1df583a668c82c7c))
+* remove pagerduty mypy override (blocked on upstream release) ([#62](https://github.com/wpfleger96/pagerduty-mcp-server/issues/62)) ([7eb463d](https://github.com/wpfleger96/pagerduty-mcp-server/commit/7eb463def7a26f596991b18ec1d0b0dda7bce83c))
+* sync Justfile ([658d77f](https://github.com/wpfleger96/pagerduty-mcp-server/commit/658d77f225e4561138f0904757be77201154bea2))
+* sync Justfile ([74c88e4](https://github.com/wpfleger96/pagerduty-mcp-server/commit/74c88e48c824b07095a30c61ab41f6e5ad716312))
+* sync Justfile ([fcec587](https://github.com/wpfleger96/pagerduty-mcp-server/commit/fcec5875aceff2c77622be70dfc216c0245c5e36))
+* sync pre-commit hook ([e6eeec7](https://github.com/wpfleger96/pagerduty-mcp-server/commit/e6eeec781a9ca2a3f68e16cb7d0f7d075a45861e))
+* sync pre-commit hook ([3b6e965](https://github.com/wpfleger96/pagerduty-mcp-server/commit/3b6e9653921963bd703043b763b7e7fa6b67243c))
+
+
+### Continuous Integration
+
+* sync CI workflow ([b2084c0](https://github.com/wpfleger96/pagerduty-mcp-server/commit/b2084c0a3ba7d2f63cd9d37741762951ad044d43))
+* sync CI workflow ([4873a9c](https://github.com/wpfleger96/pagerduty-mcp-server/commit/4873a9c38f5de55143dc1e332f82f3f7d473820b))
+* sync publish workflow ([d6feed2](https://github.com/wpfleger96/pagerduty-mcp-server/commit/d6feed26e634a0cb4055ec0c9be1b9530f0da0e1))
+* sync release workflow ([a6bde58](https://github.com/wpfleger96/pagerduty-mcp-server/commit/a6bde58154995ae84cc680aee6f2aac9e9df91ac))
+
 ## [4.0.4](https://github.com/wpfleger96/pagerduty-mcp-server/compare/v4.0.3...v4.0.4) (2026-06-01)
 
 
