@@ -18,7 +18,61 @@ permissions:
   contents: read
 
 jobs:
-  checks:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: .python-version
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          version: "latest"
+          enable-cache: true
+
+      - name: Install just
+        uses: extractions/setup-just@v4
+
+      - name: Install dependencies
+        run: just sync
+
+      - name: Run linter
+        run: just lint-check
+
+  format:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: .python-version
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          version: "latest"
+          enable-cache: true
+
+      - name: Install just
+        uses: extractions/setup-just@v4
+
+      - name: Install dependencies
+        run: just sync
+
+      - name: Run formatter
+        run: just format-check
+
+  type-check:
     runs-on: ubuntu-latest
 
     steps:
@@ -45,11 +99,45 @@ jobs:
       - name: Run type checks
         run: just type-check
 
-      - name: Run linter
-        run: just lint-check
+  test:
+    runs-on: ubuntu-latest
 
-      - name: Run formatter
-        run: just format-check
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: .python-version
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          version: "latest"
+          enable-cache: true
+
+      - name: Install just
+        uses: extractions/setup-just@v4
+
+      - name: Install dependencies
+        run: just sync
 
       - name: Run tests
         run: just test
+
+  checks:
+    if: always()
+    needs: [lint, format, type-check, test]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Verify all checks passed
+        run: |
+          if [[ "${{ needs.lint.result }}" != "success" || \
+                "${{ needs.format.result }}" != "success" || \
+                "${{ needs['type-check'].result }}" != "success" || \
+                "${{ needs.test.result }}" != "success" ]]; then
+            echo "One or more checks failed"
+            exit 1
+          fi
