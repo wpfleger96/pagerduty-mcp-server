@@ -1,7 +1,7 @@
 """PagerDuty team operations."""
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from . import utils
 from .async_utils import DEFAULT_MAX_RESULTS, paginate, safe_execute_async
@@ -19,10 +19,10 @@ Teams API Helpers
 
 async def list_teams(
     *,
-    query: Optional[str] = None,
-    limit: Optional[int] = None,
-    include: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    query: str | None = None,
+    limit: int | None = None,
+    include: list[str] | None = None,
+) -> dict[str, Any]:
     """List teams in your PagerDuty account. Exposed as MCP server tool.
 
     Args:
@@ -58,8 +58,8 @@ async def list_teams(
 
 
 async def show_team(
-    *, team_id: str, include: Optional[List[str]] = None
-) -> Dict[str, Any]:
+    *, team_id: str, include: list[str] | None = None
+) -> dict[str, Any]:
     """Get detailed information about a given team. Exposed as MCP server tool.
 
     Args:
@@ -105,7 +105,7 @@ Teams Helpers
 """
 
 
-def fetch_team_ids(*, user: Dict[str, Any]) -> List[str]:
+def fetch_team_ids(*, user: dict[str, Any]) -> list[str]:
     """Get the team IDs for a user. Internal helper function.
 
     Args:

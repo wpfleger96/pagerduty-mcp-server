@@ -1,6 +1,6 @@
 """Pydantic models for PagerDuty Incidents."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import Field, model_validator
 
@@ -33,81 +33,79 @@ class Incident(PagerDutyBaseModel):
     id: str
 
     # Core fields - present in full API responses but may be missing in simplified contexts
-    incident_number: Optional[int] = None
-    title: Optional[str] = None
-    status: Optional[str] = None
-    urgency: Optional[str] = None
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
-    summary: Optional[str] = None
-    description: Optional[str] = None
-    last_status_change_at: Optional[str] = None
+    incident_number: int | None = None
+    title: str | None = None
+    status: str | None = None
+    urgency: str | None = None
+    created_at: str | None = None
+    updated_at: str | None = None
+    summary: str | None = None
+    description: str | None = None
+    last_status_change_at: str | None = None
 
     # Optional fields - can be None in API responses
-    resolved_at: Optional[str] = None
-    alert_counts: Optional[Dict[str, Any]] = None
-    body_details: Optional[Dict[str, Any]] = None
-    client_url: Optional[str] = None
+    resolved_at: str | None = None
+    alert_counts: dict[str, Any] | None = None
+    body_details: dict[str, Any] | None = None
+    client_url: str | None = None
 
     # References - can be None
-    service: Optional[IdOnly] = None
-    escalation_policy: Optional[Reference] = None
-    last_status_change_by: Optional[Reference] = None
+    service: IdOnly | None = None
+    escalation_policy: Reference | None = None
+    last_status_change_by: Reference | None = None
 
     # Collections - present but can be empty
-    assignments: List[AssignmentItem] = []
-    acknowledgements: List[AcknowledgementItem] = []
-    teams: List[Reference] = []
+    assignments: list[AssignmentItem] = []
+    acknowledgements: list[AcknowledgementItem] = []
+    teams: list[Reference] = []
 
     # Raw body field for processing
-    body: Optional[Dict[str, Any]] = None
+    body: dict[str, Any] | None = None
 
     # API fields excluded from MCP responses for size optimization:
     # These fields are available in the PagerDuty API but excluded to reduce response size
-    type: Optional[str] = Field(
+    type: str | None = Field(
         None, exclude=True, description="Excluded: Always 'incident'"
     )
-    html_url: Optional[str] = Field(
-        None, exclude=True, description="Excluded: Web UI URL"
-    )
-    self: Optional[str] = Field(None, exclude=True, description="Excluded: API URL")
-    incident_key: Optional[str] = Field(
+    html_url: str | None = Field(None, exclude=True, description="Excluded: Web UI URL")
+    self: str | None = Field(None, exclude=True, description="Excluded: API URL")
+    incident_key: str | None = Field(
         None, exclude=True, description="Excluded: External incident key"
     )
-    assigned_via: Optional[str] = Field(
+    assigned_via: str | None = Field(
         None, exclude=True, description="Excluded: How incident was assigned"
     )
-    incident_type: Optional[Dict[str, Any]] = Field(
+    incident_type: dict[str, Any] | None = Field(
         None, exclude=True, description="Excluded: Incident type metadata"
     )
-    is_mergeable: Optional[bool] = Field(
+    is_mergeable: bool | None = Field(
         None, exclude=True, description="Excluded: Whether incident can be merged"
     )
-    pending_actions: Optional[List[Dict[str, Any]]] = Field(
+    pending_actions: list[dict[str, Any]] | None = Field(
         None, exclude=True, description="Excluded: Pending actions list"
     )
-    priority: Optional[Dict[str, Any]] = Field(
+    priority: dict[str, Any] | None = Field(
         None, exclude=True, description="Excluded: Priority metadata"
     )
-    resolve_reason: Optional[str] = Field(
+    resolve_reason: str | None = Field(
         None, exclude=True, description="Excluded: Reason for resolution"
     )
-    responder_requests: Optional[List[Dict[str, Any]]] = Field(
+    responder_requests: list[dict[str, Any]] | None = Field(
         None, exclude=True, description="Excluded: Responder requests list"
     )
-    subscriber_requests: Optional[List[Dict[str, Any]]] = Field(
+    subscriber_requests: list[dict[str, Any]] | None = Field(
         None, exclude=True, description="Excluded: Subscriber requests list"
     )
-    alert_grouping: Optional[Dict[str, Any]] = Field(
+    alert_grouping: dict[str, Any] | None = Field(
         None, exclude=True, description="Excluded: Alert grouping configuration"
     )
-    basic_alert_grouping: Optional[Dict[str, Any]] = Field(
+    basic_alert_grouping: dict[str, Any] | None = Field(
         None, exclude=True, description="Excluded: Basic alert grouping configuration"
     )
-    incidents_responders: Optional[List[Dict[str, Any]]] = Field(
+    incidents_responders: list[dict[str, Any]] | None = Field(
         None, exclude=True, description="Excluded: Incident responders list"
     )
-    first_trigger_log_entry: Optional[Dict[str, Any]] = Field(
+    first_trigger_log_entry: dict[str, Any] | None = Field(
         None, exclude=True, description="Excluded: First trigger log entry reference"
     )
 
@@ -124,7 +122,7 @@ class Incident(PagerDutyBaseModel):
                 if isinstance(raw_body_details, dict) and raw_body_details:
                     # Get all keys except 'title'
                     keys_for_body_details = [
-                        k for k in raw_body_details.keys() if k != "title"
+                        k for k in raw_body_details if k != "title"
                     ]
 
                     # Extract only the specified keys

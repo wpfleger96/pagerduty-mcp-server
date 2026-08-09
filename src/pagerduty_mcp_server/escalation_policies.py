@@ -1,7 +1,7 @@
 """PagerDuty escalation policy operations."""
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from . import utils
 from .async_utils import DEFAULT_MAX_RESULTS, paginate, safe_execute_async
@@ -19,12 +19,12 @@ Escalation Policies API Helpers
 
 async def list_escalation_policies(
     *,
-    query: Optional[str] = None,
-    user_ids: Optional[List[str]] = None,
-    team_ids: Optional[List[str]] = None,
-    limit: Optional[int] = None,
-    include: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    query: str | None = None,
+    user_ids: list[str] | None = None,
+    team_ids: list[str] | None = None,
+    limit: int | None = None,
+    include: list[str] | None = None,
+) -> dict[str, Any]:
     """List escalation policies based on the given criteria. Exposed in `get_escalation_policies`.
 
     Args:
@@ -43,7 +43,7 @@ async def list_escalation_policies(
 
     pd_client = create_client()
 
-    params: Dict[str, Any] = {}
+    params: dict[str, Any] = {}
     if query:
         params["query"] = query
     if user_ids:
@@ -67,8 +67,8 @@ async def list_escalation_policies(
 
 
 async def show_escalation_policy(
-    *, policy_id: str, include: Optional[List[str]] = None
-) -> Dict[str, Any]:
+    *, policy_id: str, include: list[str] | None = None
+) -> dict[str, Any]:
     """Get detailed information about a given escalation policy. Exposed in `get_escalation_policies`.
 
     Args:
@@ -117,7 +117,7 @@ Escalation Policy Helpers
 """
 
 
-async def fetch_escalation_policy_ids(*, user_id: Optional[str] = None) -> List[str]:
+async def fetch_escalation_policy_ids(*, user_id: str | None = None) -> list[str]:
     """Get the escalation policy IDs for a user. Internal helper function.
 
     Args:

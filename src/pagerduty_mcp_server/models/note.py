@@ -1,7 +1,5 @@
 """Pydantic models for PagerDuty Notes."""
 
-from typing import Optional
-
 from pydantic import ConfigDict, Field
 
 from .common import PagerDutyBaseModel
@@ -13,13 +11,13 @@ class NoteUser(PagerDutyBaseModel):
     model_config = ConfigDict(populate_by_name=True, use_enum_values=True)
 
     id: str
-    name: Optional[str] = Field(None, alias="summary", serialization_alias="name")
+    name: str | None = Field(None, alias="summary", serialization_alias="name")
 
 
 class NoteChannel(PagerDutyBaseModel):
     """A channel where a note was created."""
 
-    summary: Optional[str] = None
+    summary: str | None = None
 
 
 class Note(PagerDutyBaseModel):
@@ -29,7 +27,7 @@ class Note(PagerDutyBaseModel):
     id: str
 
     # Core fields - present in full API responses but may be missing in simplified contexts
-    content: Optional[str] = None
-    created_at: Optional[str] = None
-    user: Optional[NoteUser] = None
-    channel: Optional[NoteChannel] = None
+    content: str | None = None
+    created_at: str | None = None
+    user: NoteUser | None = None
+    channel: NoteChannel | None = None

@@ -1,6 +1,6 @@
 """Unit tests for the schedules module."""
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock
 
 import pytest
@@ -176,8 +176,8 @@ async def test_list_users_oncall(mock_get_api_client, mock_schedules):
 async def test_list_users_oncall_with_date_range(mock_get_api_client, mock_schedules):
     """Test that users on call can be fetched with date range parameters."""
     schedule_id = mock_schedules[0]["id"]
-    since = (datetime.now() - timedelta(days=7)).isoformat()
-    until = datetime.now().isoformat()
+    since = (datetime.now(tz=UTC) - timedelta(days=7)).isoformat()
+    until = datetime.now(tz=UTC).isoformat()
     mock_users_data = [
         {"id": "P789012", "summary": "John Doe", "email": "john.doe@example.com"}
     ]

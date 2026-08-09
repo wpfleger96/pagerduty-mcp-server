@@ -1,7 +1,5 @@
 """Pydantic models for PagerDuty Teams."""
 
-from typing import Optional
-
 from pydantic import Field
 
 from .common import PagerDutyBaseModel
@@ -11,7 +9,7 @@ class TeamParent(PagerDutyBaseModel):
     """A parent team reference."""
 
     id: str
-    type: Optional[str] = None
+    type: str | None = None
 
 
 class Team(PagerDutyBaseModel):
@@ -26,24 +24,20 @@ class Team(PagerDutyBaseModel):
     id: str
 
     # Core fields - present in full API responses but may be missing in simplified contexts
-    name: Optional[str] = None
+    name: str | None = None
 
     # Optional fields - can be None in API responses
-    description: Optional[str] = None
-    parent: Optional[TeamParent] = None
+    description: str | None = None
+    parent: TeamParent | None = None
 
     # API fields excluded from MCP responses for size optimization:
     # These fields are available in the PagerDuty API but excluded to reduce response size
-    type: Optional[str] = Field(
-        None, exclude=True, description="Excluded: Always 'team'"
-    )
-    summary: Optional[str] = Field(
+    type: str | None = Field(None, exclude=True, description="Excluded: Always 'team'")
+    summary: str | None = Field(
         None, exclude=True, description="Excluded: Usually same as name"
     )
-    self: Optional[str] = Field(None, exclude=True, description="Excluded: API URL")
-    html_url: Optional[str] = Field(
-        None, exclude=True, description="Excluded: Web UI URL"
-    )
-    default_role: Optional[str] = Field(
+    self: str | None = Field(None, exclude=True, description="Excluded: API URL")
+    html_url: str | None = Field(None, exclude=True, description="Excluded: Web UI URL")
+    default_role: str | None = Field(
         None, exclude=True, description="Excluded: Default member role"
     )

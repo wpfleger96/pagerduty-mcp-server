@@ -5,7 +5,6 @@ import pytest
 from pagerduty_mcp_server import incidents, utils
 from pagerduty_mcp_server.models.note import Note
 
-
 """
 Note Model Tests
 """

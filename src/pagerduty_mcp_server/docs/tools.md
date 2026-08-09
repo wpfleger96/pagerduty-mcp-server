@@ -113,13 +113,13 @@ get_escalation_policies(include=["id", "name"])
 
 # Get escalation policies with specific fields and filters combined
 get_escalation_policies(
-    query="production",
-    include=["id", "name", "description"],
-    limit=10
+    query="production", include=["id", "name", "description"], limit=10
 )
 
 # Get details for a specific escalation policy with only certain fields
-get_escalation_policies(policy_id="POLICY_123", include=["id", "name", "escalation_rules"])
+get_escalation_policies(
+    policy_id="POLICY_123", include=["id", "name", "escalation_rules"]
+)
 ```
 
 ## Incidents Tools
@@ -343,9 +343,7 @@ get_incidents(since="2025-02-26T00:00:00Z", until="2025-03-26T00:00:00Z")
 # Get incidents for specific services
 # Use this query to answer questions like "What incidents have been resolved this week for Service 123?"
 get_incidents(
-    current_user_context=False,
-    service_ids=["SERVICE_123"],
-    statuses=["resolved"]
+    current_user_context=False, service_ids=["SERVICE_123"], statuses=["resolved"]
 )
 
 # Get details for a specific incident with additional context
@@ -353,7 +351,7 @@ get_incidents(
     incident_id="INCIDENT_ABC",
     include_past_incidents=True,
     include_related_incidents=True,
-    include_notes=True
+    include_notes=True,
 )
 
 # Get only specific fields for incidents (using include parameter)
@@ -363,11 +361,13 @@ get_incidents(include=["id", "title", "status", "created_at"])
 get_incidents(
     statuses=["triggered", "acknowledged"],
     include=["id", "incident_number", "title", "status", "urgency"],
-    limit=10
+    limit=10,
 )
 
 # Get details for a specific incident with only certain fields
-get_incidents(incident_id="INCIDENT_ABC", include=["id", "title", "status", "assignments"])
+get_incidents(
+    incident_id="INCIDENT_ABC", include=["id", "title", "status", "assignments"]
+)
 ```
 
 ### acknowledge_incident
@@ -409,7 +409,9 @@ The updated incident object in the standard response format (same fields as `get
 resolve_incident(incident_id="INCIDENT_ABC")
 
 # Resolve and return only key fields
-resolve_incident(incident_id="INCIDENT_ABC", include=["id", "title", "status", "resolved_at"])
+resolve_incident(
+    incident_id="INCIDENT_ABC", include=["id", "title", "status", "resolved_at"]
+)
 ```
 
 ### add_incident_note
@@ -435,10 +437,16 @@ The created note object in the standard response format:
 #### Example Queries
 ```python
 # Add a note to an incident
-add_incident_note(incident_id="INCIDENT_ABC", content="Investigating root cause - appears to be a database connection issue")
+add_incident_note(
+    incident_id="INCIDENT_ABC",
+    content="Investigating root cause - appears to be a database connection issue",
+)
 
 # Add a resolution note
-add_incident_note(incident_id="INCIDENT_ABC", content="Resolved by restarting the database connection pool")
+add_incident_note(
+    incident_id="INCIDENT_ABC",
+    content="Resolved by restarting the database connection pool",
+)
 ```
 
 ## On-Call Tools
@@ -512,17 +520,18 @@ Each on-call object contains:
 get_oncalls()
 
 # Find who is currently on-call for a specific schedule
-get_oncalls(current_user_context=False, schedule_ids=['SCHEDULE_123'])
+get_oncalls(current_user_context=False, schedule_ids=["SCHEDULE_123"])
 
 # Find the next on-call shift for the current user
 from datetime import datetime, timedelta
+
 user_context = build_user_context()
 get_oncalls(
     current_user_context=False,
     user_ids=[user_context["user_id"]],
     since=datetime.utcnow().isoformat(),
     until=(datetime.utcnow() + timedelta(days=30)).isoformat(),
-    earliest=True
+    earliest=True,
 )
 
 # Get only specific fields for on-call entries (using include parameter)
@@ -532,7 +541,7 @@ get_oncalls(include=["user", "escalation_level", "start", "end"])
 get_oncalls(
     schedule_ids=["SCHEDULE_123"],
     include=["user", "schedule", "start", "end"],
-    limit=10
+    limit=10,
 )
 
 # Get minimal on-call information for quick overview
@@ -686,7 +695,7 @@ get_schedules(query="Schedule Name")
 get_schedules(
     schedule_id="SCHEDULE_123",
     since="2025-02-27T00:00:00Z",
-    until="2025-03-13T00:00:00Z"
+    until="2025-03-13T00:00:00Z",
 )
 
 # Get only specific fields for schedules (using include parameter)
@@ -694,9 +703,7 @@ get_schedules(include=["id", "name", "time_zone"])
 
 # Get schedules with specific fields and filters combined
 get_schedules(
-    query="production",
-    include=["id", "name", "description", "teams"],
-    limit=5
+    query="production", include=["id", "name", "description", "teams"], limit=5
 )
 
 # Get details for a specific schedule with only certain fields
@@ -761,7 +768,7 @@ list_users_oncall(schedule_id="SCHEDULE_123")
 list_users_oncall(
     schedule_id="SCHEDULE_123",
     since="2025-03-01T00:00:00Z",
-    until="2025-04-01T00:00:00Z"
+    until="2025-04-01T00:00:00Z",
 )
 ```
 
@@ -852,7 +859,7 @@ When getting a specific service (with `service_id`):
 get_services()
 
 # List services for a specific team
-get_services(current_user_context=False, team_ids=['TEAM_123'])
+get_services(current_user_context=False, team_ids=["TEAM_123"])
 
 # Get details for a specific service
 get_services(service_id="SERVICE_123")
@@ -865,9 +872,7 @@ get_services(include=["id", "name", "status"])
 
 # Get services with specific fields and filters combined
 get_services(
-    team_ids=["TEAM_123"],
-    include=["id", "name", "description", "teams"],
-    limit=10
+    team_ids=["TEAM_123"], include=["id", "name", "description", "teams"], limit=10
 )
 
 # Get details for a specific service with only certain fields
@@ -964,9 +969,7 @@ get_teams(include=["id", "name", "type"])
 
 # Get teams with specific fields and filters combined
 get_teams(
-    query="engineering",
-    include=["id", "name", "description", "parent"],
-    limit=10
+    query="engineering", include=["id", "name", "description", "parent"], limit=10
 )
 
 # Get details for a specific team with only certain fields
@@ -1050,11 +1053,7 @@ get_users(user_id="USER_123")
 get_users(include=["id", "name", "email"])
 
 # Get users with specific fields and filters combined
-get_users(
-    team_ids=["TEAM_123"],
-    include=["id", "name", "email", "teams"],
-    limit=10
-)
+get_users(team_ids=["TEAM_123"], include=["id", "name", "email", "teams"], limit=10)
 
 # Get details for a specific user with only certain fields
 get_users(user_id="USER_123", include=["id", "name", "contact_methods"])

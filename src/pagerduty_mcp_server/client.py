@@ -1,7 +1,6 @@
 import logging
 import os
 from importlib.metadata import version
-from typing import Optional
 
 import pagerduty
 from dotenv import load_dotenv
@@ -23,8 +22,8 @@ class _RestClient(pagerduty.RestApiV2Client):
 
 
 class PagerDutyClient:
-    _env_client: Optional[pagerduty.RestApiV2Client] = None
-    _env_token: Optional[str] = None
+    _env_client: pagerduty.RestApiV2Client | None = None
+    _env_token: str | None = None
 
     @staticmethod
     def _get_request_token() -> tuple:
@@ -40,7 +39,7 @@ class PagerDutyClient:
             return False, None
 
     @staticmethod
-    def _get_oauth_token() -> Optional[str]:
+    def _get_oauth_token() -> str | None:
         """Try to get OAuth token from keyring or run interactive OAuth flow for local use.
 
         OAuth is configured if either:
@@ -69,7 +68,7 @@ class PagerDutyClient:
             raise PagerDutyAuthError(str(e)) from e
 
     @staticmethod
-    def _get_env_token() -> Optional[str]:
+    def _get_env_token() -> str | None:
         """Try to get auth token from environment variable.
 
         Returns:

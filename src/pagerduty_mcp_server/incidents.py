@@ -3,7 +3,7 @@
 import logging
 import os
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from . import utils
 from .async_utils import DEFAULT_MAX_RESULTS, paginate, safe_execute_async
@@ -31,15 +31,15 @@ Incidents API Helpers
 
 async def list_incidents(
     *,
-    service_ids: Optional[List[str]] = None,
-    team_ids: Optional[List[str]] = None,
-    statuses: Optional[List[str]] = None,
-    urgencies: Optional[List[str]] = None,
-    since: Optional[str] = None,
-    until: Optional[str] = None,
-    limit: Optional[int] = None,
-    include: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    service_ids: list[str] | None = None,
+    team_ids: list[str] | None = None,
+    statuses: list[str] | None = None,
+    urgencies: list[str] | None = None,
+    since: str | None = None,
+    until: str | None = None,
+    limit: int | None = None,
+    include: list[str] | None = None,
+) -> dict[str, Any]:
     """List PagerDuty incidents based on specified filters. Exposed in `get_incidents`.
 
     Args:
@@ -86,7 +86,7 @@ async def list_incidents(
                 f"Invalid urgency values: {invalid_urgencies}. Valid values are: {VALID_URGENCIES}"
             )
 
-    params: Dict[str, Any] = {"statuses": statuses, "urgencies": urgencies}
+    params: dict[str, Any] = {"statuses": statuses, "urgencies": urgencies}
     if service_ids:
         params["service_ids"] = service_ids
     if team_ids:
@@ -121,11 +121,11 @@ async def list_incidents(
 async def show_incident(
     *,
     incident_id: str,
-    include_past_incidents: Optional[bool] = False,
-    include_related_incidents: Optional[bool] = False,
-    include_notes: Optional[bool] = False,
-    include: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    include_past_incidents: bool | None = False,
+    include_related_incidents: bool | None = False,
+    include_notes: bool | None = False,
+    include: list[str] | None = None,
+) -> dict[str, Any]:
     """Get detailed information about a given incident. Exposed as MCP server tool.
 
     Args:
@@ -274,8 +274,8 @@ async def update_incident_status(
     *,
     incident_id: str,
     status: str,
-    include: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    include: list[str] | None = None,
+) -> dict[str, Any]:
     """Update the status of a PagerDuty incident (acknowledge or resolve).
 
     Args:
@@ -342,7 +342,7 @@ async def create_incident_note(
     *,
     incident_id: str,
     content: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Add a note to a PagerDuty incident.
 
     Args:
@@ -404,7 +404,7 @@ Incidents Private Helpers
 """
 
 
-async def _list_past_incidents(*, incident_id: str) -> Dict[str, Any]:
+async def _list_past_incidents(*, incident_id: str) -> dict[str, Any]:
     """List incidents from the past 6 months that are similar to the input incident, and were generated on the same service as the parent incident.
 
     Args:
@@ -459,7 +459,7 @@ async def _list_past_incidents(*, incident_id: str) -> Dict[str, Any]:
         utils.handle_api_error(e)
 
 
-async def _list_related_incidents(*, incident_id: str) -> Dict[str, Any]:
+async def _list_related_incidents(*, incident_id: str) -> dict[str, Any]:
     """List the 20 most recent related incidents that are impacting other services and responders.
 
     Args:
@@ -519,7 +519,7 @@ async def _list_related_incidents(*, incident_id: str) -> Dict[str, Any]:
         utils.handle_api_error(e)
 
 
-async def _list_notes(*, incident_id: str) -> Dict[str, Any]:
+async def _list_notes(*, incident_id: str) -> dict[str, Any]:
     """List notes for a PagerDuty incident. Exposed as MCP server tool.
 
     Args:
@@ -565,7 +565,7 @@ async def _list_notes(*, incident_id: str) -> Dict[str, Any]:
         utils.handle_api_error(e)
 
 
-def _count_incident_statuses(incidents: List[Dict[str, Any]]) -> Dict[str, int]:
+def _count_incident_statuses(incidents: list[dict[str, Any]]) -> dict[str, int]:
     """Count incidents by status. Internal helper function.
 
     Args:
@@ -574,7 +574,7 @@ def _count_incident_statuses(incidents: List[Dict[str, Any]]) -> Dict[str, int]:
     Returns:
         Dict[str, int]: Dictionary mapping status to count
     """
-    status_counts: Dict[str, int] = {}
+    status_counts: dict[str, int] = {}
     for incident in incidents:
         status = incident.get("status")
         if status in VALID_STATUSES:
@@ -582,7 +582,7 @@ def _count_incident_statuses(incidents: List[Dict[str, Any]]) -> Dict[str, int]:
     return status_counts
 
 
-def _count_autoresolved_incidents(incidents: List[Dict[str, Any]]) -> int:
+def _count_autoresolved_incidents(incidents: list[dict[str, Any]]) -> int:
     """Count incidents that were auto-resolved. Internal helper function.
 
     Args:
@@ -602,7 +602,7 @@ def _count_autoresolved_incidents(incidents: List[Dict[str, Any]]) -> int:
     )
 
 
-def _count_no_data_incidents(incidents: List[Dict[str, Any]]) -> int:
+def _count_no_data_incidents(incidents: list[dict[str, Any]]) -> int:
     """Count incidents that are "no data" incidents. Internal helper function.
 
     Args:
@@ -616,7 +616,7 @@ def _count_no_data_incidents(incidents: List[Dict[str, Any]]) -> int:
     )
 
 
-def _calculate_incident_metadata(incidents: List[Dict[str, Any]]) -> Dict[str, Any]:
+def _calculate_incident_metadata(incidents: list[dict[str, Any]]) -> dict[str, Any]:
     """Calculate additional metadata for incidents including status counts and autoresolve count. Internal helper function.
 
     Args:

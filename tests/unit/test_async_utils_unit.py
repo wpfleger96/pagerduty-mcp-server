@@ -4,6 +4,7 @@ import threading
 from unittest.mock import MagicMock
 
 import pytest
+
 from pagerduty_mcp_server.async_utils import paginate, safe_execute_async
 
 

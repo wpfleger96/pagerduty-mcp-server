@@ -2,7 +2,8 @@
 
 import asyncio
 import logging
-from typing import Any, Callable, Dict, List
+from collections.abc import Callable
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -41,11 +42,11 @@ async def safe_execute_async(func: Callable[[], Any], operation_name: str) -> An
 async def paginate(
     pd_client: Any,
     entity: str,
-    params: Dict[str, Any],
+    params: dict[str, Any],
     *,
     max_records: int,
     operation_name: str,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Iterate a PagerDuty list endpoint, stopping after `max_records` items.
 
     This is the canonical pattern for capping list results from the
@@ -78,8 +79,8 @@ async def paginate(
             "paginate() params must not contain 'limit'; use max_records to cap results."
         )
 
-    def _collect() -> List[Dict[str, Any]]:
-        results: List[Dict[str, Any]] = []
+    def _collect() -> list[dict[str, Any]]:
+        results: list[dict[str, Any]] = []
         optimal_page_size = min(max_records, 100)
         for item in pd_client.iter_all(
             entity, params=params, page_size=optimal_page_size

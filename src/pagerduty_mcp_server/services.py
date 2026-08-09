@@ -1,7 +1,7 @@
 """PagerDuty service operations."""
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from . import utils
 from .async_utils import DEFAULT_MAX_RESULTS, paginate, safe_execute_async
@@ -19,11 +19,11 @@ Services API Helpers
 
 async def list_services(
     *,
-    team_ids: Optional[List[str]] = None,
-    query: Optional[str] = None,
-    limit: Optional[int] = None,
-    include: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    team_ids: list[str] | None = None,
+    query: str | None = None,
+    limit: int | None = None,
+    include: list[str] | None = None,
+) -> dict[str, Any]:
     """List existing PagerDuty services. Exposed as MCP server tool.
 
     Args:
@@ -45,7 +45,7 @@ async def list_services(
     if team_ids is not None and not team_ids:
         raise ValueError("team_ids cannot be an empty list")
 
-    params: Dict[str, Any] = {}
+    params: dict[str, Any] = {}
     if team_ids:
         params["team_ids[]"] = (
             team_ids  # PagerDuty API expects array parameters with [] suffix
@@ -67,8 +67,8 @@ async def list_services(
 
 
 async def show_service(
-    *, service_id: str, include: Optional[List[str]] = None
-) -> Dict[str, Any]:
+    *, service_id: str, include: list[str] | None = None
+) -> dict[str, Any]:
     """Get detailed information about a given service. Exposed as MCP server tool.
 
     Args:
@@ -117,7 +117,7 @@ Services Helpers
 """
 
 
-async def fetch_service_ids(*, team_ids: List[str]) -> List[str]:
+async def fetch_service_ids(*, team_ids: list[str]) -> list[str]:
     """Get the service IDs for a list of team IDs. Internal helper function.
 
     Args:

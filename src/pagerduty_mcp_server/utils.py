@@ -3,7 +3,7 @@
 import logging
 import sys
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, NoReturn, Optional, Type, Union
+from typing import Any, NoReturn
 
 from . import prompts
 from .errors import PagerDutyError
@@ -26,10 +26,10 @@ Utils public methods
 
 def api_response_handler(
     *,
-    results: Union[Dict[str, Any], List[Dict[str, Any]]],
+    results: dict[str, Any] | list[dict[str, Any]],
     resource_name: str,
-    additional_metadata: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    additional_metadata: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Process API response and return a standardized format.
 
     Example response:
@@ -119,7 +119,7 @@ def validate_iso8601_timestamp(timestamp: str, param_name: str) -> None:
         ValidationError: If the timestamp is not a valid ISO8601 format
     """
     try:
-        datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+        datetime.fromisoformat(timestamp)
     except ValueError:
         raise ValidationError(
             f"Invalid ISO8601 timestamp value `{timestamp}` for parameter `{param_name}`. Try using a valid ISO8601 timestamp (for example `2025-02-26T00:00:00Z`)."
@@ -141,8 +141,8 @@ def validate_timestamp_range(since: str, until: str) -> None:
         ValidationError: If the date range is not valid
     """
     if since and until:
-        since_dt = datetime.fromisoformat(since.replace("Z", "+00:00"))
-        until_dt = datetime.fromisoformat(until.replace("Z", "+00:00"))
+        since_dt = datetime.fromisoformat(since)
+        until_dt = datetime.fromisoformat(until)
 
         if since_dt > until_dt:
             raise ValidationError("`since` must be before `until`")
@@ -256,12 +256,12 @@ def count_object_chars(obj: Any) -> int:
 
 
 def parse_list_response(
-    response: List[Dict[str, Any]],
-    model_class: Type[PagerDutyBaseModel],
+    response: list[dict[str, Any]],
+    model_class: type[PagerDutyBaseModel],
     resource_name: str,
-    include: Optional[List[str]] = None,
-    additional_metadata: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    include: list[str] | None = None,
+    additional_metadata: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Parse a paginated list response into a standardized API response.
 
     Args:
