@@ -1050,13 +1050,15 @@ async def test_get_current_user_email_api_call(monkeypatch):
 async def test_get_current_user_email_failure(monkeypatch):
     """Test RuntimeError when email cannot be determined."""
     monkeypatch.delenv("PAGERDUTY_USER_EMAIL", raising=False)
-    with patch(
-        "pagerduty_mcp_server.users.build_user_context",
-        new_callable=AsyncMock,
-        return_value={"email": ""},
+    with (
+        patch(
+            "pagerduty_mcp_server.users.build_user_context",
+            new_callable=AsyncMock,
+            return_value={"email": ""},
+        ),
+        pytest.raises(RuntimeError, match="Cannot determine current user email"),
     ):
-        with pytest.raises(RuntimeError, match="Cannot determine current user email"):
-            await incidents._get_current_user_email()
+        await incidents._get_current_user_email()
 
 
 @pytest.mark.unit

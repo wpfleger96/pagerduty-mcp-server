@@ -1,8 +1,8 @@
 import pagerduty
 import pytest
-from tests.conftest import skip_if_no_pagerduty_key
 
 from pagerduty_mcp_server.client import create_client
+from tests.conftest import skip_if_no_pagerduty_key
 
 
 @pytest.mark.integration

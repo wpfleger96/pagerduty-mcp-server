@@ -1,6 +1,6 @@
 """Pydantic models for PagerDuty Schedules."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import Field, field_validator
 
@@ -11,7 +11,7 @@ class ScheduleLayerUser(PagerDutyBaseModel):
     """A user in a schedule layer."""
 
     id: str
-    summary: Optional[str] = None
+    summary: str | None = None
 
 
 class ScheduleLayer(PagerDutyBaseModel):
@@ -21,12 +21,12 @@ class ScheduleLayer(PagerDutyBaseModel):
     id: str
 
     # Core fields - present in full API responses but may be missing in simplified contexts
-    name: Optional[str] = None
-    start: Optional[str] = None
-    end: Optional[str] = None
+    name: str | None = None
+    start: str | None = None
+    end: str | None = None
 
     # Collections - present but can be empty
-    users: List[ScheduleLayerUser] = []
+    users: list[ScheduleLayerUser] = []
 
     @field_validator("users", mode="before")
     @classmethod
@@ -65,33 +65,31 @@ class Schedule(PagerDutyBaseModel):
     id: str
 
     # Core fields - present in full API responses but may be missing in simplified contexts
-    name: Optional[str] = None
-    summary: Optional[str] = None
-    time_zone: Optional[str] = None
+    name: str | None = None
+    summary: str | None = None
+    time_zone: str | None = None
 
     # Optional fields - can be None in API responses
-    description: Optional[str] = None
+    description: str | None = None
 
     # Collections - present but can be empty
-    escalation_policies: List[Reference] = []
-    teams: List[Reference] = []
-    schedule_layers: List[ScheduleLayer] = []
+    escalation_policies: list[Reference] = []
+    teams: list[Reference] = []
+    schedule_layers: list[ScheduleLayer] = []
 
     # API fields excluded from MCP responses for size optimization:
     # These fields are available in the PagerDuty API but excluded to reduce response size
-    type: Optional[str] = Field(
+    type: str | None = Field(
         None, exclude=True, description="Excluded: Always 'schedule'"
     )
-    html_url: Optional[str] = Field(
-        None, exclude=True, description="Excluded: Web UI URL"
-    )
-    self: Optional[str] = Field(None, exclude=True, description="Excluded: API URL")
-    http_cal_url: Optional[str] = Field(
+    html_url: str | None = Field(None, exclude=True, description="Excluded: Web UI URL")
+    self: str | None = Field(None, exclude=True, description="Excluded: API URL")
+    http_cal_url: str | None = Field(
         None, exclude=True, description="Excluded: HTTP calendar URL"
     )
-    final_schedule: Optional[Dict[str, Any]] = Field(
+    final_schedule: dict[str, Any] | None = Field(
         None, exclude=True, description="Excluded: Final schedule configuration"
     )
-    overrides_subschedule: Optional[Dict[str, Any]] = Field(
+    overrides_subschedule: dict[str, Any] | None = Field(
         None, exclude=True, description="Excluded: Override subschedule configuration"
     )

@@ -5,7 +5,7 @@ A server that exposes PagerDuty API functionality to LLMs. This server is design
 
 from .server import mcp
 
-__all__ = ["mcp", "main"]
+__all__ = ["main", "mcp"]
 
 
 def main():

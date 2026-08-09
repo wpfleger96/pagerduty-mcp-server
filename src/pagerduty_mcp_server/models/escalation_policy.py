@@ -1,7 +1,5 @@
 """Pydantic models for PagerDuty Escalation Policies."""
 
-from typing import List, Optional
-
 from pydantic import Field
 
 from .common import IdOnly, PagerDutyBaseModel, Reference, TypedReference
@@ -27,7 +25,7 @@ class EscalationRule(PagerDutyBaseModel):
     escalation_delay_in_minutes: int
 
     # Collections - present but can be empty
-    targets: List[EscalationRuleTarget] = []
+    targets: list[EscalationRuleTarget] = []
 
     # API fields excluded from MCP responses for size optimization:
     # Note: Currently no additional fields are excluded at the escalation rule level,
@@ -47,31 +45,29 @@ class EscalationPolicy(PagerDutyBaseModel):
     name: str
 
     # Optional fields included in MCP responses
-    description: Optional[str] = None
+    description: str | None = None
 
     # Collections - present but can be empty
-    escalation_rules: List[EscalationRule] = []
-    services: List[IdOnly] = []
-    teams: List[Reference] = []
+    escalation_rules: list[EscalationRule] = []
+    services: list[IdOnly] = []
+    teams: list[Reference] = []
 
     # API fields excluded from MCP responses for size optimization:
     # These fields are available in the PagerDuty API but excluded to reduce response size
-    type: Optional[str] = Field(
+    type: str | None = Field(
         None, exclude=True, description="Excluded: Always 'escalation_policy'"
     )
-    summary: Optional[str] = Field(
+    summary: str | None = Field(
         None, exclude=True, description="Excluded: Usually same as name"
     )
-    self: Optional[str] = Field(None, exclude=True, description="Excluded: API URL")
-    html_url: Optional[str] = Field(
-        None, exclude=True, description="Excluded: Web UI URL"
-    )
-    num_loops: Optional[int] = Field(
+    self: str | None = Field(None, exclude=True, description="Excluded: API URL")
+    html_url: str | None = Field(None, exclude=True, description="Excluded: Web UI URL")
+    num_loops: int | None = Field(
         None, exclude=True, description="Excluded: Number of escalation loops"
     )
-    on_call_handoff_notifications: Optional[str] = Field(
+    on_call_handoff_notifications: str | None = Field(
         None, exclude=True, description="Excluded: Handoff notification setting"
     )
-    privilege: Optional[str] = Field(
+    privilege: str | None = Field(
         None, exclude=True, description="Excluded: Permission level (usually null)"
     )

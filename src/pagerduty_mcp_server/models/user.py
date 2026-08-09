@@ -1,6 +1,6 @@
 """Pydantic models for PagerDuty Users."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import Field
 
@@ -15,13 +15,11 @@ class NotificationRule(PagerDutyBaseModel):
 
     # API fields excluded from MCP responses for size optimization:
     # These fields are available in the PagerDuty API but excluded to reduce response size
-    summary: Optional[str] = Field(
+    summary: str | None = Field(
         None, exclude=True, description="Excluded: Human-readable summary"
     )
-    self: Optional[str] = Field(None, exclude=True, description="Excluded: API URL")
-    html_url: Optional[str] = Field(
-        None, exclude=True, description="Excluded: Web UI URL"
-    )
+    self: str | None = Field(None, exclude=True, description="Excluded: API URL")
+    html_url: str | None = Field(None, exclude=True, description="Excluded: Web UI URL")
 
 
 class User(PagerDutyBaseModel):
@@ -36,51 +34,49 @@ class User(PagerDutyBaseModel):
     id: str
 
     # Core fields - present in full API responses but may be missing in simplified contexts
-    name: Optional[str] = None
-    email: Optional[str] = None
-    type: Optional[str] = None
+    name: str | None = None
+    email: str | None = None
+    type: str | None = None
 
     # Optional fields - can be None in API responses
-    description: Optional[str] = None
+    description: str | None = None
 
     # Collections - present but can be empty
-    teams: List[TypedReference] = []
-    contact_methods: List[TypedReference] = []
-    notification_rules: List[NotificationRule] = []
+    teams: list[TypedReference] = []
+    contact_methods: list[TypedReference] = []
+    notification_rules: list[NotificationRule] = []
 
     # API fields excluded from MCP responses for size optimization:
     # These fields are available in the PagerDuty API but excluded to reduce response size
-    time_zone: Optional[str] = Field(
+    time_zone: str | None = Field(
         None, exclude=True, description="Excluded: User's time zone"
     )
-    color: Optional[str] = Field(
+    color: str | None = Field(
         None, exclude=True, description="Excluded: User's color preference"
     )
-    avatar_url: Optional[str] = Field(
+    avatar_url: str | None = Field(
         None, exclude=True, description="Excluded: User's avatar URL"
     )
-    billed: Optional[bool] = Field(
+    billed: bool | None = Field(
         None, exclude=True, description="Excluded: Whether user is billed"
     )
-    role: Optional[str] = Field(
+    role: str | None = Field(
         None, exclude=True, description="Excluded: User's account role"
     )
-    invitation_sent: Optional[bool] = Field(
+    invitation_sent: bool | None = Field(
         None, exclude=True, description="Excluded: Whether invitation was sent"
     )
-    job_title: Optional[str] = Field(
+    job_title: str | None = Field(
         None, exclude=True, description="Excluded: User's job title"
     )
-    coordinated_incidents: Optional[List[Dict[str, Any]]] = Field(
+    coordinated_incidents: list[dict[str, Any]] | None = Field(
         None, exclude=True, description="Excluded: Coordinated incidents list"
     )
-    locale: Optional[str] = Field(
+    locale: str | None = Field(
         None, exclude=True, description="Excluded: User's locale preference"
     )
-    summary: Optional[str] = Field(
+    summary: str | None = Field(
         None, exclude=True, description="Excluded: Usually same as name"
     )
-    self: Optional[str] = Field(None, exclude=True, description="Excluded: API URL")
-    html_url: Optional[str] = Field(
-        None, exclude=True, description="Excluded: Web UI URL"
-    )
+    self: str | None = Field(None, exclude=True, description="Excluded: API URL")
+    html_url: str | None = Field(None, exclude=True, description="Excluded: Web UI URL")

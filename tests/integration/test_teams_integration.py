@@ -1,7 +1,7 @@
 import pytest
-from tests.conftest import skip_if_no_pagerduty_key
 
 from pagerduty_mcp_server import teams
+from tests.conftest import skip_if_no_pagerduty_key
 
 
 @pytest.mark.asyncio

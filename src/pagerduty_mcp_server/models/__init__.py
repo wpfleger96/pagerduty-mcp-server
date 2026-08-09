@@ -11,16 +11,16 @@ from .team import Team
 from .user import User
 
 __all__ = [
-    "PagerDutyBaseModel",
-    "Reference",
-    "TypedReference",
-    "IdOnly",
     "EscalationPolicy",
+    "IdOnly",
     "Incident",
     "Note",
     "Oncall",
+    "PagerDutyBaseModel",
+    "Reference",
     "Schedule",
     "Service",
     "Team",
+    "TypedReference",
     "User",
 ]

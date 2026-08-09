@@ -1,7 +1,6 @@
 import difflib
 import functools
 import logging
-from typing import List, Optional, Type
 
 from .models.common import PagerDutyBaseModel
 
@@ -9,8 +8,8 @@ logger = logging.getLogger(__name__)
 
 
 def validate_include_parameter(
-    model_class: Type[PagerDutyBaseModel],
-    extra_fields: Optional[List[str]] = None,
+    model_class: type[PagerDutyBaseModel],
+    extra_fields: list[str] | None = None,
 ):
     """Decorator to validate that a list of 'include' fields is valid for a given model.
 
@@ -35,10 +34,10 @@ def validate_include_parameter(
 
 
 def validate_include_fields(
-    include: Optional[List[str]],
-    model_class: Type[PagerDutyBaseModel],
-    extra_fields: Optional[List[str]] = None,
-) -> Optional[List[str]]:
+    include: list[str] | None,
+    model_class: type[PagerDutyBaseModel],
+    extra_fields: list[str] | None = None,
+) -> list[str] | None:
     """Validate that a list of fields is valid for a given model.
 
     Args:

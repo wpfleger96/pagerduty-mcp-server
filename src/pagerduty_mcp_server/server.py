@@ -1,9 +1,10 @@
 """PagerDuty MCP Server main module."""
 
+from collections.abc import Awaitable, Callable
 from functools import wraps
 from importlib.metadata import version
 from pathlib import Path
-from typing import Any, Awaitable, Callable, Dict, List, Optional
+from typing import Any
 
 from fastmcp import FastMCP
 from fastmcp.exceptions import ToolError
@@ -40,12 +41,12 @@ mcp = FastMCP(
 
 
 def tool_error_boundary(
-    func: Callable[..., Awaitable[Dict[str, Any]]],
-) -> Callable[..., Awaitable[Dict[str, Any]]]:
+    func: Callable[..., Awaitable[dict[str, Any]]],
+) -> Callable[..., Awaitable[dict[str, Any]]]:
     """Convert common tool failures into ToolError so FastMCP sets isError=true."""
 
     @wraps(func)
-    async def wrapper(*args, **kwargs) -> Dict[str, Any]:
+    async def wrapper(*args, **kwargs) -> dict[str, Any]:
         try:
             return await func(*args, **kwargs)
         except ToolError:
@@ -82,14 +83,14 @@ Escalation Policies Tools
 @validation.validate_include_parameter(EscalationPolicy)
 async def get_escalation_policies(
     *,
-    policy_id: Optional[str] = None,
+    policy_id: str | None = None,
     current_user_context: bool = True,
-    query: Optional[str] = None,
-    user_ids: Optional[List[str]] = None,
-    team_ids: Optional[List[str]] = None,
-    limit: Optional[int] = None,
-    include: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    query: str | None = None,
+    user_ids: list[str] | None = None,
+    team_ids: list[str] | None = None,
+    limit: int | None = None,
+    include: list[str] | None = None,
+) -> dict[str, Any]:
     """Get PagerDuty escalation policies by filters or get details for a specific policy ID.
 
     Args:
@@ -151,20 +152,20 @@ Incidents Tools
 )
 async def get_incidents(
     *,
-    incident_id: Optional[str] = None,
+    incident_id: str | None = None,
     current_user_context: bool = True,
-    service_ids: Optional[List[str]] = None,
-    team_ids: Optional[List[str]] = None,
-    statuses: Optional[List[str]] = None,
-    urgencies: Optional[List[str]] = None,
-    since: Optional[str] = None,
-    until: Optional[str] = None,
-    limit: Optional[int] = None,
-    include_past_incidents: Optional[bool] = False,
-    include_related_incidents: Optional[bool] = False,
-    include_notes: Optional[bool] = False,
-    include: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    service_ids: list[str] | None = None,
+    team_ids: list[str] | None = None,
+    statuses: list[str] | None = None,
+    urgencies: list[str] | None = None,
+    since: str | None = None,
+    until: str | None = None,
+    limit: int | None = None,
+    include_past_incidents: bool | None = False,
+    include_related_incidents: bool | None = False,
+    include_notes: bool | None = False,
+    include: list[str] | None = None,
+) -> dict[str, Any]:
     """Get PagerDuty incidents by filters or get details for a specific incident ID or number.
 
     Args:
@@ -247,8 +248,8 @@ async def get_incidents(
 async def acknowledge_incident(
     *,
     incident_id: str,
-    include: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    include: list[str] | None = None,
+) -> dict[str, Any]:
     """Acknowledge a PagerDuty incident. This signals that someone is actively working on the incident.
 
     Args:
@@ -268,8 +269,8 @@ async def acknowledge_incident(
 async def resolve_incident(
     *,
     incident_id: str,
-    include: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    include: list[str] | None = None,
+) -> dict[str, Any]:
     """Resolve a PagerDuty incident. This marks the incident as resolved and stops any further escalations.
 
     Args:
@@ -289,7 +290,7 @@ async def add_incident_note(
     *,
     incident_id: str,
     content: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Add a note to a PagerDuty incident. Notes are used to record additional context, investigation progress, or resolution details.
 
     Args:
@@ -313,15 +314,15 @@ Oncalls Tools
 async def get_oncalls(
     *,
     current_user_context: bool = True,
-    schedule_ids: Optional[List[str]] = None,
-    user_ids: Optional[List[str]] = None,
-    escalation_policy_ids: Optional[List[str]] = None,
-    since: Optional[str] = None,
-    until: Optional[str] = None,
-    limit: Optional[int] = None,
-    earliest: Optional[bool] = None,
-    include: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    schedule_ids: list[str] | None = None,
+    user_ids: list[str] | None = None,
+    escalation_policy_ids: list[str] | None = None,
+    since: str | None = None,
+    until: str | None = None,
+    limit: int | None = None,
+    earliest: bool | None = None,
+    include: list[str] | None = None,
+) -> dict[str, Any]:
     """List on-call entries for schedules, policies, or time ranges.
 
     Behavior varies by time parameters:
@@ -378,13 +379,13 @@ Schedules Tools
 @validation.validate_include_parameter(Schedule)
 async def get_schedules(
     *,
-    schedule_id: Optional[str] = None,
-    query: Optional[str] = None,
-    limit: Optional[int] = None,
-    since: Optional[str] = None,
-    until: Optional[str] = None,
-    include: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    schedule_id: str | None = None,
+    query: str | None = None,
+    limit: int | None = None,
+    since: str | None = None,
+    until: str | None = None,
+    include: list[str] | None = None,
+) -> dict[str, Any]:
     """Get PagerDuty schedules by filters or get details for a specific schedule ID.
 
     Args:
@@ -417,10 +418,10 @@ async def get_schedules(
 async def list_users_oncall(
     *,
     schedule_id: str,
-    since: Optional[str] = None,
-    until: Optional[str] = None,
-    include: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    since: str | None = None,
+    until: str | None = None,
+    include: list[str] | None = None,
+) -> dict[str, Any]:
     """List the users on call for a schedule during the specified time range.
 
     Args:
@@ -447,13 +448,13 @@ Services Tools
 @validation.validate_include_parameter(Service)
 async def get_services(
     *,
-    service_id: Optional[str] = None,
+    service_id: str | None = None,
     current_user_context: bool = True,
-    team_ids: Optional[List[str]] = None,
-    query: Optional[str] = None,
-    limit: Optional[int] = None,
-    include: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    team_ids: list[str] | None = None,
+    query: str | None = None,
+    limit: int | None = None,
+    include: list[str] | None = None,
+) -> dict[str, Any]:
     """Get PagerDuty services by filters or get details for a specific service ID.
 
     Args:
@@ -502,11 +503,11 @@ Teams Tools
 @validation.validate_include_parameter(Team)
 async def get_teams(
     *,
-    team_id: Optional[str] = None,
-    query: Optional[str] = None,
-    limit: Optional[int] = None,
-    include: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    team_id: str | None = None,
+    query: str | None = None,
+    limit: int | None = None,
+    include: list[str] | None = None,
+) -> dict[str, Any]:
     """Get PagerDuty teams by filters or get details for a specific team ID.
 
     Args:
@@ -537,13 +538,13 @@ Users Tools
 @validation.validate_include_parameter(User)
 async def get_users(
     *,
-    user_id: Optional[str] = None,
+    user_id: str | None = None,
     current_user_context: bool = True,
-    team_ids: Optional[List[str]] = None,
-    query: Optional[str] = None,
-    limit: Optional[int] = None,
-    include: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    team_ids: list[str] | None = None,
+    query: str | None = None,
+    limit: int | None = None,
+    include: list[str] | None = None,
+) -> dict[str, Any]:
     """Get PagerDuty users by filters or get details for a specific user ID.
 
     Args:
@@ -584,7 +585,7 @@ async def get_users(
 
 @mcp.tool()
 @tool_error_boundary
-async def build_user_context() -> Dict[str, Any]:
+async def build_user_context() -> dict[str, Any]:
     """Validate and build the current user's context into a dictionary with the following format:
         {
             "user_id": str,

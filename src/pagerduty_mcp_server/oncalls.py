@@ -1,7 +1,7 @@
 """PagerDuty on-call operations."""
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from . import utils
 from .async_utils import DEFAULT_MAX_RESULTS, paginate
@@ -19,15 +19,15 @@ On-Calls API Helpers
 
 async def list_oncalls(
     *,
-    schedule_ids: Optional[List[str]] = None,
-    user_ids: Optional[List[str]] = None,
-    escalation_policy_ids: Optional[List[str]] = None,
-    since: Optional[str] = None,
-    until: Optional[str] = None,
-    limit: Optional[int] = None,
-    earliest: Optional[bool] = None,
-    include: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    schedule_ids: list[str] | None = None,
+    user_ids: list[str] | None = None,
+    escalation_policy_ids: list[str] | None = None,
+    since: str | None = None,
+    until: str | None = None,
+    limit: int | None = None,
+    earliest: bool | None = None,
+    include: list[str] | None = None,
+) -> dict[str, Any]:
     """List the on-call entries during a given time range.
     An oncall-entry contains the user that is on-call for the given schedule, escalation policy, or time range and also includes the schedule and escalation policy that the user is on-call for. Exposed in `get_oncalls`.
 
@@ -51,7 +51,7 @@ async def list_oncalls(
 
     pd_client = create_client()
 
-    params: Dict[str, Any] = {}
+    params: dict[str, Any] = {}
     if schedule_ids:
         params["schedule_ids[]"] = schedule_ids
     if user_ids:

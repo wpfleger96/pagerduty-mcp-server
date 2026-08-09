@@ -117,7 +117,7 @@ async def test_fetch_service_ids(mock_get_api_client, mock_services, mock_team_i
     mock_get_api_client.list_all.assert_called_once_with(
         services.SERVICES_URL, params={"team_ids[]": mock_team_ids}
     )
-    assert set(service_ids) == set([service["id"] for service in mock_services])
+    assert set(service_ids) == {service["id"] for service in mock_services}
 
 
 @pytest.mark.asyncio

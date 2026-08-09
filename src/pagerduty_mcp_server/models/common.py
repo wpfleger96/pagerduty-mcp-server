@@ -1,6 +1,6 @@
 """Common Pydantic models for PagerDuty resources."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -12,9 +12,7 @@ class PagerDutyBaseModel(BaseModel):
         use_enum_values=True,
     )
 
-    def to_clean_dict(
-        self, include_fields: Optional[List[str]] = None
-    ) -> Dict[str, Any]:
+    def to_clean_dict(self, include_fields: list[str] | None = None) -> dict[str, Any]:
         """Serialize to dictionary with empty fields excluded, optionally filtering to specific fields.
 
         Args:
@@ -52,19 +50,17 @@ class Reference(PagerDutyBaseModel):
 
     # Essential fields for MCP responses
     id: str
-    summary: Optional[str] = None
+    summary: str | None = None
 
     # API fields excluded from MCP responses for size optimization:
     # - type: str (e.g., "user_reference", "team_reference")
     # - self: str (API URL for this resource)
     # - html_url: str (Web UI URL for this resource)
-    type: Optional[str] = Field(
+    type: str | None = Field(
         None, exclude=True, description="Excluded: API resource type"
     )
-    self: Optional[str] = Field(None, exclude=True, description="Excluded: API URL")
-    html_url: Optional[str] = Field(
-        None, exclude=True, description="Excluded: Web UI URL"
-    )
+    self: str | None = Field(None, exclude=True, description="Excluded: API URL")
+    html_url: str | None = Field(None, exclude=True, description="Excluded: Web UI URL")
 
 
 class TypedReference(Reference):
@@ -75,7 +71,7 @@ class TypedReference(Reference):
     """
 
     # Override to include type in responses for this specific use case
-    type: Optional[str] = Field(
+    type: str | None = Field(
         None, exclude=False, description="Included: Type of referenced resource"
     )
 
@@ -95,13 +91,11 @@ class IdOnly(PagerDutyBaseModel):
     # - summary: str (Human-readable name)
     # - self: str (API URL for this resource)
     # - html_url: str (Web UI URL for this resource)
-    type: Optional[str] = Field(
+    type: str | None = Field(
         None, exclude=True, description="Excluded: API resource type"
     )
-    summary: Optional[str] = Field(
+    summary: str | None = Field(
         None, exclude=True, description="Excluded: Human-readable name"
     )
-    self: Optional[str] = Field(None, exclude=True, description="Excluded: API URL")
-    html_url: Optional[str] = Field(
-        None, exclude=True, description="Excluded: Web UI URL"
-    )
+    self: str | None = Field(None, exclude=True, description="Excluded: API URL")
+    html_url: str | None = Field(None, exclude=True, description="Excluded: Web UI URL")

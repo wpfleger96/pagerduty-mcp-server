@@ -1,7 +1,7 @@
 """PagerDuty schedule operations."""
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from . import utils
 from .async_utils import DEFAULT_MAX_RESULTS, paginate, safe_execute_async
@@ -20,10 +20,10 @@ Schedules API Helpers
 
 async def list_schedules(
     *,
-    query: Optional[str] = None,
-    limit: Optional[int] = None,
-    include: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    query: str | None = None,
+    limit: int | None = None,
+    include: list[str] | None = None,
+) -> dict[str, Any]:
     """List existing PagerDuty schedules. Returns all schedules that match the given search criteria. Exposed in `get_schedules`.
 
     Args:
@@ -63,10 +63,10 @@ async def list_schedules(
 async def show_schedule(
     *,
     schedule_id: str,
-    since: Optional[str] = None,
-    until: Optional[str] = None,
-    include: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    since: str | None = None,
+    until: str | None = None,
+    include: list[str] | None = None,
+) -> dict[str, Any]:
     """Get detailed information about a given schedule, including its configuration and current state. Exposed in `get_schedules`.
 
     Args:
@@ -123,10 +123,10 @@ async def show_schedule(
 async def list_users_oncall(
     *,
     schedule_id: str,
-    since: Optional[str] = None,
-    until: Optional[str] = None,
-    include: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    since: str | None = None,
+    until: str | None = None,
+    include: list[str] | None = None,
+) -> dict[str, Any]:
     """List the users on call for a given schedule during the specified time range. Returns a list of users who are or will be on call during the specified period. Exposed as MCP server tool.
 
     Args:

@@ -1,7 +1,7 @@
 """PagerDuty user operations."""
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from . import escalation_policies, services, teams, utils
 from .async_utils import DEFAULT_MAX_RESULTS, paginate, safe_execute_async
@@ -13,7 +13,7 @@ USERS_URL = "/users"
 logger = logging.getLogger(__name__)
 
 
-async def build_user_context() -> Dict[str, Any]:
+async def build_user_context() -> dict[str, Any]:
     """Validate and build the current user's context. Exposed as MCP server tool.
 
     See the "Standard Response Format" section in `tools.md` for the complete standard response structure.
@@ -75,11 +75,11 @@ Users API Helpers
 
 async def list_users(
     *,
-    team_ids: Optional[List[str]] = None,
-    query: Optional[str] = None,
-    limit: Optional[int] = None,
-    include: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    team_ids: list[str] | None = None,
+    query: str | None = None,
+    limit: int | None = None,
+    include: list[str] | None = None,
+) -> dict[str, Any]:
     """List users in PagerDuty. Exposed as MCP server tool.
 
     Args:
@@ -98,7 +98,7 @@ async def list_users(
 
     pd_client = create_client()
 
-    params: Dict[str, Any] = {}
+    params: dict[str, Any] = {}
 
     if team_ids:
         params["team_ids[]"] = team_ids
@@ -119,8 +119,8 @@ async def list_users(
 
 
 async def show_user(
-    *, user_id: str, include: Optional[List[str]] = None
-) -> Dict[str, Any]:
+    *, user_id: str, include: list[str] | None = None
+) -> dict[str, Any]:
     """Get detailed information about a given user. Exposed as MCP server tool.
 
     Args:
@@ -166,7 +166,7 @@ Users Private Helpers
 """
 
 
-async def _show_current_user() -> Dict[str, Any]:
+async def _show_current_user() -> dict[str, Any]:
     """Get the current user's PagerDuty profile including their teams, contact methods, and notification rules.
 
     Returns:

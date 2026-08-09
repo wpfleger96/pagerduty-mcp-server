@@ -111,7 +111,7 @@ async def test_fetch_escalation_policy_ids(
         escalation_policies.ESCALATION_POLICIES_URL,
         params={"user_ids[]": [mock_user["id"]]},
     )
-    assert set(policy_ids) == set([policy["id"] for policy in mock_escalation_policies])
+    assert set(policy_ids) == {policy["id"] for policy in mock_escalation_policies}
 
 
 @pytest.mark.asyncio

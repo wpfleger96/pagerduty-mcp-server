@@ -366,7 +366,9 @@ def get_token():
                 server.handle_request()
 
             if CallbackHandler.error:
-                raise Exception(f"OAuth authorization failed: {CallbackHandler.error}")
+                raise RuntimeError(
+                    f"OAuth authorization failed: {CallbackHandler.error}"
+                )
 
             response = requests.post(
                 OAUTH_TOKEN_URL,
@@ -381,7 +383,7 @@ def get_token():
             )
 
             if response.status_code != 200:
-                raise Exception(f"Token error: {response.text}")
+                raise RuntimeError(f"Token error: {response.text}")
 
             token_data = response.json()
             return _store_tokens(token_data)

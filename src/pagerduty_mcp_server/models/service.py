@@ -1,7 +1,5 @@
 """Pydantic models for PagerDuty Services."""
 
-from typing import List, Optional
-
 from pydantic import Field
 
 from .common import PagerDutyBaseModel, Reference
@@ -19,20 +17,18 @@ class Service(PagerDutyBaseModel):
     id: str
 
     # Core fields - present in full API responses but may be missing in simplified contexts
-    name: Optional[str] = None
-    status: Optional[str] = None
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
+    name: str | None = None
+    status: str | None = None
+    created_at: str | None = None
+    updated_at: str | None = None
 
     # Optional fields - can be None in API responses
-    description: Optional[str] = None
+    description: str | None = None
 
     # Collections - present but can be empty
-    teams: List[Reference] = []
-    integrations: List[Reference] = []
+    teams: list[Reference] = []
+    integrations: list[Reference] = []
 
     # API fields excluded from MCP responses for size optimization:
     # These fields are available in the PagerDuty API but excluded to reduce response size
-    html_url: Optional[str] = Field(
-        None, exclude=True, description="Excluded: Web UI URL"
-    )
+    html_url: str | None = Field(None, exclude=True, description="Excluded: Web UI URL")
