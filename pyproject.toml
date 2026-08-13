@@ -15,10 +15,10 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    "fastmcp>=3",
-    "keyring>=24.0.0",
-    "pagerduty>=6.2.2",
-    "pydantic>=2.0.0",
+    "fastmcp>=3.0.5",
+    "keyring>=25.0.0",
+    "pagerduty>=6.3.0",
+    "pydantic>=2.10.0",
     "python-dotenv>=1.0.0",
     "requests>=2.32.3",
 ]
