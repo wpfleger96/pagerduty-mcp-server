@@ -1,5 +1,65 @@
 # CHANGELOG
 
+## [4.0.6](https://github.com/wpfleger96/pagerduty-mcp-server/compare/v4.0.5...v4.0.6) (2026-08-27)
+
+
+### Bug Fixes
+
+* **lint:** make ruff config independent of runtime Python version ([#86](https://github.com/wpfleger96/pagerduty-mcp-server/issues/86)) ([f87f50d](https://github.com/wpfleger96/pagerduty-mcp-server/commit/f87f50dbb7d2ded22c14ad848ec5ba75e89c0f51))
+
+
+### Chores
+
+* **deps:** Lock file maintenance ([#69](https://github.com/wpfleger96/pagerduty-mcp-server/issues/69)) ([00361eb](https://github.com/wpfleger96/pagerduty-mcp-server/commit/00361eb2ecfbfa57ed5e19a7298f2e63641823e4))
+* **deps:** Lock file maintenance ([#70](https://github.com/wpfleger96/pagerduty-mcp-server/issues/70)) ([68dff9e](https://github.com/wpfleger96/pagerduty-mcp-server/commit/68dff9e53320fcde73d1ae289420030e57e0cc25))
+* **deps:** Lock file maintenance ([#71](https://github.com/wpfleger96/pagerduty-mcp-server/issues/71)) ([37b841e](https://github.com/wpfleger96/pagerduty-mcp-server/commit/37b841e369596c4af392ca952bd0a148d53486d3))
+* **deps:** Lock file maintenance ([#72](https://github.com/wpfleger96/pagerduty-mcp-server/issues/72)) ([11005ea](https://github.com/wpfleger96/pagerduty-mcp-server/commit/11005eab61217de2ede8b28a4e6e1b4ff3d157da))
+* **deps:** Lock file maintenance ([#73](https://github.com/wpfleger96/pagerduty-mcp-server/issues/73)) ([ad308c4](https://github.com/wpfleger96/pagerduty-mcp-server/commit/ad308c46cc834fa7640b897b54a2dfe387219b24))
+* **deps:** Lock file maintenance ([#76](https://github.com/wpfleger96/pagerduty-mcp-server/issues/76)) ([ec1826d](https://github.com/wpfleger96/pagerduty-mcp-server/commit/ec1826d5db78a9f2b6f2abe824c63784805d2cb1))
+* **deps:** Lock file maintenance ([#77](https://github.com/wpfleger96/pagerduty-mcp-server/issues/77)) ([94a966b](https://github.com/wpfleger96/pagerduty-mcp-server/commit/94a966bc64e86dffd94a7ded3303d3195c3c2e97))
+* **deps:** Lock file maintenance ([#78](https://github.com/wpfleger96/pagerduty-mcp-server/issues/78)) ([735b701](https://github.com/wpfleger96/pagerduty-mcp-server/commit/735b70117a97d80c75eea6aed300ab431ab26986))
+* **deps:** Lock file maintenance ([#80](https://github.com/wpfleger96/pagerduty-mcp-server/issues/80)) ([57b0ce0](https://github.com/wpfleger96/pagerduty-mcp-server/commit/57b0ce0f04a709cb2cbe1abfbe1606e1ce9fccac))
+* **deps:** Lock file maintenance ([#81](https://github.com/wpfleger96/pagerduty-mcp-server/issues/81)) ([2ac1dd6](https://github.com/wpfleger96/pagerduty-mcp-server/commit/2ac1dd6d5a9aa89c79f4afa668e97a2f739a0e0c))
+* **deps:** Lock file maintenance ([#82](https://github.com/wpfleger96/pagerduty-mcp-server/issues/82)) ([71ca37c](https://github.com/wpfleger96/pagerduty-mcp-server/commit/71ca37c16b3358ff4b6f8e5879a0d9b1e3a078fd))
+* **deps:** Lock file maintenance ([#83](https://github.com/wpfleger96/pagerduty-mcp-server/issues/83)) ([c109544](https://github.com/wpfleger96/pagerduty-mcp-server/commit/c10954478cdabb3cd2bed0fa59763789985434b4))
+* **deps:** Lock file maintenance ([#84](https://github.com/wpfleger96/pagerduty-mcp-server/issues/84)) ([2afb226](https://github.com/wpfleger96/pagerduty-mcp-server/commit/2afb226c03f4afec62d76eae3cd2d80c20ef9359))
+* **deps:** Lock file maintenance ([#87](https://github.com/wpfleger96/pagerduty-mcp-server/issues/87)) ([3a8e35c](https://github.com/wpfleger96/pagerduty-mcp-server/commit/3a8e35cb2ae5378c75566184bd368091bd6eb4b5))
+* **deps:** Lock file maintenance ([#88](https://github.com/wpfleger96/pagerduty-mcp-server/issues/88)) ([ebedfe3](https://github.com/wpfleger96/pagerduty-mcp-server/commit/ebedfe35ce3407afe2eac0ba099f8262eabef2a9))
+* **deps:** Lock file maintenance ([#89](https://github.com/wpfleger96/pagerduty-mcp-server/issues/89)) ([bac7070](https://github.com/wpfleger96/pagerduty-mcp-server/commit/bac7070680074a9006a207320151c9b2d7fc199c))
+* **deps:** Lock file maintenance ([#92](https://github.com/wpfleger96/pagerduty-mcp-server/issues/92)) ([90ff80d](https://github.com/wpfleger96/pagerduty-mcp-server/commit/90ff80d12175717d5874937044b528300a0e7140))
+* **deps:** Lock file maintenance ([#93](https://github.com/wpfleger96/pagerduty-mcp-server/issues/93)) ([a32769e](https://github.com/wpfleger96/pagerduty-mcp-server/commit/a32769e54694c11f8f6202bea24d3cd5d28fe3b1))
+* **deps:** Lock file maintenance ([#95](https://github.com/wpfleger96/pagerduty-mcp-server/issues/95)) ([3507a95](https://github.com/wpfleger96/pagerduty-mcp-server/commit/3507a95b0202e31827a658d1e68b83dc5f8037e1))
+* **deps:** Lock file maintenance ([#96](https://github.com/wpfleger96/pagerduty-mcp-server/issues/96)) ([d2b6364](https://github.com/wpfleger96/pagerduty-mcp-server/commit/d2b6364ccb6b408dbba3df9d3f923497b882f433))
+* **deps:** Lock file maintenance ([#97](https://github.com/wpfleger96/pagerduty-mcp-server/issues/97)) ([f30a94b](https://github.com/wpfleger96/pagerduty-mcp-server/commit/f30a94ba4c03b6faf3d1792569ab0bc93e369283))
+* **deps:** Lock file maintenance ([#98](https://github.com/wpfleger96/pagerduty-mcp-server/issues/98)) ([b441a6f](https://github.com/wpfleger96/pagerduty-mcp-server/commit/b441a6f6bc006d00d4aea85e9468370cab612f13))
+* **deps:** Lock file maintenance ([#99](https://github.com/wpfleger96/pagerduty-mcp-server/issues/99)) ([c9bbebd](https://github.com/wpfleger96/pagerduty-mcp-server/commit/c9bbebd0335ceaedf5a0e64aac90331599cd7492))
+* **deps:** Update python Docker tag to v3.14 ([#75](https://github.com/wpfleger96/pagerduty-mcp-server/issues/75)) ([4cd112c](https://github.com/wpfleger96/pagerduty-mcp-server/commit/4cd112c5b179d1cb633535f107e6939c2db28e9e))
+* sync Justfile ([c1beb37](https://github.com/wpfleger96/pagerduty-mcp-server/commit/c1beb37deaac39d770a6d0bb566ed20e64f33419))
+* sync pre-commit hook ([a394689](https://github.com/wpfleger96/pagerduty-mcp-server/commit/a3946899f5afbba8535c45c595ada0b0458978c6))
+* sync pre-commit hook ([74260a6](https://github.com/wpfleger96/pagerduty-mcp-server/commit/74260a6a1ffb69e25bf8919d59c6fdbd147b5582))
+
+
+### Continuous Integration
+
+* sync CI workflow ([235c421](https://github.com/wpfleger96/pagerduty-mcp-server/commit/235c42104c912fe461aacd2333e58824554e9e67))
+* sync CI workflow ([c543897](https://github.com/wpfleger96/pagerduty-mcp-server/commit/c5438976c781308ebaf41949d22b94c7a90e4971))
+* sync CI workflow ([e3e7165](https://github.com/wpfleger96/pagerduty-mcp-server/commit/e3e7165d6f6cc730300a915f69e2dc469b972b6d))
+* sync CI workflow ([d948209](https://github.com/wpfleger96/pagerduty-mcp-server/commit/d94820921d2f45e8f55ac07e003d842f23b3e51c))
+* sync CI workflow ([2bb5903](https://github.com/wpfleger96/pagerduty-mcp-server/commit/2bb590337e39d20aef76c80f18b392bfebcd531b))
+* sync CI workflow ([d42d96b](https://github.com/wpfleger96/pagerduty-mcp-server/commit/d42d96b255e2cfb0ea9b5877766a34a43f5dbaf7))
+* sync CI workflow ([9e056f3](https://github.com/wpfleger96/pagerduty-mcp-server/commit/9e056f3ca7020efcb14c8364a5868afc001cf9ca))
+* sync CI workflow ([2d847ab](https://github.com/wpfleger96/pagerduty-mcp-server/commit/2d847abf8e6e8acce5f353589bdff3cabb5784e5))
+* sync CI workflow ([aad00a7](https://github.com/wpfleger96/pagerduty-mcp-server/commit/aad00a7128796dc7049a58cc29214cb308cddef4))
+* sync CI workflow ([f368f83](https://github.com/wpfleger96/pagerduty-mcp-server/commit/f368f83640530cf7c96e6eb94bea6bcb8859a612))
+* sync publish workflow ([1f79d5e](https://github.com/wpfleger96/pagerduty-mcp-server/commit/1f79d5e7f359c706fc1778e113fc155a2f760593))
+* sync publish workflow ([cb60869](https://github.com/wpfleger96/pagerduty-mcp-server/commit/cb60869418a7063bfb6065a04b72a4f712484a8a))
+* sync publish workflow ([67c0a6a](https://github.com/wpfleger96/pagerduty-mcp-server/commit/67c0a6ad8a99c6f3808d09c0e6b6533f0dc695f2))
+* sync publish workflow ([4cd83b7](https://github.com/wpfleger96/pagerduty-mcp-server/commit/4cd83b700aff9b7042af4219fc2c8917f3771df1))
+* sync release workflow ([8eb0c96](https://github.com/wpfleger96/pagerduty-mcp-server/commit/8eb0c960eef63763a6e20eeec7cb343878792fd0))
+* sync release workflow ([5f22924](https://github.com/wpfleger96/pagerduty-mcp-server/commit/5f2292479b4fbf791198d2cc47d6b3be242b3e29))
+* sync release workflow ([ca86e9d](https://github.com/wpfleger96/pagerduty-mcp-server/commit/ca86e9d3e419b69e89e1c0ae13432b12fc714895))
+* sync release workflow ([4719ba4](https://github.com/wpfleger96/pagerduty-mcp-server/commit/4719ba48473accde438d8c5b099d0cb637b413d5))
+
 ## [4.0.5](https://github.com/wpfleger96/pagerduty-mcp-server/compare/v4.0.4...v4.0.5) (2026-06-19)
 
 
