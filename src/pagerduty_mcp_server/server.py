@@ -62,6 +62,15 @@ def tool_error_boundary(
     return wrapper
 
 
+def _require_team_scope(user_context: dict[str, Any]) -> None:
+    """Reject current-user scoping when the user has no teams to filter by."""
+    if not user_context["team_ids"]:
+        raise ValueError(
+            "The current user is not a member of any PagerDuty team, so current_user_context=True has nothing to filter by. "
+            "Set current_user_context=False and pass explicit filters. See `docs://tools` for more information."
+        )
+
+
 """
 Tool Documentation
 """
@@ -170,7 +179,7 @@ async def get_incidents(
 
     Args:
         incident_id (str): The incident ID or number to retrieve (optional, cannot be used with any other filters).
-        current_user_context (bool): Filter by current user's context (default: True). Not used if `incident_id` is provided.
+        current_user_context (bool): Filter by current user's context (default: True); errors if the current user belongs to no teams. Not used if `incident_id` is provided.
         service_ids (List[str]): Filter by services (optional, excludes current_user_context). Not used if `incident_id` is provided.
         team_ids (List[str]): Filter by teams (optional, excludes current_user_context). Not used if `incident_id` is provided.
         statuses (List[str]): Filter by status (optional). Not used if `incident_id` is provided. Must be input as a list of strings, valid values are `["triggered", "acknowledged", "resolved"]`. Defaults to all statuses.
@@ -218,6 +227,7 @@ async def get_incidents(
                 "Cannot specify service_ids or team_ids when current_user_context is True. See `docs://tools` for more information."
             )
         user_context = await users.build_user_context()
+        _require_team_scope(user_context)
         team_ids = user_context["team_ids"]
         service_ids = user_context["service_ids"]
     elif not (service_ids or team_ids):
@@ -459,7 +469,7 @@ async def get_services(
 
     Args:
         service_id (str): The service ID to retrieve (optional, cannot be used with any other filters).
-        current_user_context (bool): Use current user's team IDs to filter (default: True). Not used if `service_id` is provided.
+        current_user_context (bool): Use current user's team IDs to filter (default: True); errors if the current user belongs to no teams. Not used if `service_id` is provided.
         team_ids (List[str]): Filter results to only services assigned to teams with the given IDs (optional, cannot be used with current_user_context). Not used if `service_id` is provided.
         query (str): Filter services whose names contain the search query (optional). Not used if `service_id` is provided.
         limit (int): Limit the number of results (optional). Not used if `service_id` is provided.
@@ -482,6 +492,7 @@ async def get_services(
                 "Cannot specify team_ids when current_user_context is True. See `docs://tools` for more information."
             )
         user_context = await users.build_user_context()
+        _require_team_scope(user_context)
         team_ids = user_context["team_ids"]
     elif not team_ids:
         raise ValueError(
@@ -549,7 +560,7 @@ async def get_users(
 
     Args:
         user_id (str): The user ID to retrieve (optional, cannot be used with any other filters).
-        current_user_context (bool): Use current user's team IDs to filter (default: True). Not used if `user_id` is provided.
+        current_user_context (bool): Use current user's team IDs to filter (default: True); errors if the current user belongs to no teams. Not used if `user_id` is provided.
         team_ids (List[str]): Filter results to only users assigned to teams with the given IDs (optional, cannot be used with current_user_context). Not used if `user_id` is provided.
         query (str): Filter users whose names contain the search query (optional). Not used if `user_id` is provided.
         limit (int): Limit the number of results (optional). Not used if `user_id` is provided.
@@ -572,6 +583,7 @@ async def get_users(
                 "Cannot specify team_ids when current_user_context is True. See `docs://tools` for more information."
             )
         user_context = await users.build_user_context()
+        _require_team_scope(user_context)
         team_ids = user_context["team_ids"]
     elif not team_ids:
         raise ValueError(

@@ -112,14 +112,12 @@ def fetch_team_ids(*, user: dict[str, Any]) -> list[str]:
         user (Dict[str, Any]): The user object containing a teams field with team information
 
     Returns:
-        List[str]: A list of team IDs from the user's teams. Returns an empty list if user is None or has no teams.
+        List[str]: A list of team IDs from the user's teams. Returns an empty list if the user has no teams
+        (``to_clean_dict`` omits empty collections, so a user with no teams has no ``teams`` field at all).
 
     Note:
         This is an internal helper function used by other modules to extract team IDs from a user object.
         It should not be called directly by external code.
-
-    Raises:
-        KeyError: If user is None or missing the 'teams' field
     """
 
-    return [team["id"] for team in user["teams"]]
+    return [team["id"] for team in user.get("teams") or []]
