@@ -112,7 +112,7 @@ All responses follow this structure:
   - For incidents: cannot use `team_ids` or `service_ids`
   - For services: cannot use `team_ids`
   - For escalation policies: cannot use `team_ids`
-  - For on-calls: cannot use `user_ids` (can use `schedule_ids`)
+  - For on-calls: cannot use `user_ids` or `escalation_policy_ids` (can use `schedule_ids`)
 
 ## Version Control
 - Follow Conventional Commits for automated releases:

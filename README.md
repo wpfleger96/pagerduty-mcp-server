@@ -182,11 +182,10 @@ Many functions accept a `current_user_context` parameter (defaults to `True`) wh
 - For escalation policies:
   - `team_ids` cannot be used with `current_user_context=True`
 - For on-calls:
-  - `user_ids` cannot be used with `current_user_context=True`
+  - `user_ids` and `escalation_policy_ids` cannot be used with `current_user_context=True`
   - `schedule_ids` can still be used to filter by specific schedules
-  - The query will show on-calls for all escalation policies associated with the current user's teams
-  - This is useful for answering questions like "who is currently on-call for my team?"
-  - The current user's ID is not used as a filter, so you'll see all team members who are on-call
+  - The query will show on-calls for the escalation policies the current user is a target of
+  - If the current user is not a target of any escalation policy and no `schedule_ids` are given, the tool returns an error; use `current_user_context=False` with explicit filters instead
 
 ## Development
 ### Running Tests

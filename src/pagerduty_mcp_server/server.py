@@ -71,6 +71,13 @@ def _require_team_scope(user_context: dict[str, Any]) -> None:
         )
 
 
+def _drop_blank_ids(ids: list[str] | None) -> list[str] | None:
+    """Remove blank or whitespace-only IDs from a filter list, preserving None."""
+    if ids is None:
+        return None
+    return [id_ for id_ in ids if id_.strip()]
+
+
 """
 Tool Documentation
 """
@@ -337,12 +344,12 @@ async def get_oncalls(
 
     Behavior varies by time parameters:
     1. Without since/until: Returns current on-calls
-       Example: get_oncalls(schedule_ids=["SCHEDULE_123"])
+       Example: get_oncalls(current_user_context=False, schedule_ids=["SCHEDULE_123"])
     2. With since/until: Returns all on-calls in range
-       Example: get_oncalls(schedule_ids=["SCHEDULE_123"], since="2024-03-20T00:00:00Z", until="2024-03-27T00:00:00Z")
+       Example: get_oncalls(current_user_context=False, schedule_ids=["SCHEDULE_123"], since="2024-03-20T00:00:00Z", until="2024-03-27T00:00:00Z")
 
     Args:
-        current_user_context (bool): Use escalation policies the current user is a target of (default: True). Errors if there are none and no schedule_ids are given
+        current_user_context (bool): Use escalation policies the current user is a target of (default: True); errors if the current user is a target of no escalation policy and no schedule_ids are given.
         schedule_ids (List[str]): Filter by schedules (optional)
         user_ids (List[str]): Filter by users (optional, excludes current_user_context)
         escalation_policy_ids (List[str]): Filter by policies (optional, excludes current_user_context)
@@ -352,6 +359,10 @@ async def get_oncalls(
         earliest (bool): Only earliest on-call per policy/level/user combo (optional)
         include (List[str]): List of fields to include in the response. If specified, only these fields will be returned for each on-call entry
     """
+    schedule_ids = _drop_blank_ids(schedule_ids)
+    user_ids = _drop_blank_ids(user_ids)
+    escalation_policy_ids = _drop_blank_ids(escalation_policy_ids)
+
     if current_user_context:
         if user_ids is not None or escalation_policy_ids is not None:
             raise ValueError(
