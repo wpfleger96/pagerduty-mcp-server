@@ -71,11 +71,12 @@ def _require_team_scope(user_context: dict[str, Any]) -> None:
         )
 
 
-def _drop_blank_ids(ids: list[str] | None) -> list[str] | None:
-    """Remove blank or whitespace-only IDs from a filter list, preserving None."""
+def _clean_filter_ids(ids: list[str] | None) -> list[str] | None:
+    """Strip whitespace from filter IDs and drop blank ones, preserving None."""
     if ids is None:
         return None
-    return [id_ for id_ in ids if id_.strip()]
+    stripped = (id_.strip() for id_ in ids)
+    return [id_ for id_ in stripped if id_]
 
 
 """
@@ -118,6 +119,9 @@ async def get_escalation_policies(
         limit (int): Limit the number of results (optional). Not used if `policy_id` is provided.
         include (List[str]): List of fields to include in the response. If specified, only these fields will be returned for each escalation policy
     """
+    user_ids = _clean_filter_ids(user_ids)
+    team_ids = _clean_filter_ids(team_ids)
+
     if policy_id is not None:
         disallowed_filters_present = (
             query is not None
@@ -199,6 +203,9 @@ async def get_incidents(
         include_notes (Optional[bool]): If True, includes notes for each incident in the response. Defaults to False.
         include (List[str]): List of fields to include in the response. If specified, only these fields will be returned for each incident
     """
+    service_ids = _clean_filter_ids(service_ids)
+    team_ids = _clean_filter_ids(team_ids)
+
     if incident_id is not None:
         disallowed_filters_present = (
             service_ids is not None
@@ -359,9 +366,9 @@ async def get_oncalls(
         earliest (bool): Only earliest on-call per policy/level/user combo (optional)
         include (List[str]): List of fields to include in the response. If specified, only these fields will be returned for each on-call entry
     """
-    schedule_ids = _drop_blank_ids(schedule_ids)
-    user_ids = _drop_blank_ids(user_ids)
-    escalation_policy_ids = _drop_blank_ids(escalation_policy_ids)
+    schedule_ids = _clean_filter_ids(schedule_ids)
+    user_ids = _clean_filter_ids(user_ids)
+    escalation_policy_ids = _clean_filter_ids(escalation_policy_ids)
 
     if current_user_context:
         if user_ids is not None or escalation_policy_ids is not None:
@@ -491,6 +498,8 @@ async def get_services(
         limit (int): Limit the number of results (optional). Not used if `service_id` is provided.
         include (List[str]): List of fields to include in the response. If specified, only these fields will be returned for each service
     """
+    team_ids = _clean_filter_ids(team_ids)
+
     if service_id is not None:
         disallowed_filters_present = (
             team_ids is not None or query is not None or limit is not None
@@ -582,6 +591,8 @@ async def get_users(
         limit (int): Limit the number of results (optional). Not used if `user_id` is provided.
         include (List[str]): List of fields to include in the response. If specified, only these fields will be returned for each user
     """
+    team_ids = _clean_filter_ids(team_ids)
+
     if user_id is not None:
         disallowed_filters_present = (
             team_ids is not None or query is not None or limit is not None

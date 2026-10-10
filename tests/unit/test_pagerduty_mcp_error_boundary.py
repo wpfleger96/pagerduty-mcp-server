@@ -52,6 +52,18 @@ async def _call_tool_as(
     return result, mocked_paginate
 
 
+def _paginate_params(mocked_paginate: AsyncMock) -> dict[str, Any]:
+    """Return the query params of the single awaited paginate call."""
+    mocked_paginate.assert_awaited_once()
+    assert mocked_paginate.await_args is not None
+    params: dict[str, Any] = mocked_paginate.await_args.kwargs["params"]
+    return params
+
+
+# For calls with current_user_context=False, where the user context is never read.
+_UNUSED_USER_CONTEXT = _user_context(team_ids=["T1"], escalation_policy_ids=[])
+
+
 @pytest.mark.asyncio
 @pytest.mark.unit
 @pytest.mark.server
@@ -135,17 +147,104 @@ async def test_current_user_without_teams_rejects_unscoped_query(
     mocked_paginate.assert_not_awaited()
 
 
+@pytest.mark.asyncio
+@pytest.mark.unit
+@pytest.mark.server
+@pytest.mark.parametrize(
+    ("tool_name", "list_module", "args"),
+    [
+        pytest.param(
+            "get_incidents",
+            "pagerduty_mcp_server.incidents",
+            {"team_ids": [""]},
+            id="incidents-blank-team",
+        ),
+        pytest.param(
+            "get_incidents",
+            "pagerduty_mcp_server.incidents",
+            {"service_ids": [" "]},
+            id="incidents-blank-service",
+        ),
+        pytest.param(
+            "get_services",
+            "pagerduty_mcp_server.services",
+            {"team_ids": [""]},
+            id="services-blank-team",
+        ),
+        pytest.param(
+            "get_users",
+            "pagerduty_mcp_server.users",
+            {"team_ids": ["  "]},
+            id="users-blank-team",
+        ),
+        pytest.param(
+            "get_escalation_policies",
+            "pagerduty_mcp_server.escalation_policies",
+            {"user_ids": [""]},
+            id="escalation-policies-blank-user",
+        ),
+        pytest.param(
+            "get_escalation_policies",
+            "pagerduty_mcp_server.escalation_policies",
+            {"team_ids": [" "]},
+            id="escalation-policies-blank-team",
+        ),
+    ],
+)
+async def test_blank_filter_ids_reject_unscoped_query(
+    tool_name: str, list_module: str, args: dict[str, Any]
+) -> None:
+    """Blank IDs must not count as a filter when current_user_context is False."""
+    result, mocked_paginate = await _call_tool_as(
+        _UNUSED_USER_CONTEXT,
+        tool_name,
+        list_module,
+        {"current_user_context": False, **args},
+    )
+
+    assert result.isError is True
+    assert result.content
+    assert "Must specify at least" in _text(result.content)
+    mocked_paginate.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+@pytest.mark.unit
+@pytest.mark.server
+async def test_filter_ids_are_stripped_and_blanks_dropped() -> None:
+    """Real IDs are sent without surrounding whitespace; blank IDs are dropped."""
+    result, mocked_paginate = await _call_tool_as(
+        _UNUSED_USER_CONTEXT,
+        "get_users",
+        "pagerduty_mcp_server.users",
+        {"current_user_context": False, "team_ids": ["", " T1 "]},
+    )
+
+    assert result.isError is False
+    assert _paginate_params(mocked_paginate)["team_ids[]"] == ["T1"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.unit
+@pytest.mark.server
+async def test_blank_second_filter_is_dropped_from_request() -> None:
+    """An all-blank filter is omitted from the request when another filter is set."""
+    result, mocked_paginate = await _call_tool_as(
+        _UNUSED_USER_CONTEXT,
+        "get_incidents",
+        "pagerduty_mcp_server.incidents",
+        {"current_user_context": False, "service_ids": ["S1"], "team_ids": [""]},
+    )
+
+    assert result.isError is False
+    params = _paginate_params(mocked_paginate)
+    assert params["service_ids"] == ["S1"]
+    assert "team_ids" not in params
+
+
 _ONCALLS_MODULE = "pagerduty_mcp_server.oncalls"
 _NO_POLICY_USER = _user_context(team_ids=["T1"], escalation_policy_ids=[])
 _POLICY_USER = _user_context(team_ids=["T1"], escalation_policy_ids=["EP1", "EP2"])
-
-
-def _paginate_params(mocked_paginate: AsyncMock) -> dict[str, Any]:
-    """Return the query params of the single awaited paginate call."""
-    mocked_paginate.assert_awaited_once()
-    assert mocked_paginate.await_args is not None
-    params: dict[str, Any] = mocked_paginate.await_args.kwargs["params"]
-    return params
 
 
 @pytest.mark.asyncio
