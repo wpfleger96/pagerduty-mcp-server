@@ -113,3 +113,75 @@ async def test_current_user_without_teams_rejects_unscoped_query(
     assert result.content
     assert "not a member of any PagerDuty team" in _text(result.content)
     mocked_paginate.assert_not_awaited()
+
+
+_NO_POLICY_CONTEXT = {
+    "user_id": "PUSER1",
+    "name": "No Policy",
+    "email": "n@example.com",
+    "team_ids": ["T1"],
+    "service_ids": [],
+    "escalation_policy_ids": [],
+}
+
+
+async def _call_get_oncalls(args: dict) -> tuple:  # type: ignore[type-arg]
+    """Call get_oncalls for a user on no escalation policy; return (result, paginate mock)."""
+    mocked_paginate = AsyncMock(return_value=[])
+
+    with (
+        patch(
+            "pagerduty_mcp_server.server.users.build_user_context",
+            AsyncMock(return_value=_NO_POLICY_CONTEXT),
+        ),
+        patch("pagerduty_mcp_server.oncalls.create_client", MagicMock()),
+        patch("pagerduty_mcp_server.oncalls.paginate", mocked_paginate),
+    ):
+        async with Client(mcp) as client:
+            result = await client.call_tool_mcp("get_oncalls", args)
+
+    return result, mocked_paginate
+
+
+@pytest.mark.asyncio
+@pytest.mark.unit
+@pytest.mark.server
+async def test_get_oncalls_user_without_escalation_policies_rejects_unscoped_query() -> (
+    None
+):
+    """A user on no escalation policy must get an error, not account-wide on-calls."""
+    result, mocked_paginate = await _call_get_oncalls({})
+
+    assert result.isError is True
+    assert "not a target of any PagerDuty escalation policy" in _text(result.content)
+    mocked_paginate.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+@pytest.mark.unit
+@pytest.mark.server
+async def test_get_oncalls_user_without_escalation_policies_allows_schedule_filter() -> (
+    None
+):
+    """schedule_ids alone still scopes the query when the user has no policies."""
+    result, mocked_paginate = await _call_get_oncalls({"schedule_ids": ["SCHED1"]})
+
+    assert result.isError is False
+    mocked_paginate.assert_awaited_once()
+    params = mocked_paginate.await_args.kwargs["params"]
+    assert params["schedule_ids[]"] == ["SCHED1"]
+    assert "escalation_policy_ids[]" not in params
+
+
+@pytest.mark.asyncio
+@pytest.mark.unit
+@pytest.mark.server
+async def test_get_oncalls_rejects_escalation_policy_ids_with_current_user_context() -> (
+    None
+):
+    """Caller-supplied escalation_policy_ids must not be silently overwritten."""
+    result, mocked_paginate = await _call_get_oncalls({"escalation_policy_ids": ["P1"]})
+
+    assert result.isError is True
+    assert "escalation_policy_ids" in _text(result.content)
+    mocked_paginate.assert_not_awaited()
