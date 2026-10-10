@@ -118,6 +118,9 @@ async def get_escalation_policies(
         limit (int): Limit the number of results (optional). Not used if `policy_id` is provided.
         include (List[str]): List of fields to include in the response. If specified, only these fields will be returned for each escalation policy
     """
+    user_ids = _drop_blank_ids(user_ids)
+    team_ids = _drop_blank_ids(team_ids)
+
     if policy_id is not None:
         disallowed_filters_present = (
             query is not None
@@ -199,6 +202,9 @@ async def get_incidents(
         include_notes (Optional[bool]): If True, includes notes for each incident in the response. Defaults to False.
         include (List[str]): List of fields to include in the response. If specified, only these fields will be returned for each incident
     """
+    service_ids = _drop_blank_ids(service_ids)
+    team_ids = _drop_blank_ids(team_ids)
+
     if incident_id is not None:
         disallowed_filters_present = (
             service_ids is not None
@@ -491,6 +497,8 @@ async def get_services(
         limit (int): Limit the number of results (optional). Not used if `service_id` is provided.
         include (List[str]): List of fields to include in the response. If specified, only these fields will be returned for each service
     """
+    team_ids = _drop_blank_ids(team_ids)
+
     if service_id is not None:
         disallowed_filters_present = (
             team_ids is not None or query is not None or limit is not None
@@ -582,6 +590,8 @@ async def get_users(
         limit (int): Limit the number of results (optional). Not used if `user_id` is provided.
         include (List[str]): List of fields to include in the response. If specified, only these fields will be returned for each user
     """
+    team_ids = _drop_blank_ids(team_ids)
+
     if user_id is not None:
         disallowed_filters_present = (
             team_ids is not None or query is not None or limit is not None
