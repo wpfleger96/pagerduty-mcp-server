@@ -9,6 +9,9 @@ The following general information in this section applies to all tools.
 - The `since` and `until` parameters MUST be in ISO8601 format for all tools
 - Relative time references like "now" MUST NOT be used for any parameters
 
+### ID Filters
+- Whitespace around IDs in list filters (`team_ids`, `service_ids`, `user_ids`, `schedule_ids`, `escalation_policy_ids`) is stripped, and blank IDs are ignored, so a list containing only blank IDs counts as not providing that filter
+
 ### Best Practices
 - Prefer using default parameters when they align with the user's intent
 - When retrieving user-specific data, prefer querying with the default `current_user_context=True` rather than explicitly querying by user ID
@@ -50,6 +53,12 @@ Each escalation policy object contains:
   - `id` (str): Team ID
   - `summary` (str): Team name
 - `description` (str): Description of the escalation policy.
+
+#### Raises
+- `ValueError`: If:
+  - `policy_id` is used along with any other query parameters (`query`, `user_ids`, `team_ids`, or `limit`).
+  - `current_user_context` is True and `user_ids` or `team_ids` are provided.
+  - `current_user_context` is False and neither `user_ids` nor `team_ids` are provided.
 
 #### Example Response
 When listing escalation policies:
@@ -813,6 +822,9 @@ Each service object contains:
 
 #### Raises
 - `ValueError`: If:
+  - `service_id` is used along with any other query parameters (`team_ids`, `query`, or `limit`).
+  - `current_user_context` is True and `team_ids` is provided.
+  - `current_user_context` is False and `team_ids` is not provided.
   - `current_user_context` is True and the current user belongs to no teams.
 
 #### Example Response
@@ -1049,6 +1061,9 @@ Each user object contains:
 
 #### Raises
 - `ValueError`: If:
+  - `user_id` is used along with any other query parameters (`team_ids`, `query`, or `limit`).
+  - `current_user_context` is True and `team_ids` is provided.
+  - `current_user_context` is False and `team_ids` is not provided.
   - `current_user_context` is True and the current user belongs to no teams.
 
 #### Example Queries

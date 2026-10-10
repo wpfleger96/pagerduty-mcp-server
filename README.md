@@ -173,13 +173,13 @@ Common error scenarios include:
 ## User Context
 Many functions accept a `current_user_context` parameter (defaults to `True`) which automatically filters results based on this context. When `current_user_context` is `True`, you cannot use certain filter parameters as they would conflict with the automatic filtering:
 
-- For all resource types:
-  - `user_ids` cannot be used with `current_user_context=True`
 - For incidents:
   - `team_ids` and `service_ids` cannot be used with `current_user_context=True`
 - For services:
   - `team_ids` cannot be used with `current_user_context=True`
 - For escalation policies:
+  - `user_ids` and `team_ids` cannot be used with `current_user_context=True`
+- For users:
   - `team_ids` cannot be used with `current_user_context=True`
 - For on-calls:
   - `user_ids` and `escalation_policy_ids` cannot be used with `current_user_context=True`

@@ -60,6 +60,10 @@ def _paginate_params(mocked_paginate: AsyncMock) -> dict[str, Any]:
     return params
 
 
+# For calls with current_user_context=False, where the user context is never read.
+_UNUSED_USER_CONTEXT = _user_context(team_ids=["T1"], escalation_policy_ids=[])
+
+
 @pytest.mark.asyncio
 @pytest.mark.unit
 @pytest.mark.server
@@ -192,7 +196,7 @@ async def test_blank_filter_ids_reject_unscoped_query(
 ) -> None:
     """Blank IDs must not count as a filter when current_user_context is False."""
     result, mocked_paginate = await _call_tool_as(
-        _user_context(team_ids=["T1"], escalation_policy_ids=[]),
+        _UNUSED_USER_CONTEXT,
         tool_name,
         list_module,
         {"current_user_context": False, **args},
@@ -207,17 +211,35 @@ async def test_blank_filter_ids_reject_unscoped_query(
 @pytest.mark.asyncio
 @pytest.mark.unit
 @pytest.mark.server
-async def test_blank_filter_ids_dropped_from_mixed_list() -> None:
-    """Blank IDs are dropped while real IDs in the same list are kept."""
+async def test_filter_ids_are_stripped_and_blanks_dropped() -> None:
+    """Real IDs are sent without surrounding whitespace; blank IDs are dropped."""
     result, mocked_paginate = await _call_tool_as(
-        _user_context(team_ids=["T1"], escalation_policy_ids=[]),
+        _UNUSED_USER_CONTEXT,
         "get_users",
         "pagerduty_mcp_server.users",
-        {"current_user_context": False, "team_ids": ["", "T1"]},
+        {"current_user_context": False, "team_ids": ["", " T1 "]},
     )
 
     assert result.isError is False
     assert _paginate_params(mocked_paginate)["team_ids[]"] == ["T1"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.unit
+@pytest.mark.server
+async def test_blank_second_filter_is_dropped_from_request() -> None:
+    """An all-blank filter is omitted from the request when another filter is set."""
+    result, mocked_paginate = await _call_tool_as(
+        _UNUSED_USER_CONTEXT,
+        "get_incidents",
+        "pagerduty_mcp_server.incidents",
+        {"current_user_context": False, "service_ids": ["S1"], "team_ids": [""]},
+    )
+
+    assert result.isError is False
+    params = _paginate_params(mocked_paginate)
+    assert params["service_ids"] == ["S1"]
+    assert "team_ids" not in params
 
 
 _ONCALLS_MODULE = "pagerduty_mcp_server.oncalls"
