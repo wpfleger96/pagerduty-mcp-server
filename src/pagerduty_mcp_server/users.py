@@ -137,6 +137,7 @@ async def show_user(
 
     if not user_id:
         raise ValueError("User ID is required")
+    utils.validate_pagerduty_id(user_id, "user_id")
 
     pd_client = create_client()
 

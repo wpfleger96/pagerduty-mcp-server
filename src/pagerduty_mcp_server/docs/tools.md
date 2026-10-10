@@ -9,7 +9,8 @@ The following general information in this section applies to all tools.
 - The `since` and `until` parameters MUST be in ISO8601 format for all tools
 - Relative time references like "now" MUST NOT be used for any parameters
 
-### ID Filters
+### IDs
+- PagerDuty IDs must contain only ASCII letters and digits, both in single-ID parameters (`incident_id`, `policy_id`, `schedule_id`, `service_id`, `team_id`, `user_id`) and in list filters; any other value returns an error that names the offending parameter
 - Whitespace around IDs in list filters (`team_ids`, `service_ids`, `user_ids`, `schedule_ids`, `escalation_policy_ids`) is stripped, and blank IDs are ignored, so a list containing only blank IDs counts as not providing that filter
 
 ### Best Practices
@@ -70,7 +71,7 @@ When listing escalation policies:
     },
     "escalation_policies": [
         {
-          "id": "POLICY-1",
+          "id": "PPOLICY1",
           "name": "Test Escalation Policy 1",
           "escalation_rules": [...],
           "services": [...],
@@ -90,7 +91,7 @@ When getting a specific escalation policy:
     },
     "escalation_policies": [
         {
-          "id": "POLICY-1",
+          "id": "PPOLICY1",
           "name": "Test Escalation Policy 1",
           "escalation_rules": [...],
           "services": [...],
@@ -106,16 +107,16 @@ When getting a specific escalation policy:
 get_escalation_policies()
 
 # Get escalation policies for a specific team
-get_escalation_policies(current_user_context=False, team_ids=["TEAM_123"])
+get_escalation_policies(current_user_context=False, team_ids=["PTEAM123"])
 
 # Get escalation policies for a specific user
-get_escalation_policies(current_user_context=False, user_ids=["USER_123"])
+get_escalation_policies(current_user_context=False, user_ids=["PUSER123"])
 
 # Search for escalation policies by name
 get_escalation_policies(query="SEARCH_STRING")
 
 # Get details for a specific escalation policy
-get_escalation_policies(policy_id="POLICY_123")
+get_escalation_policies(policy_id="PPOLICY123")
 
 # Get only specific fields for escalation policies (using include parameter)
 get_escalation_policies(include=["id", "name"])
@@ -127,7 +128,7 @@ get_escalation_policies(
 
 # Get details for a specific escalation policy with only certain fields
 get_escalation_policies(
-    policy_id="POLICY_123", include=["id", "name", "escalation_rules"]
+    policy_id="PPOLICY123", include=["id", "name", "escalation_rules"]
 )
 ```
 
@@ -242,7 +243,7 @@ When listing incidents:
     },
     "incidents": [
         {
-            "id": "INCIDENT-1",
+            "id": "Q1INCIDENT1",
             "incident_number": 1,
             "title": "Test Incident 1",
             "status": "triggered",
@@ -254,12 +255,12 @@ When listing incidents:
             "resolve_reason": null,
             "assignments": [...],
             "acknowledgements": [...],
-            "service": {"id": "SERVICE-1"},
+            "service": {"id": "PSVC1"},
             "teams": [...],
             "alert_counts": {...},
             "summary": "Test Incident 1",
             "description": "Test incident description",
-            "escalation_policy": {"id": "POLICY-1"},
+            "escalation_policy": {"id": "PPOLICY1"},
             "incident_key": "INCIDENT-1",
             "last_status_change_at": "2024-03-14T12:00:00Z",
             "last_status_change_by": null
@@ -280,7 +281,7 @@ When requesting a specific incident with optional includes:
     },
     "incidents": [
         {
-            "id": "INCIDENT-XYZ",
+            "id": "Q1INCIDENTXYZ",
             "incident_number": 2,
             "title": "Specific Incident",
             "status": "acknowledged",
@@ -304,14 +305,14 @@ When requesting a specific incident with optional includes:
             "body_details": {...},
             "past_incidents": [
                 {
-                    "id": "PAST_INCIDENT_A",
+                    "id": "Q1PASTINCIDENTA",
                     "summary": "Similar Past Incident A",
                     "similarity_score": 150.75
                 }
             ],
             "related_incidents": [
                 {
-                    "id": "RELATED_INCIDENT_B",
+                    "id": "Q1RELATEDINCIDENTB",
                     "summary": "Related Incident B",
                     "relationship_type": "machine_learning_inferred",
                     "relationship_metadata": {
@@ -322,11 +323,11 @@ When requesting a specific incident with optional includes:
             ],
             "notes": [
                 {
-                    "id": "NOTE_1",
+                    "id": "PNOTE1",
                     "content": "This is a note on the incident",
                     "created_at": "2024-03-14T14:00:00Z",
                     "user": {
-                        "id": "USER_A",
+                        "id": "PUSERA",
                         "name": "User A",
                         "type": "user_reference"
                     },
@@ -353,12 +354,12 @@ get_incidents(since="2025-02-26T00:00:00Z", until="2025-03-26T00:00:00Z")
 # Get incidents for specific services
 # Use this query to answer questions like "What incidents have been resolved this week for Service 123?"
 get_incidents(
-    current_user_context=False, service_ids=["SERVICE_123"], statuses=["resolved"]
+    current_user_context=False, service_ids=["PSVC123"], statuses=["resolved"]
 )
 
 # Get details for a specific incident with additional context
 get_incidents(
-    incident_id="INCIDENT_ABC",
+    incident_id="Q1INCIDENTABC",
     include_past_incidents=True,
     include_related_incidents=True,
     include_notes=True,
@@ -376,7 +377,7 @@ get_incidents(
 
 # Get details for a specific incident with only certain fields
 get_incidents(
-    incident_id="INCIDENT_ABC", include=["id", "title", "status", "assignments"]
+    incident_id="Q1INCIDENTABC", include=["id", "title", "status", "assignments"]
 )
 ```
 
@@ -395,10 +396,10 @@ The updated incident object in the standard response format (same fields as `get
 #### Example Queries
 ```python
 # Acknowledge an incident
-acknowledge_incident(incident_id="INCIDENT_ABC")
+acknowledge_incident(incident_id="Q1INCIDENTABC")
 
 # Acknowledge and return only key fields
-acknowledge_incident(incident_id="INCIDENT_ABC", include=["id", "title", "status"])
+acknowledge_incident(incident_id="Q1INCIDENTABC", include=["id", "title", "status"])
 ```
 
 ### resolve_incident
@@ -416,11 +417,11 @@ The updated incident object in the standard response format (same fields as `get
 #### Example Queries
 ```python
 # Resolve an incident
-resolve_incident(incident_id="INCIDENT_ABC")
+resolve_incident(incident_id="Q1INCIDENTABC")
 
 # Resolve and return only key fields
 resolve_incident(
-    incident_id="INCIDENT_ABC", include=["id", "title", "status", "resolved_at"]
+    incident_id="Q1INCIDENTABC", include=["id", "title", "status", "resolved_at"]
 )
 ```
 
@@ -448,13 +449,13 @@ The created note object in the standard response format:
 ```python
 # Add a note to an incident
 add_incident_note(
-    incident_id="INCIDENT_ABC",
+    incident_id="Q1INCIDENTABC",
     content="Investigating root cause - appears to be a database connection issue",
 )
 
 # Add a resolution note
 add_incident_note(
-    incident_id="INCIDENT_ABC",
+    incident_id="Q1INCIDENTABC",
     content="Resolved by restarting the database connection pool",
 )
 ```
@@ -514,13 +515,13 @@ Each on-call object contains:
     "oncalls": [
         {
             "user": {
-                "id": "USER-1"
+                "id": "PUSER1"
             },
             "escalation_policy": {
-                "id": "POLICY-1"
+                "id": "PPOLICY1"
             },
             "schedule": {
-                "id": "SCHEDULE-1"
+                "id": "PSCHED1"
             },
             "escalation_level": 1,
             "start": "2025-03-31T18:00:00Z",
@@ -536,7 +537,7 @@ Each on-call object contains:
 get_oncalls()
 
 # Find who is currently on-call for a specific schedule
-get_oncalls(current_user_context=False, schedule_ids=["SCHEDULE_123"])
+get_oncalls(current_user_context=False, schedule_ids=["PSCHED123"])
 
 # Find the next on-call shift for the current user
 from datetime import datetime, timedelta
@@ -556,7 +557,7 @@ get_oncalls(include=["user", "escalation_level", "start", "end"])
 # Get on-call entries with specific fields and filters combined
 get_oncalls(
     current_user_context=False,
-    schedule_ids=["SCHEDULE_123"],
+    schedule_ids=["PSCHED123"],
     include=["user", "schedule", "start", "end"],
     limit=10,
 )
@@ -624,7 +625,7 @@ When listing schedules:
     },
     "schedules": [
         {
-            "id": "SCHEDULE-1",
+            "id": "PSCHED1",
             "name": "Test Schedule 1",
             "summary": "Test Schedule 1",
             "description": "Test schedule description",
@@ -633,7 +634,7 @@ When listing schedules:
             "teams": [...]
         },
         {
-            "id": "SCHEDULE-2",
+            "id": "PSCHED2",
             "name": "Test Schedule 2",
             // ... other fields ...
         }
@@ -650,7 +651,7 @@ When getting a specific schedule:
     },
     "schedules": [
         {
-            "id": "SCHEDULE-1",
+            "id": "PSCHED1",
             "name": "Test Schedule 1",
             "summary": "Test Schedule 1",
             "description": "Test schedule description",
@@ -672,19 +673,19 @@ When getting a specific schedule with `since`/`until`:
     },
     "schedules": [
         {
-            "id": "SCHEDULE-1",
+            "id": "PSCHED1",
             // ... other schedule fields ...
             "final_schedule": {
                 "rendered_schedule_entries": [
                     {
                         "start": "2024-03-25T18:00:00Z",
                         "end": "2024-04-01T18:00:00Z",
-                        "user": { "id": "USER_A", "summary": "User A" }
+                        "user": { "id": "PUSERA", "summary": "User A" }
                     },
                     {
                         "start": "2024-04-01T18:00:00Z",
                         "end": "2024-04-08T18:00:00Z",
-                        "user": { "id": "USER_B", "summary": "User B" }
+                        "user": { "id": "PUSERB", "summary": "User B" }
                     }
                 ]
             },
@@ -692,7 +693,7 @@ When getting a specific schedule with `since`/`until`:
                 {
                     "start": "2024-03-27T10:00:00Z",
                     "end": "2024-03-28T10:00:00Z",
-                    "user": { "id": "USER_C", "summary": "User C" }
+                    "user": { "id": "PUSERC", "summary": "User C" }
                 }
             ]
         }
@@ -710,7 +711,7 @@ get_schedules(query="Schedule Name")
 
 # Get schedule details with on-call information for a date range
 get_schedules(
-    schedule_id="SCHEDULE_123",
+    schedule_id="PSCHED123",
     since="2025-02-27T00:00:00Z",
     until="2025-03-13T00:00:00Z",
 )
@@ -724,7 +725,7 @@ get_schedules(
 )
 
 # Get details for a specific schedule with only certain fields
-get_schedules(schedule_id="SCHEDULE_123", include=["id", "name", "final_schedule"])
+get_schedules(schedule_id="PSCHED123", include=["id", "name", "final_schedule"])
 ```
 
 ### list_users_oncall
@@ -756,7 +757,7 @@ A list of user on-call entries, each containing:
     "users_oncall": [
         {
             "user": {
-                "id": "USER-1",
+                "id": "PUSER1",
                 "summary": "John Doe",
                 "email": "john.doe@example.com"
             },
@@ -765,7 +766,7 @@ A list of user on-call entries, each containing:
         },
         {
             "user": {
-                "id": "USER-2",
+                "id": "PUSER2",
                 "summary": "Jane Smith",
                 "email": "jane.smith@example.com"
             },
@@ -779,11 +780,11 @@ A list of user on-call entries, each containing:
 #### Example Queries
 ```python
 # Get users on call for a schedule for the default time range
-list_users_oncall(schedule_id="SCHEDULE_123")
+list_users_oncall(schedule_id="PSCHED123")
 
 # Get users on call for a schedule for a specific time range
 list_users_oncall(
-    schedule_id="SCHEDULE_123",
+    schedule_id="PSCHED123",
     since="2025-03-01T00:00:00Z",
     until="2025-04-01T00:00:00Z",
 )
@@ -837,7 +838,7 @@ When listing services:
     },
     "services": [
         {
-            "id": "SERVICE-1",
+            "id": "PSVC1",
             "name": "Test Service 1",
             "description": "Test service description",
             "status": "active",
@@ -847,7 +848,7 @@ When listing services:
             "integrations": [...]
         },
         {
-            "id": "SERVICE-2",
+            "id": "PSVC2",
             "name": "Test Service 2",
             // ... other fields ...
         }
@@ -864,7 +865,7 @@ When getting a specific service (with `service_id`):
     },
     "services": [
         {
-            "id": "SERVICE-1",
+            "id": "PSVC1",
             "name": "Test Service 1",
             "description": "Test service description",
             "status": "active",
@@ -883,10 +884,10 @@ When getting a specific service (with `service_id`):
 get_services()
 
 # List services for a specific team
-get_services(current_user_context=False, team_ids=["TEAM_123"])
+get_services(current_user_context=False, team_ids=["PTEAM123"])
 
 # Get details for a specific service
-get_services(service_id="SERVICE_123")
+get_services(service_id="PSVC123")
 
 # Search for services by name
 get_services(query="Payment Processing")
@@ -896,11 +897,11 @@ get_services(include=["id", "name", "status"])
 
 # Get services with specific fields and filters combined
 get_services(
-    team_ids=["TEAM_123"], include=["id", "name", "description", "teams"], limit=10
+    team_ids=["PTEAM123"], include=["id", "name", "description", "teams"], limit=10
 )
 
 # Get details for a specific service with only certain fields
-get_services(service_id="SERVICE_123", include=["id", "name", "integrations"])
+get_services(service_id="PSVC123", include=["id", "name", "integrations"])
 ```
 
 ## Team Tools
@@ -939,14 +940,14 @@ When listing teams:
     },
     "teams": [
         {
-            "id": "TEAM-1",
+            "id": "PTEAM1",
             "name": "Test Team 1",
             "description": "Test team description",
             "type": "team",
             "summary": "Test Team 1"
         },
         {
-            "id": "TEAM-2",
+            "id": "PTEAM2",
             "name": "Test Team 2",
             "description": "Another team description",
             "type": "team",
@@ -965,7 +966,7 @@ When getting a specific team:
     },
     "teams": [
         {
-            "id": "TEAM-1",
+            "id": "PTEAM1",
             "name": "Test Team 1",
             "description": "Test team description",
             "type": "team",
@@ -986,7 +987,7 @@ get_teams()
 get_teams(query="Team Name")
 
 # Get details for a specific team
-get_teams(team_id="TEAM_123")
+get_teams(team_id="PTEAM123")
 
 # Get only specific fields for teams (using include parameter)
 get_teams(include=["id", "name", "type"])
@@ -997,7 +998,7 @@ get_teams(
 )
 
 # Get details for a specific team with only certain fields
-get_teams(team_id="TEAM_123", include=["id", "name", "default_role"])
+get_teams(team_id="PTEAM123", include=["id", "name", "default_role"])
 ```
 
 ## User Tools
@@ -1018,12 +1019,12 @@ Dict[str, Any]: A dictionary containing:
 #### Example Response
 ```json
 {
-    "user_id": "USER-1",
+    "user_id": "PUSER1",
     "name": "John Doe",
     "email": "john.doe@example.com",
-    "team_ids": ["TEAM-1", "TEAM-2"],
-    "service_ids": ["SERVICE-1", "SERVICE-2"],
-    "escalation_policy_ids": ["ESCALATION-POLICY-1"]
+    "team_ids": ["PTEAM1", "PTEAM2"],
+    "service_ids": ["PSVC1", "PSVC2"],
+    "escalation_policy_ids": ["PPOLICY1"]
 }
 ```
 
@@ -1072,20 +1073,20 @@ Each user object contains:
 get_users()
 
 # List users for a specific team
-get_users(current_user_context=False, team_ids=["TEAM_123"])
+get_users(current_user_context=False, team_ids=["PTEAM123"])
 
 # Search for users by name
 get_users(query="John")
 
 # Get details for a specific user
-get_users(user_id="USER_123")
+get_users(user_id="PUSER123")
 
 # Get only specific fields for users (using include parameter)
 get_users(include=["id", "name", "email"])
 
 # Get users with specific fields and filters combined
-get_users(team_ids=["TEAM_123"], include=["id", "name", "email", "teams"], limit=10)
+get_users(team_ids=["PTEAM123"], include=["id", "name", "email", "teams"], limit=10)
 
 # Get details for a specific user with only certain fields
-get_users(user_id="USER_123", include=["id", "name", "contact_methods"])
+get_users(user_id="PUSER123", include=["id", "name", "contact_methods"])
 ```

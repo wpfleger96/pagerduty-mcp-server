@@ -74,8 +74,9 @@ async def show_team(
         See the "Error Handling" section in `tools.md` for common error scenarios.
     """
 
-    if team_id is None:
+    if not team_id:
         raise ValueError("team_id must be specified")
+    utils.validate_pagerduty_id(team_id, "team_id")
 
     pd_client = create_client()
 

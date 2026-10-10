@@ -155,10 +155,10 @@ Common error scenarios include:
 - Response processing errors
 
 ### Parameter Validation
-- All ID parameters must be valid PagerDuty resource IDs
+- All ID values (single-ID parameters and list filters such as `team_ids`) must contain only ASCII letters and digits; any other value returns an error
 - Date parameters must be valid ISO8601 timestamps
 - List parameters (e.g., `statuses`, `team_ids`) must contain valid values
-- Invalid values in list parameters will be ignored
+- In ID list filters, surrounding whitespace is stripped and blank IDs are ignored
 - Required parameters cannot be `None` or empty strings
 - For `statuses` in `get_incidents`, only `triggered`, `acknowledged`, and `resolved` are valid values
 - For `urgency` in incidents, only `high` and `low` are valid values

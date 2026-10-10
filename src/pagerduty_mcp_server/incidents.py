@@ -2,7 +2,6 @@
 
 import logging
 import os
-import re
 from typing import Any
 
 from . import utils
@@ -14,8 +13,6 @@ from .models.note import Note
 logger = logging.getLogger(__name__)
 
 INCIDENTS_URL = "/incidents"
-
-_INCIDENT_ID_RE = re.compile(r"^[A-Za-z0-9]+$")
 
 VALID_STATUSES = ["triggered", "acknowledged", "resolved"]
 DEFAULT_STATUSES = ["triggered", "acknowledged", "resolved"]
@@ -145,7 +142,7 @@ async def show_incident(
 
     if not incident_id:
         raise ValueError("incident_id cannot be empty")
-    _validate_incident_id(incident_id)
+    utils.validate_pagerduty_id(incident_id, "incident_id")
 
     pd_client = create_client()
     params = {"include[]": "body"}
@@ -238,13 +235,6 @@ Incidents Write Operations
 """
 
 
-def _validate_incident_id(incident_id: str) -> None:
-    if not _INCIDENT_ID_RE.match(incident_id):
-        raise ValueError(
-            f"Invalid incident_id format: '{incident_id}'. Must contain only alphanumeric characters."
-        )
-
-
 async def _get_current_user_email() -> str:
     """Get the current user's email for the From header required by PagerDuty write APIs.
 
@@ -287,11 +277,11 @@ async def update_incident_status(
         Dict with the updated incident in standard response format.
 
     Raises:
-        ValueError: If incident_id is empty or status is invalid
+        ValueError: If incident_id is empty or not ASCII letters and digits, or status is invalid
     """
     if not incident_id:
         raise ValueError("incident_id cannot be empty")
-    _validate_incident_id(incident_id)
+    utils.validate_pagerduty_id(incident_id, "incident_id")
 
     valid_statuses = ["acknowledged", "resolved"]
     if status not in valid_statuses:
@@ -353,11 +343,11 @@ async def create_incident_note(
         Dict with the created note in standard response format.
 
     Raises:
-        ValueError: If incident_id or content is empty
+        ValueError: If incident_id or content is empty, or incident_id is not ASCII letters and digits
     """
     if not incident_id:
         raise ValueError("incident_id cannot be empty")
-    _validate_incident_id(incident_id)
+    utils.validate_pagerduty_id(incident_id, "incident_id")
     if not content or not content.strip():
         raise ValueError("content cannot be empty")
 
@@ -420,7 +410,7 @@ async def _list_past_incidents(*, incident_id: str) -> dict[str, Any]:
 
     if not incident_id:
         raise ValueError("incident_id cannot be empty")
-    _validate_incident_id(incident_id)
+    utils.validate_pagerduty_id(incident_id, "incident_id")
 
     pd_client = create_client()
 
@@ -475,7 +465,7 @@ async def _list_related_incidents(*, incident_id: str) -> dict[str, Any]:
 
     if not incident_id:
         raise ValueError("incident_id cannot be empty")
-    _validate_incident_id(incident_id)
+    utils.validate_pagerduty_id(incident_id, "incident_id")
 
     pd_client = create_client()
 
@@ -535,7 +525,7 @@ async def _list_notes(*, incident_id: str) -> dict[str, Any]:
 
     if not incident_id:
         raise ValueError("incident_id cannot be empty")
-    _validate_incident_id(incident_id)
+    utils.validate_pagerduty_id(incident_id, "incident_id")
 
     pd_client = create_client()
 

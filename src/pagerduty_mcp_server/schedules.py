@@ -85,6 +85,7 @@ async def show_schedule(
 
     if not schedule_id:
         raise ValueError("schedule_id cannot be empty")
+    utils.validate_pagerduty_id(schedule_id, "schedule_id")
 
     pd_client = create_client()
 
@@ -145,6 +146,7 @@ async def list_users_oncall(
 
     if not schedule_id:
         raise ValueError("schedule_id cannot be empty")
+    utils.validate_pagerduty_id(schedule_id, "schedule_id")
 
     pd_client = create_client()
 
