@@ -85,6 +85,7 @@ async def show_service(
 
     if not service_id:
         raise ValueError("service_id cannot be empty")
+    utils.validate_pagerduty_id(service_id, "service_id")
 
     pd_client = create_client()
 

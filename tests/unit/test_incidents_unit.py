@@ -1059,24 +1059,3 @@ async def test_get_current_user_email_failure(monkeypatch):
         pytest.raises(RuntimeError, match="Cannot determine current user email"),
     ):
         await incidents._get_current_user_email()
-
-
-@pytest.mark.unit
-@pytest.mark.incidents
-def test_validate_incident_id_valid():
-    """Test valid incident IDs are accepted."""
-    incidents._validate_incident_id("Q1ABC123")
-    incidents._validate_incident_id("P12345")
-    incidents._validate_incident_id("ABC")
-
-
-@pytest.mark.unit
-@pytest.mark.incidents
-def test_validate_incident_id_invalid():
-    """Test invalid incident IDs are rejected."""
-    with pytest.raises(ValueError, match="Invalid incident_id format"):
-        incidents._validate_incident_id("../../etc/passwd")
-    with pytest.raises(ValueError, match="Invalid incident_id format"):
-        incidents._validate_incident_id("Q1 ABC")
-    with pytest.raises(ValueError, match="Invalid incident_id format"):
-        incidents._validate_incident_id("Q1/ABC")

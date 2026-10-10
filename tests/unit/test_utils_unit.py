@@ -134,3 +134,33 @@ def test_validate_timestamp_range_invalid_format():
 
     with pytest.raises(ValueError):
         utils.validate_timestamp_range(since, until)
+
+
+@pytest.mark.unit
+@pytest.mark.utils
+def test_validate_pagerduty_id_accepts_ascii_alphanumeric():
+    """ASCII alphanumeric IDs and incident numbers are accepted."""
+    utils.validate_pagerduty_id("Q1ABC123", "user_id")
+    utils.validate_pagerduty_id("12345", "user_id")
+
+
+@pytest.mark.unit
+@pytest.mark.utils
+@pytest.mark.parametrize(
+    "value",
+    [
+        "",
+        "..",
+        "../../etc/passwd",
+        "Q1 ABC",
+        "Q1/ABC",
+        "Q1ABC\n",
+        "\u200b",
+        "\u0661\u0662",
+    ],
+)
+def test_validate_pagerduty_id_rejects_other_characters(value: str):
+    """Anything other than ASCII letters and digits is rejected, including Unicode digits."""
+    with pytest.raises(ValueError, match="Invalid user_id format") as exc_info:
+        utils.validate_pagerduty_id(value, "user_id")
+    assert "Must contain only ASCII letters and digits" in str(exc_info.value)

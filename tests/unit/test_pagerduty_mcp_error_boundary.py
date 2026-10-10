@@ -242,6 +242,103 @@ async def test_blank_second_filter_is_dropped_from_request() -> None:
     assert "team_ids" not in params
 
 
+@pytest.mark.asyncio
+@pytest.mark.unit
+@pytest.mark.server
+@pytest.mark.parametrize(
+    ("tool_name", "module", "args"),
+    [
+        pytest.param(
+            "get_escalation_policies",
+            "pagerduty_mcp_server.escalation_policies",
+            {"policy_id": ".."},
+            id="escalation-policy",
+        ),
+        pytest.param(
+            "get_incidents",
+            "pagerduty_mcp_server.incidents",
+            {"incident_id": ".."},
+            id="incident",
+        ),
+        pytest.param(
+            "get_services",
+            "pagerduty_mcp_server.services",
+            {"service_id": ".."},
+            id="service",
+        ),
+        pytest.param(
+            "get_schedules",
+            "pagerduty_mcp_server.schedules",
+            {"schedule_id": ".."},
+            id="schedule",
+        ),
+        pytest.param(
+            "list_users_oncall",
+            "pagerduty_mcp_server.schedules",
+            {"schedule_id": ".."},
+            id="schedule-users-oncall",
+        ),
+        pytest.param(
+            "get_teams", "pagerduty_mcp_server.teams", {"team_id": ".."}, id="team"
+        ),
+        pytest.param(
+            "get_users",
+            "pagerduty_mcp_server.users",
+            {"user_id": "P1/../../users"},
+            id="user",
+        ),
+        pytest.param(
+            "acknowledge_incident",
+            "pagerduty_mcp_server.incidents",
+            {"incident_id": ".."},
+            id="acknowledge-incident",
+        ),
+        pytest.param(
+            "resolve_incident",
+            "pagerduty_mcp_server.incidents",
+            {"incident_id": "Q1/../../users"},
+            id="resolve-incident",
+        ),
+        pytest.param(
+            "add_incident_note",
+            "pagerduty_mcp_server.incidents",
+            {"incident_id": "..", "content": "x"},
+            id="add-incident-note",
+        ),
+    ],
+)
+async def test_path_traversal_id_is_rejected_before_request(
+    tool_name: str, module: str, args: dict[str, Any]
+) -> None:
+    """A single-ID parameter must not rewrite the request path (e.g. `/schedules/../users` -> `/users`)."""
+    with patch(f"{module}.create_client") as mocked_create_client:
+        async with Client(mcp) as client:
+            result = await client.call_tool_mcp(tool_name, args)
+
+    assert result.isError is True
+    assert "Must contain only ASCII letters and digits" in _text(result.content)
+    mocked_create_client.assert_not_called()
+
+
+@pytest.mark.asyncio
+@pytest.mark.unit
+@pytest.mark.server
+async def test_zero_width_filter_id_is_rejected() -> None:
+    """str.strip() keeps zero-width characters, so they must fail validation rather than reach PagerDuty."""
+    result, mocked_paginate = await _call_tool_as(
+        _UNUSED_USER_CONTEXT,
+        "get_users",
+        "pagerduty_mcp_server.users",
+        {"current_user_context": False, "team_ids": ["T1", "\u200b"]},
+    )
+
+    assert result.isError is True
+    text = _text(result.content)
+    assert "Invalid team_ids format" in text
+    assert "Must contain only ASCII letters and digits" in text
+    mocked_paginate.assert_not_awaited()
+
+
 _ONCALLS_MODULE = "pagerduty_mcp_server.oncalls"
 _NO_POLICY_USER = _user_context(team_ids=["T1"], escalation_policy_ids=[])
 _POLICY_USER = _user_context(team_ids=["T1"], escalation_policy_ids=["EP1", "EP2"])

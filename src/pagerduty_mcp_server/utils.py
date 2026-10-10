@@ -1,6 +1,7 @@
 """Pagerduty helper utilities"""
 
 import logging
+import re
 import sys
 from datetime import datetime, timedelta
 from typing import Any, NoReturn
@@ -13,6 +14,8 @@ logger = logging.getLogger(__name__)
 
 RESPONSE_CHAR_LIMIT = 400000  # characters
 RESPONSE_SIZE_LIMIT = 400000  # bytes
+
+_PAGERDUTY_ID_RE = re.compile(r"[A-Za-z0-9]+")
 
 
 class ValidationError(PagerDutyError):
@@ -123,6 +126,28 @@ def validate_iso8601_timestamp(timestamp: str, param_name: str) -> None:
     except ValueError:
         raise ValidationError(
             f"Invalid ISO8601 timestamp value `{timestamp}` for parameter `{param_name}`. Try using a valid ISO8601 timestamp (for example `2025-02-26T00:00:00Z`)."
+        )
+
+
+def validate_pagerduty_id(value: str, param_name: str) -> None:
+    """Validate that a string is a well-formed PagerDuty ID.
+
+    PagerDuty object IDs and incident numbers are ASCII letters and digits. Rejecting
+    anything else keeps values like `..` or `P1/../users` from rewriting the request path.
+    Single IDs are checked in the module function right before they go into the URL
+    path, so every caller is covered; list-filter IDs only go into query params and are
+    checked at the tool boundary in `server.py` so callers get a consistent error.
+
+    Args:
+        value (str): The ID to validate
+        param_name (str): The name of the parameter being validated (for error messages)
+
+    Raises:
+        ValueError: If the ID contains anything other than ASCII letters and digits
+    """
+    if not _PAGERDUTY_ID_RE.fullmatch(value):
+        raise ValueError(
+            f"Invalid {param_name} format: {value[:64]!r}. Must contain only ASCII letters and digits."
         )
 
 

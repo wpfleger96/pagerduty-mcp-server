@@ -84,6 +84,7 @@ async def show_escalation_policy(
 
     if not policy_id:
         raise ValueError("policy_id cannot be empty")
+    utils.validate_pagerduty_id(policy_id, "policy_id")
 
     pd_client = create_client()
 
