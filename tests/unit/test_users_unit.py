@@ -229,6 +229,34 @@ async def test_build_user_context_empty_teams(
 @pytest.mark.unit
 @pytest.mark.users
 @patch("pagerduty_mcp_server.users._show_current_user", new_callable=AsyncMock)
+@patch("pagerduty_mcp_server.services.fetch_service_ids", new_callable=AsyncMock)
+@patch(
+    "pagerduty_mcp_server.escalation_policies.fetch_escalation_policy_ids",
+    new_callable=AsyncMock,
+)
+async def test_build_user_context_user_without_teams_key(
+    mock_fetch_escalation_policy_ids,
+    mock_fetch_service_ids,
+    mock_show_current_user,
+    mock_user_parsed,
+):
+    """A user with no teams has no `teams` key; context must have empty team and service IDs."""
+    user_without_teams = {k: v for k, v in mock_user_parsed.items() if k != "teams"}
+    mock_show_current_user.return_value = user_without_teams
+    mock_fetch_service_ids.return_value = []
+    mock_fetch_escalation_policy_ids.return_value = []
+
+    context = await users.build_user_context()
+
+    assert context["team_ids"] == []
+    assert context["service_ids"] == []
+    mock_fetch_service_ids.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+@pytest.mark.unit
+@pytest.mark.users
+@patch("pagerduty_mcp_server.users._show_current_user", new_callable=AsyncMock)
 @patch("pagerduty_mcp_server.teams.fetch_team_ids")
 @patch("pagerduty_mcp_server.services.fetch_service_ids", new_callable=AsyncMock)
 @patch(

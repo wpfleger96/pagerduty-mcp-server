@@ -210,6 +210,7 @@ Additional fields present when optional parameters are used:
   - `incident_id` is used along with any other query parameters (Note: `include_past_incidents` and `include_related_incidents` are allowed with `incident_id`).
   - `current_user_context` is True and `service_ids` or `team_ids` are provided (and `incident_id` is not provided).
   - `current_user_context` is False and neither `service_ids` nor `team_ids` are provided (and `incident_id` is not provided).
+  - `current_user_context` is True and the current user belongs to no teams (and `incident_id` is not provided).
   - `statuses` contains invalid values (must be one of: `triggered`, `acknowledged`, `resolved`) or is not a list of strings (and `incident_id` is not provided).
   - `since` or `until` are not valid ISO8601 timestamps (and `incident_id` is not provided).
   - `incident_id` is not provided, but `include_past_incidents`, `include_related_incidents`, or `include_notes` is set to `True`.
@@ -803,6 +804,10 @@ Each service object contains:
   - `id` (str): Integration's PagerDuty ID
   - `summary` (str): Integration's name
 
+#### Raises
+- `ValueError`: If:
+  - `current_user_context` is True and the current user belongs to no teams.
+
 #### Example Response
 When listing services:
 ```json
@@ -1034,6 +1039,10 @@ Each user object contains:
 - `notification_rules` (List[Dict]): List of notification rules, each containing:
   - `id` (str): Rule ID
   - `type` (str): Rule type
+
+#### Raises
+- `ValueError`: If:
+  - `current_user_context` is True and the current user belongs to no teams.
 
 #### Example Queries
 ```python

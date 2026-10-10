@@ -1,7 +1,7 @@
 """MCP boundary tests: verify PagerDuty failures set isError=true."""
 
 from typing import cast
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastmcp.client import Client
@@ -71,3 +71,45 @@ async def test_successful_call_sets_is_error_false() -> None:
             result = await client.call_tool_mcp("get_teams", {"limit": 1})
 
     assert result.isError is False
+
+
+@pytest.mark.asyncio
+@pytest.mark.unit
+@pytest.mark.server
+@pytest.mark.parametrize(
+    ("tool_name", "list_module"),
+    [
+        ("get_incidents", "pagerduty_mcp_server.incidents"),
+        ("get_services", "pagerduty_mcp_server.services"),
+        ("get_users", "pagerduty_mcp_server.users"),
+    ],
+)
+async def test_current_user_without_teams_rejects_unscoped_query(
+    tool_name: str, list_module: str
+) -> None:
+    """A user with no teams must get an error, not an unfiltered account-wide query."""
+    no_team_context = {
+        "user_id": "PUSER1",
+        "name": "No Team",
+        "email": "n@example.com",
+        "team_ids": [],
+        "service_ids": [],
+        "escalation_policy_ids": [],
+    }
+    mocked_paginate = AsyncMock(return_value=[])
+
+    with (
+        patch(
+            "pagerduty_mcp_server.server.users.build_user_context",
+            AsyncMock(return_value=no_team_context),
+        ),
+        patch(f"{list_module}.create_client", MagicMock()),
+        patch(f"{list_module}.paginate", mocked_paginate),
+    ):
+        async with Client(mcp) as client:
+            result = await client.call_tool_mcp(tool_name, {})
+
+    assert result.isError is True
+    assert result.content
+    assert "not a member of any PagerDuty team" in _text(result.content)
+    mocked_paginate.assert_not_awaited()
