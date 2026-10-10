@@ -464,10 +464,10 @@ List the on-call entries during a given time range.
 #### Parameters
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| current_user_context | `bool` | No | If `True`, shows on-calls for all escalation policies associated with the current user's teams. Cannot be used with `user_ids`. (default: True) |
+| current_user_context | `bool` | No | If `True`, shows on-calls for the escalation policies the current user is a target of. If `schedule_ids` is also given, results must match both the schedules and the current user's escalation policies. Errors if the current user is not a target of any escalation policy and no `schedule_ids` are provided. Cannot be used with `user_ids` or `escalation_policy_ids`. (default: True) |
 | schedule_ids | `List[str]` | No | Return only on-calls for the specified schedule IDs |
-| user_ids | `List[str]` | No | Return only on-calls for the specified user IDs. Cannot be used with current_user_context |
-| escalation_policy_ids | `List[str]` | No | Return only on-calls for the specified escalation policy IDs |
+| user_ids | `List[str]` | No | Return only on-calls for the specified user IDs. Cannot be used with `current_user_context`. |
+| escalation_policy_ids | `List[str]` | No | Return only on-calls for the specified escalation policy IDs. Cannot be used with `current_user_context`. |
 | since | `str` | No | Start of date range in ISO8601 format. Default is current datetime. |
 | until | `str` | No | End of date range in ISO8601 format. Default is current datetime, max range: 90 days in the future. Cannot be before `since`. |
 | limit | `int` | No | Limit the number of results returned |
@@ -488,6 +488,12 @@ Each on-call object contains:
 - `escalation_level` (int): The escalation level for this on-call
 - `start` (str): Start time of the on-call period in ISO8601 format
 - `end` (str): End time of the on-call period in ISO8601 format
+
+#### Raises
+- `ValueError`: If:
+  - `current_user_context` is True and `user_ids` or `escalation_policy_ids` are provided.
+  - `current_user_context` is True, the current user is not a target of any escalation policy, and no `schedule_ids` are provided.
+  - `current_user_context` is False and none of `schedule_ids`, `user_ids`, or `escalation_policy_ids` are provided.
 
 #### Example Response
 ```json
@@ -517,7 +523,7 @@ Each on-call object contains:
 
 #### Example Queries
 ```python
-# Find who is currently on-call for my team's escalation policies
+# Find who is currently on-call for the escalation policies I'm a target of
 get_oncalls()
 
 # Find who is currently on-call for a specific schedule
@@ -540,6 +546,7 @@ get_oncalls(include=["user", "escalation_level", "start", "end"])
 
 # Get on-call entries with specific fields and filters combined
 get_oncalls(
+    current_user_context=False,
     schedule_ids=["SCHEDULE_123"],
     include=["user", "schedule", "start", "end"],
     limit=10,

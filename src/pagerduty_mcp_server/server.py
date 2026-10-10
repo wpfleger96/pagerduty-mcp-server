@@ -71,6 +71,13 @@ def _require_team_scope(user_context: dict[str, Any]) -> None:
         )
 
 
+def _drop_blank_ids(ids: list[str] | None) -> list[str] | None:
+    """Remove blank or whitespace-only IDs from a filter list, preserving None."""
+    if ids is None:
+        return None
+    return [id_ for id_ in ids if id_.strip()]
+
+
 """
 Tool Documentation
 """
@@ -337,28 +344,37 @@ async def get_oncalls(
 
     Behavior varies by time parameters:
     1. Without since/until: Returns current on-calls
-       Example: get_oncalls(schedule_ids=["SCHEDULE_123"])
+       Example: get_oncalls(current_user_context=False, schedule_ids=["SCHEDULE_123"])
     2. With since/until: Returns all on-calls in range
-       Example: get_oncalls(schedule_ids=["SCHEDULE_123"], since="2024-03-20T00:00:00Z", until="2024-03-27T00:00:00Z")
+       Example: get_oncalls(current_user_context=False, schedule_ids=["SCHEDULE_123"], since="2024-03-20T00:00:00Z", until="2024-03-27T00:00:00Z")
 
     Args:
-        current_user_context (bool): Use current user's team policies (default: True)
+        current_user_context (bool): Use escalation policies the current user is a target of (default: True); errors if the current user is a target of no escalation policy and no schedule_ids are given.
         schedule_ids (List[str]): Filter by schedules (optional)
         user_ids (List[str]): Filter by users (optional, excludes current_user_context)
-        escalation_policy_ids (List[str]): Filter by policies (optional)
+        escalation_policy_ids (List[str]): Filter by policies (optional, excludes current_user_context)
         since (str): Start of query range in ISO8601 format (default: current datetime)
         until (str): End of query range in ISO8601 format (default: current datetime, max range: 90 days in the future). Cannot be before `since`.
         limit (int): Max results (optional)
         earliest (bool): Only earliest on-call per policy/level/user combo (optional)
         include (List[str]): List of fields to include in the response. If specified, only these fields will be returned for each on-call entry
     """
+    schedule_ids = _drop_blank_ids(schedule_ids)
+    user_ids = _drop_blank_ids(user_ids)
+    escalation_policy_ids = _drop_blank_ids(escalation_policy_ids)
+
     if current_user_context:
-        if user_ids is not None:
+        if user_ids is not None or escalation_policy_ids is not None:
             raise ValueError(
-                "Cannot specify user_ids when current_user_context is True. See `docs://tools` for more information."
+                "Cannot specify user_ids or escalation_policy_ids when current_user_context is True. See `docs://tools` for more information."
             )
         user_context = await users.build_user_context()
         escalation_policy_ids = user_context["escalation_policy_ids"]
+        if not (escalation_policy_ids or schedule_ids):
+            raise ValueError(
+                "The current user is not a target of any PagerDuty escalation policy, so current_user_context=True has nothing to filter by. "
+                "Pass schedule_ids, or set current_user_context=False and pass explicit filters. See `docs://tools` for more information."
+            )
     elif not (schedule_ids or user_ids or escalation_policy_ids):
         raise ValueError(
             "When current_user_context is False, must specify at least one of: schedule_ids, user_ids, or escalation_policy_ids. See `docs://tools` for more information."
