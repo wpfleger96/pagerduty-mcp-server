@@ -101,6 +101,15 @@ def test_fetch_team_ids_empty_user(mock_user):
     assert team_ids == []
 
 
+@pytest.mark.unit
+@pytest.mark.teams
+def test_fetch_team_ids_missing_teams_key(mock_user):
+    """A user with no teams has the field stripped by to_clean_dict; treat it as no teams."""
+    mock_user.pop("teams", None)
+    team_ids = teams.fetch_team_ids(user=mock_user)
+    assert team_ids == []
+
+
 @pytest.mark.asyncio
 @pytest.mark.unit
 @pytest.mark.teams
