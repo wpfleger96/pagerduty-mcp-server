@@ -62,7 +62,7 @@ test-unit:
 
 # Run unit tests optimized for pre-commit (no coverage, quiet output)
 test-precommit:
-    uv run pytest -m unit --no-cov -q
+    uv run pytest -m unit --no-cov -q || test $? -eq 5
 
 # Run integration tests only
 test-integration:
