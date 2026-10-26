@@ -1154,7 +1154,7 @@ wheels = [
 
 [[package]]
 name = "pagerduty-mcp-server"
-version = "4.0.6"
+version = "4.0.7"
 source = { editable = "." }
 dependencies = [
     { name = "fastmcp" },

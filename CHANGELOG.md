@@ -1,5 +1,25 @@
 # CHANGELOG
 
+## [4.0.7](https://github.com/wpfleger96/pagerduty-mcp-server/compare/v4.0.6...v4.0.7) (2026-10-26)
+
+
+### Bug Fixes
+
+* **deps:** cap fastmcp below v4 and refresh vulnerable locks ([#109](https://github.com/wpfleger96/pagerduty-mcp-server/issues/109)) ([fb78c23](https://github.com/wpfleger96/pagerduty-mcp-server/commit/fb78c23d39b7495da2cc6eaef3bf84c5fba26cd0))
+
+
+### Chores
+
+* **deps:** Lock file maintenance ([#100](https://github.com/wpfleger96/pagerduty-mcp-server/issues/100)) ([129672c](https://github.com/wpfleger96/pagerduty-mcp-server/commit/129672c7c634577b16f1daecfa2a0ebdd5930bd3))
+* sync Justfile ([f50bc96](https://github.com/wpfleger96/pagerduty-mcp-server/commit/f50bc96bfd44d99f633b63931690142ed3c3d0e0))
+
+
+### Continuous Integration
+
+* sync CI workflow ([2fa4d0a](https://github.com/wpfleger96/pagerduty-mcp-server/commit/2fa4d0a1ad407c93410a8c2239ecb07a51cc4668))
+* sync publish workflow ([7c2c38e](https://github.com/wpfleger96/pagerduty-mcp-server/commit/7c2c38ee9c1fd4f076164bdfc026dcf3176ed45d))
+* sync release workflow ([29e6b03](https://github.com/wpfleger96/pagerduty-mcp-server/commit/29e6b03f711ef57e11e83fa734dbed971bc1806e))
+
 ## [4.0.6](https://github.com/wpfleger96/pagerduty-mcp-server/compare/v4.0.5...v4.0.6) (2026-10-10)
 
 
