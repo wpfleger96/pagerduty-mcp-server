@@ -53,7 +53,7 @@ jobs:
         uses: extractions/setup-just@v4
 
       - name: Install dependencies
-        run: just sync
+        run: uv sync --locked
 
       - name: Run ${{ matrix.name }}
         run: just ${{ matrix.recipe }}
