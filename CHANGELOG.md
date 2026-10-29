@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## [4.0.8](https://github.com/wpfleger96/pagerduty-mcp-server/compare/v4.0.7...v4.0.8) (2026-10-29)
+
+
+### Chores
+
+* **deps:** Lock file maintenance ([#113](https://github.com/wpfleger96/pagerduty-mcp-server/issues/113)) ([fa42cc1](https://github.com/wpfleger96/pagerduty-mcp-server/commit/fa42cc1def0c51e36ff4e39cf2906308449d86d8))
+* **deps:** Lock file maintenance ([#114](https://github.com/wpfleger96/pagerduty-mcp-server/issues/114)) ([32a1328](https://github.com/wpfleger96/pagerduty-mcp-server/commit/32a1328b0a59bc146aa98c6e8026f7f1b132965e))
+* **deps:** Lock file maintenance ([#115](https://github.com/wpfleger96/pagerduty-mcp-server/issues/115)) ([7f8b8fa](https://github.com/wpfleger96/pagerduty-mcp-server/commit/7f8b8fa44b298cd37fad195dc060e7ac75c637b4))
+
+
+### Continuous Integration
+
+* sync CI workflow ([5a5b246](https://github.com/wpfleger96/pagerduty-mcp-server/commit/5a5b246b714c2ccc1dd162a4c9b55ba33e56c8f6))
+
 ## [4.0.7](https://github.com/wpfleger96/pagerduty-mcp-server/compare/v4.0.6...v4.0.7) (2026-10-26)
 
 
