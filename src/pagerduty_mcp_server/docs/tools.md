@@ -142,7 +142,7 @@ Get PagerDuty incidents by filters or get details for a specific incident ID or 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | incident_id | `str` | No | Incident ID or number to show details for. Cannot be used with other parameters except include_* flags. |
-| current_user_context | `bool` | No | If `True`, filters incidents to those associated with the current user's teams and services. Cannot be used with `team_ids` or `service_ids`. |
+| current_user_context | `bool` | No | If `True`, filters incidents to those associated with the current user's teams and services. If the user belongs to no teams, lists without team/service filters (unscoped). Cannot be used with `team_ids` or `service_ids`. |
 | service_ids | `List[str]` | No | Filter incidents by specific service IDs. Cannot be used with `current_user_context`. |
 | team_ids | `List[str]` | No | Filter incidents by specific team IDs. Cannot be used with `current_user_context`. |
 | statuses | `List[str]` | No | Filter incidents by status. Must be input as a list of strings, valid values are `["triggered", "acknowledged", "resolved"]`. Defaults to all three. |
@@ -220,7 +220,6 @@ Additional fields present when optional parameters are used:
   - `incident_id` is used along with any other query parameters (Note: `include_past_incidents` and `include_related_incidents` are allowed with `incident_id`).
   - `current_user_context` is True and `service_ids` or `team_ids` are provided (and `incident_id` is not provided).
   - `current_user_context` is False and neither `service_ids` nor `team_ids` are provided (and `incident_id` is not provided).
-  - `current_user_context` is True and the current user belongs to no teams (and `incident_id` is not provided).
   - `statuses` contains invalid values (must be one of: `triggered`, `acknowledged`, `resolved`) or is not a list of strings (and `incident_id` is not provided).
   - `since` or `until` are not valid ISO8601 timestamps (and `incident_id` is not provided).
   - `incident_id` is not provided, but `include_past_incidents`, `include_related_incidents`, or `include_notes` is set to `True`.

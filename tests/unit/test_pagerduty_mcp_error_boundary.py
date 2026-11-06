@@ -128,7 +128,6 @@ async def test_successful_call_sets_is_error_false() -> None:
 @pytest.mark.parametrize(
     ("tool_name", "list_module"),
     [
-        ("get_incidents", "pagerduty_mcp_server.incidents"),
         ("get_services", "pagerduty_mcp_server.services"),
         ("get_users", "pagerduty_mcp_server.users"),
     ],
@@ -136,7 +135,7 @@ async def test_successful_call_sets_is_error_false() -> None:
 async def test_current_user_without_teams_rejects_unscoped_query(
     tool_name: str, list_module: str
 ) -> None:
-    """A user with no teams must get an error, not an unfiltered account-wide query."""
+    """A user with no teams must get an error for team-scoped list tools."""
     result, mocked_paginate = await _call_tool_as(
         _user_context(team_ids=[], escalation_policy_ids=[]), tool_name, list_module, {}
     )
@@ -145,6 +144,24 @@ async def test_current_user_without_teams_rejects_unscoped_query(
     assert result.content
     assert "not a member of any PagerDuty team" in _text(result.content)
     mocked_paginate.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+@pytest.mark.unit
+@pytest.mark.server
+async def test_get_incidents_current_user_without_teams_lists_unscoped() -> None:
+    """Empty team membership lists incidents without team/service filters."""
+    result, mocked_paginate = await _call_tool_as(
+        _user_context(team_ids=[], escalation_policy_ids=[]),
+        "get_incidents",
+        "pagerduty_mcp_server.incidents",
+        {},
+    )
+
+    assert result.isError is False
+    params = _paginate_params(mocked_paginate)
+    assert "team_ids" not in params
+    assert "service_ids" not in params
 
 
 @pytest.mark.asyncio

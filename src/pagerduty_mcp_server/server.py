@@ -201,7 +201,7 @@ async def get_incidents(
 
     Args:
         incident_id (str): The incident ID or number to retrieve (optional, cannot be used with any other filters).
-        current_user_context (bool): Filter by current user's context (default: True); errors if the current user belongs to no teams. Not used if `incident_id` is provided.
+        current_user_context (bool): Filter by current user's context (default: True). If the current user belongs to no teams, lists incidents without team/service filters (same as an unscoped PagerDuty REST list). Not used if `incident_id` is provided.
         service_ids (List[str]): Filter by services (optional, excludes current_user_context). Not used if `incident_id` is provided.
         team_ids (List[str]): Filter by teams (optional, excludes current_user_context). Not used if `incident_id` is provided.
         statuses (List[str]): Filter by status (optional). Not used if `incident_id` is provided. Must be input as a list of strings, valid values are `["triggered", "acknowledged", "resolved"]`. Defaults to all statuses.
@@ -252,9 +252,10 @@ async def get_incidents(
                 "Cannot specify service_ids or team_ids when current_user_context is True. See `docs://tools` for more information."
             )
         user_context = await users.build_user_context()
-        _require_team_scope(user_context)
-        team_ids = user_context["team_ids"]
-        service_ids = user_context["service_ids"]
+        # Empty team membership: leave filters empty so list_incidents matches
+        # unscoped PagerDuty REST (user tokens on team-less accounts still work).
+        team_ids = user_context["team_ids"] or None
+        service_ids = user_context["service_ids"] or None
     elif not (service_ids or team_ids):
         raise ValueError(
             "Must specify at least service_ids or team_ids when current_user_context is False. See `docs://tools` for more information."
