@@ -1,0 +1,45 @@
+# This file is managed by github-config. Do not edit manually.
+name: Bug report
+description: Something is broken or behaves differently than documented
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: The exact command or action, and the full error output.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of the tool's `--version`, or the commit SHA you're running.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Python/Node version, install method (uv tool, pipx, pip, source).
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      render: shell
