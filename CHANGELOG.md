@@ -1,5 +1,35 @@
 # CHANGELOG
 
+## [4.1.0](https://github.com/wpfleger96/pagerduty-mcp-server/compare/v4.0.7...v4.1.0) (2026-11-09)
+
+
+### Features
+
+* **incidents:** add all_visible opt-in to get_incidents ([#119](https://github.com/wpfleger96/pagerduty-mcp-server/issues/119)) ([b108633](https://github.com/wpfleger96/pagerduty-mcp-server/commit/b108633f6dcb3a232f4e194e14a7ced93606ea75))
+
+
+### Chores
+
+* **deps:** Lock file maintenance ([#113](https://github.com/wpfleger96/pagerduty-mcp-server/issues/113)) ([fa42cc1](https://github.com/wpfleger96/pagerduty-mcp-server/commit/fa42cc1def0c51e36ff4e39cf2906308449d86d8))
+* **deps:** Lock file maintenance ([#114](https://github.com/wpfleger96/pagerduty-mcp-server/issues/114)) ([32a1328](https://github.com/wpfleger96/pagerduty-mcp-server/commit/32a1328b0a59bc146aa98c6e8026f7f1b132965e))
+* **deps:** Lock file maintenance ([#115](https://github.com/wpfleger96/pagerduty-mcp-server/issues/115)) ([7f8b8fa](https://github.com/wpfleger96/pagerduty-mcp-server/commit/7f8b8fa44b298cd37fad195dc060e7ac75c637b4))
+* **deps:** Lock file maintenance ([#116](https://github.com/wpfleger96/pagerduty-mcp-server/issues/116)) ([55465e8](https://github.com/wpfleger96/pagerduty-mcp-server/commit/55465e8feb270883b88012c6afcefb0232c09cc4))
+* **deps:** Lock file maintenance ([#117](https://github.com/wpfleger96/pagerduty-mcp-server/issues/117)) ([3876cbf](https://github.com/wpfleger96/pagerduty-mcp-server/commit/3876cbff480a0e02954d6e9df24b88fd998037fb))
+* **deps:** Lock file maintenance ([#118](https://github.com/wpfleger96/pagerduty-mcp-server/issues/118)) ([1e05a80](https://github.com/wpfleger96/pagerduty-mcp-server/commit/1e05a809a61ba16424490ac2ef651b95a4848e83))
+* sync issue templates ([f32c6fa](https://github.com/wpfleger96/pagerduty-mcp-server/commit/f32c6fa25e7229ae7371d22021f6b0f4c07cb151))
+
+
+### Continuous Integration
+
+* sync CI workflow ([e43ab24](https://github.com/wpfleger96/pagerduty-mcp-server/commit/e43ab2446d55a390fd801c7ea75b353b4de38749))
+* sync CI workflow ([3af6f90](https://github.com/wpfleger96/pagerduty-mcp-server/commit/3af6f90f2a2aa8c10142b53907c701edbb3b7899))
+* sync CI workflow ([5a5b246](https://github.com/wpfleger96/pagerduty-mcp-server/commit/5a5b246b714c2ccc1dd162a4c9b55ba33e56c8f6))
+* sync publish workflow ([3357e54](https://github.com/wpfleger96/pagerduty-mcp-server/commit/3357e54971675600ca0fcc187e3bf644192cc131))
+* sync publish workflow ([3ef9470](https://github.com/wpfleger96/pagerduty-mcp-server/commit/3ef9470c509d7e8ecb8773552ff4871fa87f18c9))
+* sync release workflow ([83c75cf](https://github.com/wpfleger96/pagerduty-mcp-server/commit/83c75cf4454f0dc18a2230224c9d120d59c9b49d))
+* sync release workflow ([e04ba46](https://github.com/wpfleger96/pagerduty-mcp-server/commit/e04ba46c8f4fc0f8455e1f6568e89d0a94ac2320))
+* sync shared files ([f525b08](https://github.com/wpfleger96/pagerduty-mcp-server/commit/f525b08e4fce1005432fe52498ce1bbf01d45f44))
+
 ## [4.0.7](https://github.com/wpfleger96/pagerduty-mcp-server/compare/v4.0.6...v4.0.7) (2026-10-26)
 
 
