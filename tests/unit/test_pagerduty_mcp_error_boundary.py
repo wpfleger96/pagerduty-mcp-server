@@ -143,7 +143,10 @@ async def test_current_user_without_teams_rejects_unscoped_query(
 
     assert result.isError is True
     assert result.content
-    assert "not a member of any PagerDuty team" in _text(result.content)
+    text = _text(result.content)
+    assert "not a member of any PagerDuty team" in text
+    if tool_name == "get_incidents":
+        assert "get_incidents(all_visible=True)" in text
     mocked_paginate.assert_not_awaited()
 
 
@@ -151,12 +154,12 @@ async def test_current_user_without_teams_rejects_unscoped_query(
 @pytest.mark.unit
 @pytest.mark.server
 async def test_get_incidents_all_visible_lists_unscoped() -> None:
-    """all_visible=True lists incidents without team/service filters."""
+    """all_visible=True alone lists incidents without team/service filters."""
     result, mocked_paginate = await _call_tool_as(
         _UNUSED_USER_CONTEXT,
         "get_incidents",
         "pagerduty_mcp_server.incidents",
-        {"current_user_context": False, "all_visible": True},
+        {"all_visible": True},
     )
 
     assert result.isError is False
@@ -168,19 +171,19 @@ async def test_get_incidents_all_visible_lists_unscoped() -> None:
 @pytest.mark.asyncio
 @pytest.mark.unit
 @pytest.mark.server
-async def test_get_incidents_all_visible_rejects_with_current_user_context() -> None:
-    """all_visible cannot be combined with current_user_context=True."""
+async def test_get_incidents_all_visible_overrides_current_user_context() -> None:
+    """all_visible=True wins even when current_user_context remains True."""
     result, mocked_paginate = await _call_tool_as(
-        _UNUSED_USER_CONTEXT,
+        _user_context(team_ids=[], escalation_policy_ids=[]),
         "get_incidents",
         "pagerduty_mcp_server.incidents",
-        {"all_visible": True},
+        {"current_user_context": True, "all_visible": True},
     )
 
-    assert result.isError is True
-    assert result.content
-    assert "all_visible=True when current_user_context is True" in _text(result.content)
-    mocked_paginate.assert_not_awaited()
+    assert result.isError is False
+    params = _paginate_params(mocked_paginate)
+    assert "team_ids" not in params
+    assert "service_ids" not in params
 
 
 @pytest.mark.asyncio
@@ -193,7 +196,6 @@ async def test_get_incidents_all_visible_rejects_with_explicit_filters() -> None
         "get_incidents",
         "pagerduty_mcp_server.incidents",
         {
-            "current_user_context": False,
             "all_visible": True,
             "team_ids": ["T1"],
         },

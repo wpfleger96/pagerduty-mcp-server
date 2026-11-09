@@ -174,8 +174,8 @@ Common error scenarios include:
 Many functions accept a `current_user_context` parameter (defaults to `True`) which automatically filters results based on this context. When `current_user_context` is `True`, you cannot use certain filter parameters as they would conflict with the automatic filtering:
 
 - For incidents:
-  - `team_ids`, `service_ids`, and `all_visible` cannot be used with `current_user_context=True`
-  - Pass `current_user_context=False, all_visible=True` to list every incident the API token can see (for example on team-less accounts)
+  - `team_ids` and `service_ids` cannot be used with `current_user_context=True`
+  - Pass `all_visible=True` to list every incident the API token can see (for example on team-less accounts); this implies `current_user_context=False`
 - For services:
   - `team_ids` cannot be used with `current_user_context=True`
 - For escalation policies:
