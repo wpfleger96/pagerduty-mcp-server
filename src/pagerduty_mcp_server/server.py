@@ -185,6 +185,7 @@ async def get_incidents(
     *,
     incident_id: str | None = None,
     current_user_context: bool = True,
+    all_visible: bool = False,
     service_ids: list[str] | None = None,
     team_ids: list[str] | None = None,
     statuses: list[str] | None = None,
@@ -201,7 +202,8 @@ async def get_incidents(
 
     Args:
         incident_id (str): The incident ID or number to retrieve (optional, cannot be used with any other filters).
-        current_user_context (bool): Filter by current user's context (default: True). If the current user belongs to no teams, lists incidents without team/service filters (same as an unscoped PagerDuty REST list). Not used if `incident_id` is provided.
+        current_user_context (bool): Filter by current user's context (default: True); errors if the current user belongs to no teams. Not used if `incident_id` is provided.
+        all_visible (bool): If True, list every incident the API token can see with no team/service filter. Requires `current_user_context=False` and cannot be combined with `service_ids` or `team_ids`. Use this for team-less accounts. Not used if `incident_id` is provided.
         service_ids (List[str]): Filter by services (optional, excludes current_user_context). Not used if `incident_id` is provided.
         team_ids (List[str]): Filter by teams (optional, excludes current_user_context). Not used if `incident_id` is provided.
         statuses (List[str]): Filter by status (optional). Not used if `incident_id` is provided. Must be input as a list of strings, valid values are `["triggered", "acknowledged", "resolved"]`. Defaults to all statuses.
@@ -219,7 +221,8 @@ async def get_incidents(
 
     if incident_id is not None:
         disallowed_filters_present = (
-            service_ids is not None
+            all_visible
+            or service_ids is not None
             or team_ids is not None
             or statuses is not None
             or since is not None
@@ -246,19 +249,35 @@ async def get_incidents(
             "`include_past_incidents`, `include_related_incidents`, and `include_notes` can only be used when a specific `incident_id` is provided. See `docs://tools` for more information."
         )
 
+    if all_visible and current_user_context:
+        raise ValueError(
+            "Cannot set all_visible=True when current_user_context is True. "
+            "Pass current_user_context=False with all_visible=True for an unscoped list. "
+            "See `docs://tools` for more information."
+        )
+
+    if all_visible and (service_ids is not None or team_ids is not None):
+        raise ValueError(
+            "Cannot specify service_ids or team_ids when all_visible is True. See `docs://tools` for more information."
+        )
+
     if current_user_context:
         if service_ids is not None or team_ids is not None:
             raise ValueError(
                 "Cannot specify service_ids or team_ids when current_user_context is True. See `docs://tools` for more information."
             )
         user_context = await users.build_user_context()
-        # Empty team membership: leave filters empty so list_incidents matches
-        # unscoped PagerDuty REST (user tokens on team-less accounts still work).
-        team_ids = user_context["team_ids"] or None
-        service_ids = user_context["service_ids"] or None
+        _require_team_scope(user_context)
+        team_ids = user_context["team_ids"]
+        service_ids = user_context["service_ids"]
+    elif all_visible:
+        # Explicit opt-in: list without team/service filters (team-less accounts, account-wide views).
+        team_ids = None
+        service_ids = None
     elif not (service_ids or team_ids):
         raise ValueError(
-            "Must specify at least service_ids or team_ids when current_user_context is False. See `docs://tools` for more information."
+            "Must specify at least service_ids or team_ids when current_user_context is False, "
+            "or pass all_visible=True for an unscoped list. See `docs://tools` for more information."
         )
 
     if since and until:

@@ -128,6 +128,7 @@ async def test_successful_call_sets_is_error_false() -> None:
 @pytest.mark.parametrize(
     ("tool_name", "list_module"),
     [
+        ("get_incidents", "pagerduty_mcp_server.incidents"),
         ("get_services", "pagerduty_mcp_server.services"),
         ("get_users", "pagerduty_mcp_server.users"),
     ],
@@ -135,7 +136,7 @@ async def test_successful_call_sets_is_error_false() -> None:
 async def test_current_user_without_teams_rejects_unscoped_query(
     tool_name: str, list_module: str
 ) -> None:
-    """A user with no teams must get an error for team-scoped list tools."""
+    """A user with no teams must get an error, not an unfiltered account-wide query."""
     result, mocked_paginate = await _call_tool_as(
         _user_context(team_ids=[], escalation_policy_ids=[]), tool_name, list_module, {}
     )
@@ -149,19 +150,61 @@ async def test_current_user_without_teams_rejects_unscoped_query(
 @pytest.mark.asyncio
 @pytest.mark.unit
 @pytest.mark.server
-async def test_get_incidents_current_user_without_teams_lists_unscoped() -> None:
-    """Empty team membership lists incidents without team/service filters."""
+async def test_get_incidents_all_visible_lists_unscoped() -> None:
+    """all_visible=True lists incidents without team/service filters."""
     result, mocked_paginate = await _call_tool_as(
-        _user_context(team_ids=[], escalation_policy_ids=[]),
+        _UNUSED_USER_CONTEXT,
         "get_incidents",
         "pagerduty_mcp_server.incidents",
-        {},
+        {"current_user_context": False, "all_visible": True},
     )
 
     assert result.isError is False
     params = _paginate_params(mocked_paginate)
     assert "team_ids" not in params
     assert "service_ids" not in params
+
+
+@pytest.mark.asyncio
+@pytest.mark.unit
+@pytest.mark.server
+async def test_get_incidents_all_visible_rejects_with_current_user_context() -> None:
+    """all_visible cannot be combined with current_user_context=True."""
+    result, mocked_paginate = await _call_tool_as(
+        _UNUSED_USER_CONTEXT,
+        "get_incidents",
+        "pagerduty_mcp_server.incidents",
+        {"all_visible": True},
+    )
+
+    assert result.isError is True
+    assert result.content
+    assert "all_visible=True when current_user_context is True" in _text(result.content)
+    mocked_paginate.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+@pytest.mark.unit
+@pytest.mark.server
+async def test_get_incidents_all_visible_rejects_with_explicit_filters() -> None:
+    """all_visible cannot be combined with service_ids or team_ids."""
+    result, mocked_paginate = await _call_tool_as(
+        _UNUSED_USER_CONTEXT,
+        "get_incidents",
+        "pagerduty_mcp_server.incidents",
+        {
+            "current_user_context": False,
+            "all_visible": True,
+            "team_ids": ["T1"],
+        },
+    )
+
+    assert result.isError is True
+    assert result.content
+    assert "Cannot specify service_ids or team_ids when all_visible is True" in _text(
+        result.content
+    )
+    mocked_paginate.assert_not_awaited()
 
 
 @pytest.mark.asyncio
