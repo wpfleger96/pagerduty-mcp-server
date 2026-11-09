@@ -142,8 +142,8 @@ Get PagerDuty incidents by filters or get details for a specific incident ID or 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | incident_id | `str` | No | Incident ID or number to show details for. Cannot be used with other parameters except include_* flags. |
-| current_user_context | `bool` | No | If `True`, filters incidents to those associated with the current user's teams and services. Errors if the current user belongs to no teams (retry with `all_visible=True`). Ignored when `all_visible` is `True`. Cannot be used with `team_ids` or `service_ids`. |
-| all_visible | `bool` | No | If `True`, lists every incident the API token can see with no team/service filter. Implies `current_user_context=False`. Cannot be used with `team_ids` or `service_ids`. Use for team-less accounts: `get_incidents(all_visible=True)`. |
+| current_user_context | `bool` | No | If `True`, filters incidents to those associated with the current user's teams and services. Errors if the current user belongs to no teams. Ignored when `all_visible` is `True`. Cannot be used with `team_ids` or `service_ids`. |
+| all_visible | `bool` | No | If `True`, lists incidents across the whole account that the API token can see, with no team/service filter. These are not scoped to the current user; use only when account-wide incidents are wanted. Implies `current_user_context=False`. Cannot be used with `team_ids` or `service_ids`. |
 | service_ids | `List[str]` | No | Filter incidents by specific service IDs. Cannot be used with `current_user_context` or `all_visible`. |
 | team_ids | `List[str]` | No | Filter incidents by specific team IDs. Cannot be used with `current_user_context` or `all_visible`. |
 | statuses | `List[str]` | No | Filter incidents by status. Must be input as a list of strings, valid values are `["triggered", "acknowledged", "resolved"]`. Defaults to all three. |
@@ -222,7 +222,7 @@ Additional fields present when optional parameters are used:
   - `current_user_context` is True and `service_ids` or `team_ids` are provided (and `incident_id` is not provided).
   - `current_user_context` is False, `all_visible` is False, and neither `service_ids` nor `team_ids` are provided (and `incident_id` is not provided).
   - `all_visible` is True and `service_ids` or `team_ids` are provided (and `incident_id` is not provided).
-  - `current_user_context` is True, `all_visible` is False, and the current user belongs to no teams (and `incident_id` is not provided). Retry with `get_incidents(all_visible=True)`.
+  - `current_user_context` is True, `all_visible` is False, and the current user belongs to no teams (and `incident_id` is not provided).
   - `statuses` contains invalid values (must be one of: `triggered`, `acknowledged`, `resolved`) or is not a list of strings (and `incident_id` is not provided).
   - `since` or `until` are not valid ISO8601 timestamps (and `incident_id` is not provided).
   - `incident_id` is not provided, but `include_past_incidents`, `include_related_incidents`, or `include_notes` is set to `True`.
@@ -359,7 +359,7 @@ get_incidents(
     current_user_context=False, service_ids=["PSVC123"], statuses=["resolved"]
 )
 
-# List every incident the API token can see (team-less accounts / account-wide views)
+# List incidents across the whole account that the API token can see (not scoped to the current user)
 get_incidents(all_visible=True)
 
 # Get details for a specific incident with additional context

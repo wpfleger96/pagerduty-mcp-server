@@ -65,18 +65,13 @@ def tool_error_boundary(
 def _require_team_scope(
     user_context: dict[str, Any],
     *,
-    recovery: str | None = None,
+    recovery: str = "Set current_user_context=False and pass explicit filters.",
 ) -> None:
     """Reject current-user scoping when the user has no teams to filter by."""
     if not user_context["team_ids"]:
-        if recovery is None:
-            recovery = (
-                "Set current_user_context=False and pass explicit filters. "
-                "See `docs://tools` for more information."
-            )
         raise ValueError(
             "The current user is not a member of any PagerDuty team, so current_user_context=True has nothing to filter by. "
-            f"{recovery}"
+            f"{recovery} See `docs://tools` for more information."
         )
 
 
@@ -212,7 +207,7 @@ async def get_incidents(
     Args:
         incident_id (str): The incident ID or number to retrieve (optional, cannot be used with any other filters).
         current_user_context (bool): Filter by current user's context (default: True); errors if the current user belongs to no teams. Ignored when `all_visible` is True. Not used if `incident_id` is provided.
-        all_visible (bool): If True, list every incident the API token can see with no team/service filter. Implies `current_user_context=False`. Cannot be combined with `service_ids` or `team_ids`. Use this for team-less accounts. Not used if `incident_id` is provided.
+        all_visible (bool): If True, list incidents across the whole account that the API token can see, with no team/service filter. These are not scoped to the current user; use only when account-wide incidents are wanted. Implies `current_user_context=False`. Cannot be combined with `service_ids` or `team_ids`. Not used if `incident_id` is provided.
         service_ids (List[str]): Filter by services (optional, excludes current_user_context / all_visible). Not used if `incident_id` is provided.
         team_ids (List[str]): Filter by teams (optional, excludes current_user_context / all_visible). Not used if `incident_id` is provided.
         statuses (List[str]): Filter by status (optional). Not used if `incident_id` is provided. Must be input as a list of strings, valid values are `["triggered", "acknowledged", "resolved"]`. Defaults to all statuses.
@@ -258,19 +253,15 @@ async def get_incidents(
             "`include_past_incidents`, `include_related_incidents`, and `include_notes` can only be used when a specific `incident_id` is provided. See `docs://tools` for more information."
         )
 
-    # all_visible is an explicit unscoped list; ignore current_user_context so callers
-    # only need get_incidents(all_visible=True).
+    # all_visible takes precedence over current_user_context, which defaults to True.
     if all_visible:
-        current_user_context = False
-
-    if all_visible and (service_ids is not None or team_ids is not None):
-        raise ValueError(
-            "Cannot specify service_ids or team_ids when all_visible is True. "
-            "Call get_incidents(all_visible=True) with no team/service filters. "
-            "See `docs://tools` for more information."
-        )
-
-    if current_user_context:
+        if service_ids is not None or team_ids is not None:
+            raise ValueError(
+                "Cannot specify service_ids or team_ids when all_visible is True. "
+                "Call get_incidents(all_visible=True) with no team/service filters. "
+                "See `docs://tools` for more information."
+            )
+    elif current_user_context:
         if service_ids is not None or team_ids is not None:
             raise ValueError(
                 "Cannot specify service_ids or team_ids when current_user_context is True. See `docs://tools` for more information."
@@ -279,16 +270,13 @@ async def get_incidents(
         _require_team_scope(
             user_context,
             recovery=(
-                "Retry with get_incidents(all_visible=True), "
-                "or set current_user_context=False and pass service_ids or team_ids. "
-                "See `docs://tools` for more information."
+                "Set current_user_context=False and pass service_ids or team_ids. "
+                "Only if account-wide incidents were asked for, call get_incidents(all_visible=True); "
+                "those are not the current user's incidents."
             ),
         )
         team_ids = user_context["team_ids"]
         service_ids = user_context["service_ids"]
-    elif all_visible:
-        team_ids = None
-        service_ids = None
     elif not (service_ids or team_ids):
         raise ValueError(
             "Must specify at least service_ids or team_ids when current_user_context is False, "
