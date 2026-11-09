@@ -142,9 +142,10 @@ Get PagerDuty incidents by filters or get details for a specific incident ID or 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | incident_id | `str` | No | Incident ID or number to show details for. Cannot be used with other parameters except include_* flags. |
-| current_user_context | `bool` | No | If `True`, filters incidents to those associated with the current user's teams and services. Cannot be used with `team_ids` or `service_ids`. |
-| service_ids | `List[str]` | No | Filter incidents by specific service IDs. Cannot be used with `current_user_context`. |
-| team_ids | `List[str]` | No | Filter incidents by specific team IDs. Cannot be used with `current_user_context`. |
+| current_user_context | `bool` | No | If `True`, filters incidents to those associated with the current user's teams and services. Errors if the current user belongs to no teams. Ignored when `all_visible` is `True`. Cannot be used with `team_ids` or `service_ids`. |
+| all_visible | `bool` | No | If `True`, lists incidents across the whole account that the API token can see, with no team/service filter. These are not scoped to the current user; use only when account-wide incidents are wanted. Implies `current_user_context=False`. Cannot be used with `team_ids` or `service_ids`. |
+| service_ids | `List[str]` | No | Filter incidents by specific service IDs. Cannot be used with `current_user_context` or `all_visible`. |
+| team_ids | `List[str]` | No | Filter incidents by specific team IDs. Cannot be used with `current_user_context` or `all_visible`. |
 | statuses | `List[str]` | No | Filter incidents by status. Must be input as a list of strings, valid values are `["triggered", "acknowledged", "resolved"]`. Defaults to all three. |
 | urgencies | `List[str]` | No | Filter incidents by urgency. Valid values are `["high", "low"]`. Defaults to both. |
 | since | `str` | No | Start of date range in ISO8601 format. Default range: 1 month, max range: 6 months. |
@@ -219,8 +220,9 @@ Additional fields present when optional parameters are used:
 - `ValueError`: If:
   - `incident_id` is used along with any other query parameters (Note: `include_past_incidents` and `include_related_incidents` are allowed with `incident_id`).
   - `current_user_context` is True and `service_ids` or `team_ids` are provided (and `incident_id` is not provided).
-  - `current_user_context` is False and neither `service_ids` nor `team_ids` are provided (and `incident_id` is not provided).
-  - `current_user_context` is True and the current user belongs to no teams (and `incident_id` is not provided).
+  - `current_user_context` is False, `all_visible` is False, and neither `service_ids` nor `team_ids` are provided (and `incident_id` is not provided).
+  - `all_visible` is True and `service_ids` or `team_ids` are provided (and `incident_id` is not provided).
+  - `current_user_context` is True, `all_visible` is False, and the current user belongs to no teams (and `incident_id` is not provided).
   - `statuses` contains invalid values (must be one of: `triggered`, `acknowledged`, `resolved`) or is not a list of strings (and `incident_id` is not provided).
   - `since` or `until` are not valid ISO8601 timestamps (and `incident_id` is not provided).
   - `incident_id` is not provided, but `include_past_incidents`, `include_related_incidents`, or `include_notes` is set to `True`.
@@ -356,6 +358,9 @@ get_incidents(since="2025-02-26T00:00:00Z", until="2025-03-26T00:00:00Z")
 get_incidents(
     current_user_context=False, service_ids=["PSVC123"], statuses=["resolved"]
 )
+
+# List incidents across the whole account that the API token can see (not scoped to the current user)
+get_incidents(all_visible=True)
 
 # Get details for a specific incident with additional context
 get_incidents(

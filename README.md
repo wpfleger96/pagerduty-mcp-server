@@ -175,6 +175,7 @@ Many functions accept a `current_user_context` parameter (defaults to `True`) wh
 
 - For incidents:
   - `team_ids` and `service_ids` cannot be used with `current_user_context=True`
+  - Pass `all_visible=True` to list incidents across the whole account that the API token can see, not scoped to the current user; this implies `current_user_context=False`
 - For services:
   - `team_ids` cannot be used with `current_user_context=True`
 - For escalation policies:
