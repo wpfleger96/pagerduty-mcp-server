@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [4.1.1](https://github.com/wpfleger96/pagerduty-mcp-server/compare/v4.1.0...v4.1.1) (2026-11-14)
+
+
+### Chores
+
+* **deps:** Update dependency dnspython to v2.9.2 [SECURITY] ([#120](https://github.com/wpfleger96/pagerduty-mcp-server/issues/120)) ([e8ffbe6](https://github.com/wpfleger96/pagerduty-mcp-server/commit/e8ffbe64eecdcf2d625d9724c4966d069a2f1f79))
+
 ## [4.1.0](https://github.com/wpfleger96/pagerduty-mcp-server/compare/v4.0.7...v4.1.0) (2026-11-09)
 
 
