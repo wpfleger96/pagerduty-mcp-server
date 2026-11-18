@@ -19,6 +19,14 @@ The following general information in this section applies to all tools.
 - Minimize the number of API calls by using the most efficient query parameters
 - If a tool call returns an error, check the documentation for examples and supported parameters and consider if removing parameters might resolve the error before adding more parameters
 
+### `current_user_context` call modes
+Scoped list tools (`get_escalation_policies`, `get_incidents`, `get_oncalls`, `get_services`, `get_users`) have two modes. Mixing them incorrectly is the most common agent mistake.
+
+1. **Default / my context** (`current_user_context=True`, the default): omit exclusive ID filters (`service_ids`, `team_ids`, `user_ids`, `escalation_policy_ids` as documented per tool). Name `query` works in this mode. Prefer omitting `current_user_context` entirely rather than setting it to `False`.
+2. **Explicit ID filters**: pass non-empty exclusive ID filters. Non-empty exclusive filters **imply** `current_user_context=False` even if the default `True` was left unset. You may still pass `current_user_context=False` explicitly for clarity.
+
+Do **not** set `current_user_context=False` with only a name `query` and no ID filters; that errors because False mode requires the documented ID filters. For `get_incidents`, never set `include_notes`, `include_past_incidents`, or `include_related_incidents` on a list call; list first, then call again with `incident_id`.
+
 ## Escalation Policy Tools
 Tools for interacting with PagerDuty Escalation Policies. An Escalation Policy determines what User or Schedule will be Notified and in what order when an Incident is triggered.
 
@@ -29,10 +37,10 @@ Get PagerDuty escalation policies by filters or get details for a specific polic
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | policy_id | `str` | No | The escalation policy ID to retrieve. Cannot be used with any other parameters. |
-| current_user_context | `bool` | No | If `True`, filters escalation policies to those associated with the current user (via `user_id` and `team_ids`). Cannot be used with `user_ids` or `team_ids`. |
-| query | `str` | No | Filter escalation policies by name (case-insensitive substring match). |
-| user_ids | `List[str]` | No | Filter results to escalation policies that include any of the given user IDs. Cannot be used with `current_user_context`. |
-| team_ids | `List[str]` | No | Filter results to escalation policies that belong to any of the given teams. Cannot be used with `current_user_context`. |
+| current_user_context | `bool` | No | If `True`, filters escalation policies to those associated with the current user (via `user_id` and `team_ids`). Ignored when non-empty `user_ids` or `team_ids` are provided (those imply False). |
+| query | `str` | No | Filter escalation policies by name (case-insensitive substring match). Works with default context; not a substitute for `user_ids`/`team_ids` when context is False. |
+| user_ids | `List[str]` | No | Filter results to escalation policies that include any of the given user IDs. Non-empty values imply `current_user_context=False`. |
+| team_ids | `List[str]` | No | Filter results to escalation policies that belong to any of the given teams. Non-empty values imply `current_user_context=False`. |
 | limit | `int` | No | Limit the number of results returned. |
 | include | `List[str]` | No | List of fields to include in the response. If specified, only these fields will be returned for each escalation policy. Available fields: `id`, `name`, `description`, `escalation_rules`, `services`, `teams`. |
 
@@ -58,8 +66,7 @@ Each escalation policy object contains:
 #### Raises
 - `ValueError`: If:
   - `policy_id` is used along with any other query parameters (`query`, `user_ids`, `team_ids`, or `limit`).
-  - `current_user_context` is True and `user_ids` or `team_ids` are provided.
-  - `current_user_context` is False and neither `user_ids` nor `team_ids` are provided.
+  - `current_user_context` is False (explicitly, or implied by empty filters after cleanup) and neither `user_ids` nor `team_ids` are provided.
 
 #### Example Response
 When listing escalation policies:
@@ -142,18 +149,18 @@ Get PagerDuty incidents by filters or get details for a specific incident ID or 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | incident_id | `str` | No | Incident ID or number to show details for. Cannot be used with other parameters except include_* flags. |
-| current_user_context | `bool` | No | If `True`, filters incidents to those associated with the current user's teams and services. Errors if the current user belongs to no teams. Ignored when `all_visible` is `True`. Cannot be used with `team_ids` or `service_ids`. |
+| current_user_context | `bool` | No | If `True`, filters incidents to those associated with the current user's teams and services. Errors if the current user belongs to no teams. Ignored when `all_visible` is `True` or when non-empty `service_ids`/`team_ids` are provided (those imply False). |
 | all_visible | `bool` | No | If `True`, lists incidents across the whole account that the API token can see, with no team/service filter. These are not scoped to the current user; use only when account-wide incidents are wanted. Implies `current_user_context=False`. Cannot be used with `team_ids` or `service_ids`. |
-| service_ids | `List[str]` | No | Filter incidents by specific service IDs. Cannot be used with `current_user_context` or `all_visible`. |
-| team_ids | `List[str]` | No | Filter incidents by specific team IDs. Cannot be used with `current_user_context` or `all_visible`. |
+| service_ids | `List[str]` | No | Filter incidents by specific service IDs. Non-empty values imply `current_user_context=False`. Cannot be used with `all_visible`. |
+| team_ids | `List[str]` | No | Filter incidents by specific team IDs. Non-empty values imply `current_user_context=False`. Cannot be used with `all_visible`. |
 | statuses | `List[str]` | No | Filter incidents by status. Must be input as a list of strings, valid values are `["triggered", "acknowledged", "resolved"]`. Defaults to all three. |
 | urgencies | `List[str]` | No | Filter incidents by urgency. Valid values are `["high", "low"]`. Defaults to both. |
 | since | `str` | No | Start of date range in ISO8601 format. Default range: 1 month, max range: 6 months. |
 | until | `str` | No | End of date range in ISO8601 format. Default range: 1 month, max range: 6 months. |
 | limit | `int` | No | Limit the number of results returned. |
-| include_past_incidents | `bool` | No | If `True` and `incident_id` is provided, includes similar past incidents. Defaults to `False`. |
-| include_related_incidents | `bool` | No | If `True` and `incident_id` is provided, includes related incidents. Defaults to `False`. |
-| include_notes | `bool` | No | If `True` and `incident_id` is provided, includes notes for the incident. Defaults to `False`. |
+| include_past_incidents | `bool` | No | Only with `incident_id`. If `True`, includes similar past incidents. Defaults to `False`. Never set on list calls. |
+| include_related_incidents | `bool` | No | Only with `incident_id`. If `True`, includes related incidents. Defaults to `False`. Never set on list calls. |
+| include_notes | `bool` | No | Only with `incident_id`. If `True`, includes notes for that incident. Defaults to `False`. Never set on list calls; list first, then fetch details. |
 | include | `List[str]` | No | List of fields to include in the response. If specified, only these fields will be returned for each incident. Available fields: `id`, `incident_number`, `title`, `status`, `urgency`, `created_at`, `updated_at`, `resolved_at`, `assignments`, `acknowledgements`, `service`, `teams`, `alert_counts`, `description`, `escalation_policy`, `last_status_change_at`, `last_status_change_by`, `body_details`. |
 
 #### Returns
@@ -218,11 +225,10 @@ Additional fields present when optional parameters are used:
 
 #### Raises
 - `ValueError`: If:
-  - `incident_id` is used along with any other query parameters (Note: `include_past_incidents` and `include_related_incidents` are allowed with `incident_id`).
-  - `current_user_context` is True and `service_ids` or `team_ids` are provided (and `incident_id` is not provided).
-  - `current_user_context` is False, `all_visible` is False, and neither `service_ids` nor `team_ids` are provided (and `incident_id` is not provided).
+  - `incident_id` is used along with any other query parameters (Note: `include_past_incidents`, `include_related_incidents`, and `include_notes` are allowed with `incident_id`).
+  - `current_user_context` is False (explicitly, or after exclusive filters are cleaned to empty), `all_visible` is False, and neither `service_ids` nor `team_ids` are provided (and `incident_id` is not provided).
   - `all_visible` is True and `service_ids` or `team_ids` are provided (and `incident_id` is not provided).
-  - `current_user_context` is True, `all_visible` is False, and the current user belongs to no teams (and `incident_id` is not provided).
+  - `current_user_context` is True, `all_visible` is False, no exclusive ID filters are present, and the current user belongs to no teams (and `incident_id` is not provided).
   - `statuses` contains invalid values (must be one of: `triggered`, `acknowledged`, `resolved`) or is not a list of strings (and `incident_id` is not provided).
   - `since` or `until` are not valid ISO8601 timestamps (and `incident_id` is not provided).
   - `incident_id` is not provided, but `include_past_incidents`, `include_related_incidents`, or `include_notes` is set to `True`.
@@ -355,6 +361,8 @@ get_incidents(since="2025-02-26T00:00:00Z", until="2025-03-26T00:00:00Z")
 
 # Get incidents for specific services
 # Use this query to answer questions like "What incidents have been resolved this week for Service 123?"
+# Non-empty service_ids imply current_user_context=False (explicit False is optional).
+get_incidents(service_ids=["PSVC123"], statuses=["resolved"])
 get_incidents(
     current_user_context=False, service_ids=["PSVC123"], statuses=["resolved"]
 )
@@ -479,10 +487,10 @@ List the on-call entries during a given time range.
 #### Parameters
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| current_user_context | `bool` | No | If `True`, shows on-calls for the escalation policies the current user is a target of. If `schedule_ids` is also given, results must match both the schedules and the current user's escalation policies. Errors if the current user is not a target of any escalation policy and no `schedule_ids` are provided. Cannot be used with `user_ids` or `escalation_policy_ids`. (default: True) |
+| current_user_context | `bool` | No | If `True`, shows on-calls for the escalation policies the current user is a target of. If `schedule_ids` is also given, results must match both the schedules and the current user's escalation policies. Errors if the current user is not a target of any escalation policy and no `schedule_ids` are provided. Ignored when non-empty `user_ids` or `escalation_policy_ids` are provided (those imply False). (default: True) |
 | schedule_ids | `List[str]` | No | Return only on-calls for the specified schedule IDs |
-| user_ids | `List[str]` | No | Return only on-calls for the specified user IDs. Cannot be used with `current_user_context`. |
-| escalation_policy_ids | `List[str]` | No | Return only on-calls for the specified escalation policy IDs. Cannot be used with `current_user_context`. |
+| user_ids | `List[str]` | No | Return only on-calls for the specified user IDs. Non-empty values imply `current_user_context=False`. |
+| escalation_policy_ids | `List[str]` | No | Return only on-calls for the specified escalation policy IDs. Non-empty values imply `current_user_context=False`. |
 | since | `str` | No | Start of date range in ISO8601 format. Default is current datetime. |
 | until | `str` | No | End of date range in ISO8601 format. Default is current datetime, max range: 90 days in the future. Cannot be before `since`. |
 | limit | `int` | No | Limit the number of results returned |
@@ -506,8 +514,7 @@ Each on-call object contains:
 
 #### Raises
 - `ValueError`: If:
-  - `current_user_context` is True and `user_ids` or `escalation_policy_ids` are provided.
-  - `current_user_context` is True, the current user is not a target of any escalation policy, and no `schedule_ids` are provided.
+  - `current_user_context` is True (no exclusive `user_ids` / `escalation_policy_ids`), the current user is not a target of any escalation policy, and no `schedule_ids` are provided.
   - `current_user_context` is False and none of `schedule_ids`, `user_ids`, or `escalation_policy_ids` are provided.
 
 #### Example Response
@@ -805,9 +812,9 @@ Get PagerDuty services by filters or get details for a specific service ID.
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | service_id | `str` | No | The service ID to retrieve. Cannot be used with any other parameters. |
-| current_user_context | `bool` | No | If `True`, filters services to those associated with the current user's teams. Cannot be used with `team_ids`. |
-| team_ids | `List[str]` | No | Filter services by specific team IDs. Cannot be used with `current_user_context`. |
-| query | `str` | No | Filter services whose names contain the search query. |
+| current_user_context | `bool` | No | If `True`, filters services to those associated with the current user's teams. Ignored when non-empty `team_ids` are provided (those imply False). |
+| team_ids | `List[str]` | No | Filter services by specific team IDs. Non-empty values imply `current_user_context=False`. |
+| query | `str` | No | Filter services whose names contain the search query. Works with default context; not a substitute for `team_ids` when context is False. |
 | limit | `int` | No | Limit the number of results returned. |
 | include | `List[str]` | No | List of fields to include in the response. If specified, only these fields will be returned for each service. Available fields: `id`, `name`, `description`, `status`, `created_at`, `updated_at`, `teams`, `integrations`. |
 
@@ -829,9 +836,8 @@ Each service object contains:
 #### Raises
 - `ValueError`: If:
   - `service_id` is used along with any other query parameters (`team_ids`, `query`, or `limit`).
-  - `current_user_context` is True and `team_ids` is provided.
-  - `current_user_context` is False and `team_ids` is not provided.
-  - `current_user_context` is True and the current user belongs to no teams.
+  - `current_user_context` is False (explicitly, or after `team_ids` cleanup is empty) and `team_ids` is not provided. Name `query` alone is not enough in False mode.
+  - `current_user_context` is True, no non-empty `team_ids` are present, and the current user belongs to no teams.
 
 #### Example Response
 When listing services:
@@ -894,13 +900,14 @@ get_services(current_user_context=False, team_ids=["PTEAM123"])
 # Get details for a specific service
 get_services(service_id="PSVC123")
 
-# Search for services by name
+# Search for services by name (default context; do NOT set current_user_context=False here)
 get_services(query="Payment Processing")
 
 # Get only specific fields for services (using include parameter)
 get_services(include=["id", "name", "status"])
 
 # Get services with specific fields and filters combined
+# Non-empty team_ids imply current_user_context=False.
 get_services(
     team_ids=["PTEAM123"], include=["id", "name", "description", "teams"], limit=10
 )
@@ -1040,9 +1047,9 @@ Get PagerDuty users by filters or get details for a specific user ID.
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | user_id | `str` | No | The user ID to retrieve. Cannot be used with other parameters. |
-| current_user_context | `bool` | No | If `True`, filters users to those associated with the current user's teams. Cannot be used with `team_ids`. |
-| team_ids | `List[str]` | No | Filter users by specific team IDs. Cannot be used with `current_user_context`. |
-| query | `str` | No | Filter users whose names contain the search query. |
+| current_user_context | `bool` | No | If `True`, filters users to those associated with the current user's teams. Ignored when non-empty `team_ids` are provided (those imply False). |
+| team_ids | `List[str]` | No | Filter users by specific team IDs. Non-empty values imply `current_user_context=False`. |
+| query | `str` | No | Filter users whose names contain the search query. Works with default context; not a substitute for `team_ids` when context is False. |
 | limit | `int` | No | Limit the number of results returned. |
 | include | `List[str]` | No | List of fields to include in the response. If specified, only these fields will be returned for each user. Available fields: `id`, `name`, `email`, `description`, `teams`, `contact_methods`, `notification_rules`. |
 
@@ -1068,9 +1075,8 @@ Each user object contains:
 #### Raises
 - `ValueError`: If:
   - `user_id` is used along with any other query parameters (`team_ids`, `query`, or `limit`).
-  - `current_user_context` is True and `team_ids` is provided.
-  - `current_user_context` is False and `team_ids` is not provided.
-  - `current_user_context` is True and the current user belongs to no teams.
+  - `current_user_context` is False (explicitly, or after `team_ids` cleanup is empty) and `team_ids` is not provided. Name `query` alone is not enough in False mode.
+  - `current_user_context` is True, no non-empty `team_ids` are present, and the current user belongs to no teams.
 
 #### Example Queries
 ```python
