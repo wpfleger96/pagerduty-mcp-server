@@ -313,6 +313,62 @@ async def test_get_services_query_with_false_context_still_requires_team_ids() -
         pytest.param(
             "get_incidents",
             "pagerduty_mcp_server.incidents",
+            {"team_ids": [" "]},
+            id="incidents-blank-team-default-context",
+        ),
+        pytest.param(
+            "get_services",
+            "pagerduty_mcp_server.services",
+            {"team_ids": [""]},
+            id="services-blank-team-default-context",
+        ),
+        pytest.param(
+            "get_users",
+            "pagerduty_mcp_server.users",
+            {"team_ids": ["  "]},
+            id="users-blank-team-default-context",
+        ),
+        pytest.param(
+            "get_escalation_policies",
+            "pagerduty_mcp_server.escalation_policies",
+            {"user_ids": [""]},
+            id="escalation-policies-blank-user-default-context",
+        ),
+        pytest.param(
+            "get_oncalls",
+            "pagerduty_mcp_server.oncalls",
+            {"escalation_policy_ids": [" "]},
+            id="oncalls-blank-policy-default-context",
+        ),
+    ],
+)
+async def test_blank_exclusive_filters_do_not_fall_back_to_user_context(
+    tool_name: str, list_module: str, args: dict[str, Any]
+) -> None:
+    """Blank-only exclusive filters must error, not silently use the caller's teams."""
+    result, mocked_paginate = await _call_tool_as(
+        _user_context(team_ids=["T_USER"], escalation_policy_ids=["EP_USER"]),
+        tool_name,
+        list_module,
+        args,
+    )
+
+    assert result.isError is True
+    assert result.content
+    text = _text(result.content)
+    assert "Must specify at least" in text or "must specify at least one of" in text
+    mocked_paginate.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+@pytest.mark.unit
+@pytest.mark.server
+@pytest.mark.parametrize(
+    ("tool_name", "list_module", "args"),
+    [
+        pytest.param(
+            "get_incidents",
+            "pagerduty_mcp_server.incidents",
             {"team_ids": [""]},
             id="incidents-blank-team",
         ),

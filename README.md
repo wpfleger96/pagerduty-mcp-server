@@ -171,22 +171,27 @@ Common error scenarios include:
 - If no limit is specified, the server will return up to `pagerduty_mcp_server.utils.RESPONSE_LIMIT` results by default
 
 ## User Context
-Many functions accept a `current_user_context` parameter (defaults to `True`) which automatically filters results based on this context. When `current_user_context` is `True`, you cannot use certain filter parameters as they would conflict with the automatic filtering:
+Many functions accept a `current_user_context` parameter (defaults to `True`) which automatically filters results based on this context.
+
+Providing exclusive ID filters implies `current_user_context=False`, including when `True` was set explicitly. Blank-only ID lists error instead of falling back to the caller's own teams.
 
 - For incidents:
-  - `team_ids` and `service_ids` cannot be used with `current_user_context=True`
-  - Pass `all_visible=True` to list incidents across the whole account that the API token can see, not scoped to the current user; this implies `current_user_context=False`
+  - Passing `team_ids` and/or `service_ids` implies `current_user_context=False`
+  - Pass `all_visible=True` to list incidents across the whole account that the API token can see, not scoped to the current user; this also implies `current_user_context=False`
 - For services:
-  - `team_ids` cannot be used with `current_user_context=True`
+  - Passing `team_ids` implies `current_user_context=False`
+  - Name `query` with the default context searches only the current user's teams
 - For escalation policies:
-  - `user_ids` and `team_ids` cannot be used with `current_user_context=True`
+  - Passing `user_ids` and/or `team_ids` implies `current_user_context=False`
+  - Name `query` with the default context searches only the current user's policies/teams
 - For users:
-  - `team_ids` cannot be used with `current_user_context=True`
+  - Passing `team_ids` implies `current_user_context=False`
+  - Name `query` with the default context searches only the current user's teams
 - For on-calls:
-  - `user_ids` and `escalation_policy_ids` cannot be used with `current_user_context=True`
-  - `schedule_ids` can still be used to filter by specific schedules
-  - The query will show on-calls for the escalation policies the current user is a target of
-  - If the current user is not a target of any escalation policy and no `schedule_ids` are given, the tool returns an error; use `current_user_context=False` with explicit filters instead
+  - Passing `user_ids` and/or `escalation_policy_ids` implies `current_user_context=False`
+  - `schedule_ids` can still be used with the default context to filter by specific schedules
+  - The default query shows on-calls for the escalation policies the current user is a target of
+  - If the current user is not a target of any escalation policy and no `schedule_ids` are given, the tool returns an error; pass exclusive filters or `schedule_ids` instead
 
 ## Development
 ### Running Tests
