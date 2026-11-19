@@ -213,6 +213,175 @@ async def test_get_incidents_all_visible_rejects_with_explicit_filters() -> None
 @pytest.mark.unit
 @pytest.mark.server
 @pytest.mark.parametrize(
+    ("tool_name", "list_module", "args", "expected_param", "expected_ids"),
+    [
+        pytest.param(
+            "get_incidents",
+            "pagerduty_mcp_server.incidents",
+            {"service_ids": ["S1"], "statuses": ["triggered"]},
+            "service_ids",
+            ["S1"],
+            id="incidents-service-ids",
+        ),
+        pytest.param(
+            "get_incidents",
+            "pagerduty_mcp_server.incidents",
+            {"current_user_context": True, "team_ids": ["T1"]},
+            "team_ids",
+            ["T1"],
+            id="incidents-team-ids-overrides-true",
+        ),
+        pytest.param(
+            "get_services",
+            "pagerduty_mcp_server.services",
+            {"team_ids": ["T1"], "query": "Aiden"},
+            "team_ids[]",
+            ["T1"],
+            id="services-team-ids",
+        ),
+        pytest.param(
+            "get_users",
+            "pagerduty_mcp_server.users",
+            {"team_ids": ["T1"]},
+            "team_ids[]",
+            ["T1"],
+            id="users-team-ids",
+        ),
+        pytest.param(
+            "get_escalation_policies",
+            "pagerduty_mcp_server.escalation_policies",
+            {"user_ids": ["U1"]},
+            "user_ids[]",
+            ["U1"],
+            id="escalation-policies-user-ids",
+        ),
+        pytest.param(
+            "get_oncalls",
+            "pagerduty_mcp_server.oncalls",
+            {"escalation_policy_ids": ["P1"]},
+            "escalation_policy_ids[]",
+            ["P1"],
+            id="oncalls-escalation-policy-ids",
+        ),
+    ],
+)
+async def test_explicit_scope_ids_imply_current_user_context_false(
+    tool_name: str,
+    list_module: str,
+    args: dict[str, Any],
+    expected_param: str,
+    expected_ids: list[str],
+) -> None:
+    """Non-empty exclusive ID filters succeed even when current_user_context is left True."""
+    result, mocked_paginate = await _call_tool_as(
+        _user_context(team_ids=[], escalation_policy_ids=[]),
+        tool_name,
+        list_module,
+        args,
+    )
+
+    assert result.isError is False
+    assert _paginate_params(mocked_paginate)[expected_param] == expected_ids
+
+
+@pytest.mark.asyncio
+@pytest.mark.unit
+@pytest.mark.server
+async def test_get_services_query_with_false_context_still_requires_team_ids() -> None:
+    """Name query alone cannot satisfy current_user_context=False."""
+    result, mocked_paginate = await _call_tool_as(
+        _UNUSED_USER_CONTEXT,
+        "get_services",
+        "pagerduty_mcp_server.services",
+        {"current_user_context": False, "query": "Aiden Local"},
+    )
+
+    assert result.isError is True
+    assert result.content
+    text = _text(result.content)
+    assert "Must specify at least team_ids" in text
+    assert "Name `query` alone is not enough" in text
+    mocked_paginate.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+@pytest.mark.unit
+@pytest.mark.server
+@pytest.mark.parametrize(
+    ("tool_name", "list_module", "args"),
+    [
+        pytest.param(
+            "get_incidents",
+            "pagerduty_mcp_server.incidents",
+            {"team_ids": [" "]},
+            id="incidents-blank-team-default-context",
+        ),
+        pytest.param(
+            "get_services",
+            "pagerduty_mcp_server.services",
+            {"team_ids": [""]},
+            id="services-blank-team-default-context",
+        ),
+        pytest.param(
+            "get_users",
+            "pagerduty_mcp_server.users",
+            {"team_ids": ["  "]},
+            id="users-blank-team-default-context",
+        ),
+        pytest.param(
+            "get_escalation_policies",
+            "pagerduty_mcp_server.escalation_policies",
+            {"user_ids": [""]},
+            id="escalation-policies-blank-user-default-context",
+        ),
+        pytest.param(
+            "get_oncalls",
+            "pagerduty_mcp_server.oncalls",
+            {"escalation_policy_ids": [" "]},
+            id="oncalls-blank-policy-default-context",
+        ),
+    ],
+)
+async def test_blank_exclusive_filters_do_not_fall_back_to_user_context(
+    tool_name: str, list_module: str, args: dict[str, Any]
+) -> None:
+    """Blank-only exclusive filters must error, not silently use the caller's teams."""
+    result, mocked_paginate = await _call_tool_as(
+        _user_context(team_ids=["T_USER"], escalation_policy_ids=["EP_USER"]),
+        tool_name,
+        list_module,
+        args,
+    )
+
+    assert result.isError is True
+    assert result.content
+    assert "contained only blank IDs after cleanup" in _text(result.content)
+    mocked_paginate.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+@pytest.mark.unit
+@pytest.mark.server
+async def test_get_oncalls_blank_user_ids_error_even_with_schedule_ids() -> None:
+    """Blank exclusive filters must not be papered over by schedule_ids."""
+    result, mocked_paginate = await _call_tool_as(
+        _user_context(team_ids=["T_USER"], escalation_policy_ids=["EP_USER"]),
+        "get_oncalls",
+        "pagerduty_mcp_server.oncalls",
+        {"user_ids": [" "], "schedule_ids": ["S1"]},
+    )
+
+    assert result.isError is True
+    assert result.content
+    text = _text(result.content)
+    assert "`user_ids` contained only blank IDs after cleanup" in text
+    mocked_paginate.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+@pytest.mark.unit
+@pytest.mark.server
+@pytest.mark.parametrize(
     ("tool_name", "list_module", "args"),
     [
         pytest.param(
@@ -256,7 +425,7 @@ async def test_get_incidents_all_visible_rejects_with_explicit_filters() -> None
 async def test_blank_filter_ids_reject_unscoped_query(
     tool_name: str, list_module: str, args: dict[str, Any]
 ) -> None:
-    """Blank IDs must not count as a filter when current_user_context is False."""
+    """Blank-only exclusive ID lists error instead of counting as a real filter."""
     result, mocked_paginate = await _call_tool_as(
         _UNUSED_USER_CONTEXT,
         tool_name,
@@ -266,7 +435,7 @@ async def test_blank_filter_ids_reject_unscoped_query(
 
     assert result.isError is True
     assert result.content
-    assert "Must specify at least" in _text(result.content)
+    assert "contained only blank IDs after cleanup" in _text(result.content)
     mocked_paginate.assert_not_awaited()
 
 
@@ -466,12 +635,11 @@ async def test_get_oncalls_uses_current_user_policies() -> None:
 @pytest.mark.asyncio
 @pytest.mark.unit
 @pytest.mark.server
-async def test_get_oncalls_rejects_policy_ids_with_user_context() -> None:
-    """Caller-supplied escalation_policy_ids must not be silently overwritten."""
+async def test_get_oncalls_explicit_policy_ids_imply_false_context() -> None:
+    """Caller-supplied escalation_policy_ids imply False context and are not overwritten."""
     result, mocked_paginate = await _call_tool_as(
         _POLICY_USER, "get_oncalls", _ONCALLS_MODULE, {"escalation_policy_ids": ["P1"]}
     )
 
-    assert result.isError is True
-    assert "escalation_policy_ids" in _text(result.content)
-    mocked_paginate.assert_not_awaited()
+    assert result.isError is False
+    assert _paginate_params(mocked_paginate)["escalation_policy_ids[]"] == ["P1"]

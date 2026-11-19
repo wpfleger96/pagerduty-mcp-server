@@ -32,6 +32,11 @@ instructions = f"""
 PagerDuty MCP Server v{version("pagerduty_mcp_server")}
 
 REQUIRED READING: You MUST read all tool documentation using the resource `docs://tools` before using any tools. Failure to read the tools documentation may result in incorrect or incomplete results.
+
+Scoped list tools (`get_incidents`, `get_services`, `get_users`, `get_escalation_policies`, `get_oncalls`) have two modes:
+1. Default `current_user_context=True`: omit team/service/user ID filters (and omit `current_user_context=False`). Name `query` works in this mode (limited to the current user's teams/policies).
+2. Explicit filters: pass `service_ids` / `team_ids` / `user_ids` / `escalation_policy_ids` as documented per tool. Providing those exclusive filters with real IDs implies `current_user_context=False` (even if True was set explicitly). Blank-only exclusive ID lists error (non-exclusive filters like `schedule_ids` cannot paper over them).
+Never set `current_user_context=False` with only a name `query` and no ID filters. For `get_incidents`, `include_notes` / `include_past_incidents` / `include_related_incidents` require `incident_id` (list first, then fetch details).
 """
 
 mcp = FastMCP(
@@ -94,6 +99,30 @@ def _clean_filter_ids(ids: list[str] | None, param_name: str) -> list[str] | Non
     return cleaned
 
 
+def _has_explicit_scope_ids(*id_lists: list[str] | None) -> bool:
+    """True when at least one cleaned exclusive ID list is non-empty."""
+    return any(ids for ids in id_lists)
+
+
+def _reject_blank_only_exclusive_filters(**named_lists: list[str] | None) -> None:
+    """Raise when exclusive ID filters were passed but none remain after cleanup.
+
+    Blank IDs mixed with real IDs are still dropped (#104). This only fires when
+    every provided exclusive list cleaned to empty, so a call like
+    ``get_oncalls(user_ids=[" "], schedule_ids=["S1"])`` cannot slip through via
+    a non-exclusive filter.
+    """
+    provided = {name: ids for name, ids in named_lists.items() if ids is not None}
+    if not provided or any(ids for ids in provided.values()):
+        return
+    names = ", ".join(f"`{name}`" for name in provided)
+    raise ValueError(
+        f"{names} contained only blank IDs after cleanup. "
+        "Pass real PagerDuty IDs, or omit the parameter. "
+        "See `docs://tools` for more information."
+    )
+
+
 """
 Tool Documentation
 """
@@ -125,12 +154,17 @@ async def get_escalation_policies(
 ) -> dict[str, Any]:
     """Get PagerDuty escalation policies by filters or get details for a specific policy ID.
 
+    Call patterns:
+    - Default: omit filters (uses current user's policies/teams).
+    - By IDs: pass `user_ids` and/or `team_ids` (implies `current_user_context=False`, including overriding an explicit True).
+    - By name: pass `query` with the default context (limited to your teams/policies); do not set `current_user_context=False` with only `query`.
+
     Args:
         policy_id (str): The escalation policy ID to retrieve (optional, cannot be used with any other filters).
-        current_user_context (bool): Use current user's ID/team IDs context (default: True). Not used if `policy_id` is provided.
-        query (str): Policies whose names contain the search query (optional). Not used if `policy_id` is provided.
-        user_ids (List[str]): Policies that include these user IDs (optional, excludes current_user_context). Not used if `policy_id` is provided.
-        team_ids (List[str]): Policies assigned to these team IDs (optional, excludes current_user_context). Not used if `policy_id` is provided.
+        current_user_context (bool): Use current user's ID/team IDs context (default: True). Ignored when `user_ids` or `team_ids` are provided (those imply False, even if this is explicitly True). Not used if `policy_id` is provided.
+        query (str): Policies whose names contain the search query (optional). Works with default `current_user_context=True` (limited to your teams/policies). Not a substitute for `user_ids`/`team_ids` when context is False. Not used if `policy_id` is provided.
+        user_ids (List[str]): Policies that include these user IDs (optional). Providing this parameter implies `current_user_context=False` (overrides explicit True). Not used if `policy_id` is provided.
+        team_ids (List[str]): Policies assigned to these team IDs (optional). Providing this parameter implies `current_user_context=False` (overrides explicit True). Not used if `policy_id` is provided.
         limit (int): Limit the number of results (optional). Not used if `policy_id` is provided.
         include (List[str]): List of fields to include in the response. If specified, only these fields will be returned for each escalation policy
     """
@@ -153,17 +187,20 @@ async def get_escalation_policies(
             policy_id=policy_id, include=include
         )
 
+    _reject_blank_only_exclusive_filters(user_ids=user_ids, team_ids=team_ids)
+    # Non-empty exclusive filters imply False, including overriding an explicit True.
+    if _has_explicit_scope_ids(user_ids, team_ids):
+        current_user_context = False
+
     if current_user_context:
-        if user_ids is not None or team_ids is not None:
-            raise ValueError(
-                "Cannot specify user_ids or team_ids when current_user_context is True. See `docs://tools` for more information."
-            )
         user_context = await users.build_user_context()
         user_ids = [user_context["user_id"]]
         team_ids = user_context["team_ids"]
     elif not (user_ids or team_ids):
         raise ValueError(
-            "Must specify at least user_ids or team_ids when current_user_context is False. See `docs://tools` for more information."
+            "Must specify at least user_ids or team_ids when current_user_context is False. "
+            "Name `query` alone is not enough; use the default current_user_context=True with query, "
+            "or pass user_ids/team_ids. See `docs://tools` for more information."
         )
 
     return await escalation_policies.list_escalation_policies(
@@ -204,20 +241,26 @@ async def get_incidents(
 ) -> dict[str, Any]:
     """Get PagerDuty incidents by filters or get details for a specific incident ID or number.
 
+    Call patterns:
+    - List my/team incidents: omit ID filters (default `current_user_context=True`).
+    - List by service/team: pass `service_ids` and/or `team_ids` (implies `current_user_context=False`, including overriding an explicit True). Do not also set `include_notes` / `include_past_incidents` / `include_related_incidents` on this list call.
+    - Detail + notes: second call with only `incident_id` (and optional include_* flags).
+    - Account-wide list: `all_visible=True` alone (not scoped to the current user).
+
     Args:
         incident_id (str): The incident ID or number to retrieve (optional, cannot be used with any other filters).
-        current_user_context (bool): Filter by current user's context (default: True); errors if the current user belongs to no teams. Ignored when `all_visible` is True. Not used if `incident_id` is provided.
+        current_user_context (bool): Filter by current user's context (default: True); errors if the current user belongs to no teams. Ignored when `all_visible` is True or when `service_ids`/`team_ids` are provided (those imply False, even if this is explicitly True). Not used if `incident_id` is provided.
         all_visible (bool): If True, list incidents across the whole account that the API token can see, with no team/service filter. These are not scoped to the current user; use only when account-wide incidents are wanted. Implies `current_user_context=False`. Cannot be combined with `service_ids` or `team_ids`. Not used if `incident_id` is provided.
-        service_ids (List[str]): Filter by services (optional, excludes current_user_context / all_visible). Not used if `incident_id` is provided.
-        team_ids (List[str]): Filter by teams (optional, excludes current_user_context / all_visible). Not used if `incident_id` is provided.
+        service_ids (List[str]): Filter by services (optional). Providing this parameter implies `current_user_context=False` (overrides explicit True). Cannot be combined with `all_visible`. Not used if `incident_id` is provided.
+        team_ids (List[str]): Filter by teams (optional). Providing this parameter implies `current_user_context=False` (overrides explicit True). Cannot be combined with `all_visible`. Not used if `incident_id` is provided.
         statuses (List[str]): Filter by status (optional). Not used if `incident_id` is provided. Must be input as a list of strings, valid values are `["triggered", "acknowledged", "resolved"]`. Defaults to all statuses.
         urgencies (List[str]): Filter by urgency (optional). Not used if `incident_id` is provided. Must be input as a list of strings, valid values are `["high", "low"]`. Defaults to all urgencies. Account must have the urgencies ability to do this.
         since (str): Start of query range in ISO8601 format (default range: 1 month, max range: 6 months). Not used if `incident_id` is provided.
         until (str): End of query range in ISO8601 format (default range: 1 month, max range: 6 months). Not used if `incident_id` is provided.
         limit (int): Max results (optional). Not used if `incident_id` is provided.
-        include_past_incidents (Optional[bool]): If True and `incident_id` is provided, includes similar past incidents in the response. Defaults to False. Cannot be used without `incident_id`.
-        include_related_incidents (Optional[bool]): If True and `incident_id` is provided, includes related incidents impacting other services/responders in the response. Defaults to False. Cannot be used without `incident_id`.
-        include_notes (Optional[bool]): If True, includes notes for each incident in the response. Defaults to False.
+        include_past_incidents (Optional[bool]): Only with `incident_id`. If True, includes similar past incidents. Defaults to False. Never set on list calls.
+        include_related_incidents (Optional[bool]): Only with `incident_id`. If True, includes related incidents. Defaults to False. Never set on list calls.
+        include_notes (Optional[bool]): Only with `incident_id`. If True, includes notes for that incident. Defaults to False. Never set on list calls (list first, then call again with `incident_id`).
         include (List[str]): List of fields to include in the response. If specified, only these fields will be returned for each incident
     """
     service_ids = _clean_filter_ids(service_ids, "service_ids")
@@ -253,6 +296,11 @@ async def get_incidents(
             "`include_past_incidents`, `include_related_incidents`, and `include_notes` can only be used when a specific `incident_id` is provided. See `docs://tools` for more information."
         )
 
+    _reject_blank_only_exclusive_filters(service_ids=service_ids, team_ids=team_ids)
+    # Non-empty exclusive filters imply False, including overriding an explicit True.
+    if _has_explicit_scope_ids(service_ids, team_ids) and not all_visible:
+        current_user_context = False
+
     # all_visible takes precedence over current_user_context, which defaults to True.
     if all_visible:
         if service_ids is not None or team_ids is not None:
@@ -262,10 +310,6 @@ async def get_incidents(
                 "See `docs://tools` for more information."
             )
     elif current_user_context:
-        if service_ids is not None or team_ids is not None:
-            raise ValueError(
-                "Cannot specify service_ids or team_ids when current_user_context is True. See `docs://tools` for more information."
-            )
         user_context = await users.build_user_context()
         _require_team_scope(
             user_context,
@@ -384,6 +428,11 @@ async def get_oncalls(
 ) -> dict[str, Any]:
     """List on-call entries for schedules, policies, or time ranges.
 
+    Call patterns:
+    - Default: omit exclusive filters (uses escalation policies the current user is a target of).
+    - By schedule: `schedule_ids` may be used with the default context (intersection) or with `current_user_context=False`.
+    - By user/policy IDs: pass `user_ids` and/or `escalation_policy_ids` (implies `current_user_context=False`, including overriding an explicit True).
+
     Behavior varies by time parameters:
     1. Without since/until: Returns current on-calls
        Example: get_oncalls(current_user_context=False, schedule_ids=["PSCHED123"])
@@ -391,10 +440,10 @@ async def get_oncalls(
        Example: get_oncalls(current_user_context=False, schedule_ids=["PSCHED123"], since="2024-03-20T00:00:00Z", until="2024-03-27T00:00:00Z")
 
     Args:
-        current_user_context (bool): Use escalation policies the current user is a target of (default: True); errors if the current user is a target of no escalation policy and no schedule_ids are given.
-        schedule_ids (List[str]): Filter by schedules (optional)
-        user_ids (List[str]): Filter by users (optional, excludes current_user_context)
-        escalation_policy_ids (List[str]): Filter by policies (optional, excludes current_user_context)
+        current_user_context (bool): Use escalation policies the current user is a target of (default: True); errors if the current user is a target of no escalation policy and no schedule_ids are given. Ignored when `user_ids` or `escalation_policy_ids` are provided (those imply False, even if this is explicitly True).
+        schedule_ids (List[str]): Filter by schedules (optional). Allowed with default context.
+        user_ids (List[str]): Filter by users (optional). Providing this parameter implies `current_user_context=False` (overrides explicit True).
+        escalation_policy_ids (List[str]): Filter by policies (optional). Providing this parameter implies `current_user_context=False` (overrides explicit True).
         since (str): Start of query range in ISO8601 format (default: current datetime)
         until (str): End of query range in ISO8601 format (default: current datetime, max range: 90 days in the future). Cannot be before `since`.
         limit (int): Max results (optional)
@@ -407,11 +456,17 @@ async def get_oncalls(
         escalation_policy_ids, "escalation_policy_ids"
     )
 
+    # user_ids / escalation_policy_ids are exclusive with current-user mode;
+    # schedule_ids are not. Reject blank-only exclusive lists up front so a
+    # schedule_ids value cannot paper over a blank user_ids / policy list.
+    _reject_blank_only_exclusive_filters(
+        user_ids=user_ids, escalation_policy_ids=escalation_policy_ids
+    )
+    # Non-empty exclusive filters imply False, including overriding an explicit True.
+    if _has_explicit_scope_ids(user_ids, escalation_policy_ids):
+        current_user_context = False
+
     if current_user_context:
-        if user_ids is not None or escalation_policy_ids is not None:
-            raise ValueError(
-                "Cannot specify user_ids or escalation_policy_ids when current_user_context is True. See `docs://tools` for more information."
-            )
         user_context = await users.build_user_context()
         escalation_policy_ids = user_context["escalation_policy_ids"]
         if not (escalation_policy_ids or schedule_ids):
@@ -527,11 +582,16 @@ async def get_services(
 ) -> dict[str, Any]:
     """Get PagerDuty services by filters or get details for a specific service ID.
 
+    Call patterns:
+    - Search by name: `query="Service Name"` with the default context (omit `current_user_context`; limited to your teams).
+    - By team: pass `team_ids` (implies `current_user_context=False`, including overriding an explicit True).
+    - Do not set `current_user_context=False` with only `query`; that errors because `team_ids` are required in False mode.
+
     Args:
         service_id (str): The service ID to retrieve (optional, cannot be used with any other filters).
-        current_user_context (bool): Use current user's team IDs to filter (default: True); errors if the current user belongs to no teams. Not used if `service_id` is provided.
-        team_ids (List[str]): Filter results to only services assigned to teams with the given IDs (optional, cannot be used with current_user_context). Not used if `service_id` is provided.
-        query (str): Filter services whose names contain the search query (optional). Not used if `service_id` is provided.
+        current_user_context (bool): Use current user's team IDs to filter (default: True); errors if the current user belongs to no teams. Ignored when `team_ids` are provided (those imply False, even if this is explicitly True). Not used if `service_id` is provided.
+        team_ids (List[str]): Filter results to only services assigned to teams with the given IDs (optional). Providing this parameter implies `current_user_context=False` (overrides explicit True). Not used if `service_id` is provided.
+        query (str): Filter services whose names contain the search query (optional). Works with default `current_user_context=True` (limited to your teams). Not a substitute for `team_ids` when context is False. Not used if `service_id` is provided.
         limit (int): Limit the number of results (optional). Not used if `service_id` is provided.
         include (List[str]): List of fields to include in the response. If specified, only these fields will be returned for each service
     """
@@ -548,17 +608,20 @@ async def get_services(
 
         return await services.show_service(service_id=service_id, include=include)
 
+    _reject_blank_only_exclusive_filters(team_ids=team_ids)
+    # Non-empty exclusive filters imply False, including overriding an explicit True.
+    if _has_explicit_scope_ids(team_ids):
+        current_user_context = False
+
     if current_user_context:
-        if team_ids is not None:
-            raise ValueError(
-                "Cannot specify team_ids when current_user_context is True. See `docs://tools` for more information."
-            )
         user_context = await users.build_user_context()
         _require_team_scope(user_context)
         team_ids = user_context["team_ids"]
     elif not team_ids:
         raise ValueError(
-            "Must specify at least team_ids when current_user_context is False. See `docs://tools` for more information."
+            "Must specify at least team_ids when current_user_context is False. "
+            "Name `query` alone is not enough; use the default current_user_context=True with query, "
+            "or pass team_ids. See `docs://tools` for more information."
         )
 
     return await services.list_services(
@@ -620,11 +683,16 @@ async def get_users(
 ) -> dict[str, Any]:
     """Get PagerDuty users by filters or get details for a specific user ID.
 
+    Call patterns:
+    - Search by name: `query="Name"` with the default context (omit `current_user_context`; limited to your teams).
+    - By team: pass `team_ids` (implies `current_user_context=False`, including overriding an explicit True).
+    - Do not set `current_user_context=False` with only `query`; that errors because `team_ids` are required in False mode.
+
     Args:
         user_id (str): The user ID to retrieve (optional, cannot be used with any other filters).
-        current_user_context (bool): Use current user's team IDs to filter (default: True); errors if the current user belongs to no teams. Not used if `user_id` is provided.
-        team_ids (List[str]): Filter results to only users assigned to teams with the given IDs (optional, cannot be used with current_user_context). Not used if `user_id` is provided.
-        query (str): Filter users whose names contain the search query (optional). Not used if `user_id` is provided.
+        current_user_context (bool): Use current user's team IDs to filter (default: True); errors if the current user belongs to no teams. Ignored when `team_ids` are provided (those imply False, even if this is explicitly True). Not used if `user_id` is provided.
+        team_ids (List[str]): Filter results to only users assigned to teams with the given IDs (optional). Providing this parameter implies `current_user_context=False` (overrides explicit True). Not used if `user_id` is provided.
+        query (str): Filter users whose names contain the search query (optional). Works with default `current_user_context=True` (limited to your teams). Not a substitute for `team_ids` when context is False. Not used if `user_id` is provided.
         limit (int): Limit the number of results (optional). Not used if `user_id` is provided.
         include (List[str]): List of fields to include in the response. If specified, only these fields will be returned for each user
     """
@@ -641,17 +709,20 @@ async def get_users(
 
         return await users.show_user(user_id=user_id, include=include)
 
+    _reject_blank_only_exclusive_filters(team_ids=team_ids)
+    # Non-empty exclusive filters imply False, including overriding an explicit True.
+    if _has_explicit_scope_ids(team_ids):
+        current_user_context = False
+
     if current_user_context:
-        if team_ids is not None:
-            raise ValueError(
-                "Cannot specify team_ids when current_user_context is True. See `docs://tools` for more information."
-            )
         user_context = await users.build_user_context()
         _require_team_scope(user_context)
         team_ids = user_context["team_ids"]
     elif not team_ids:
         raise ValueError(
-            "Must specify at least team_ids when current_user_context is False. See `docs://tools` for more information."
+            "Must specify at least team_ids when current_user_context is False. "
+            "Name `query` alone is not enough; use the default current_user_context=True with query, "
+            "or pass team_ids. See `docs://tools` for more information."
         )
 
     return await users.list_users(
