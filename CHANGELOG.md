@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## [4.1.1](https://github.com/wpfleger96/pagerduty-mcp-server/compare/v4.1.0...v4.1.1) (2026-11-19)
+
+
+### Bug Fixes
+
+* imply current_user_context=False for exclusive ID filters ([#122](https://github.com/wpfleger96/pagerduty-mcp-server/issues/122)) ([94f8ab9](https://github.com/wpfleger96/pagerduty-mcp-server/commit/94f8ab9bfc1c6b019c36c4a5f906f507da7606e0))
+
+
+### Chores
+
+* **deps:** Update dependency dnspython to v2.9.2 [SECURITY] ([#120](https://github.com/wpfleger96/pagerduty-mcp-server/issues/120)) ([e8ffbe6](https://github.com/wpfleger96/pagerduty-mcp-server/commit/e8ffbe64eecdcf2d625d9724c4966d069a2f1f79))
+
 ## [4.1.0](https://github.com/wpfleger96/pagerduty-mcp-server/compare/v4.0.7...v4.1.0) (2026-11-09)
 
 
