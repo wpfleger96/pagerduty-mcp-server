@@ -11,7 +11,8 @@ The following general information in this section applies to all tools.
 
 ### IDs
 - PagerDuty IDs must contain only ASCII letters and digits, both in single-ID parameters (`incident_id`, `policy_id`, `schedule_id`, `service_id`, `team_id`, `user_id`) and in list filters; any other value returns an error that names the offending parameter
-- Whitespace around IDs in list filters (`team_ids`, `service_ids`, `user_ids`, `schedule_ids`, `escalation_policy_ids`) is stripped, and blank IDs are ignored, so a list containing only blank IDs counts as not providing that filter
+- Whitespace around IDs in list filters (`team_ids`, `service_ids`, `user_ids`, `schedule_ids`, `escalation_policy_ids`) is stripped, and blank IDs mixed with real IDs are dropped
+- For exclusive filters (`service_ids`, `team_ids`, `user_ids`, `escalation_policy_ids` as documented per tool), a list containing only blank IDs errors instead of falling back to default `current_user_context`
 
 ### Best Practices
 - Prefer using default parameters when they align with the user's intent
@@ -23,7 +24,7 @@ The following general information in this section applies to all tools.
 Scoped list tools (`get_escalation_policies`, `get_incidents`, `get_oncalls`, `get_services`, `get_users`) have two modes. Mixing them incorrectly is the most common agent mistake.
 
 1. **Default / my context** (`current_user_context=True`, the default): omit exclusive ID filters (`service_ids`, `team_ids`, `user_ids`, `escalation_policy_ids` as documented per tool). Name `query` works in this mode and is limited to the current user's teams/policies. Prefer omitting `current_user_context` entirely rather than setting it to `False`.
-2. **Explicit ID filters**: pass exclusive ID filters. Providing those parameters **implies** `current_user_context=False`, including when `True` was set explicitly. Blank-only ID lists error (they do not fall back to default mode).
+2. **Explicit ID filters**: pass exclusive ID filters. Providing those parameters with real IDs **implies** `current_user_context=False`, including when `True` was set explicitly. Blank-only exclusive ID lists error with a blank-ID message (they do not fall back to default mode, and non-exclusive filters like `schedule_ids` cannot paper over them).
 
 Do **not** set `current_user_context=False` with only a name `query` and no ID filters; that errors because False mode requires the documented ID filters. For `get_incidents`, never set `include_notes`, `include_past_incidents`, or `include_related_incidents` on a list call; list first, then call again with `incident_id`.
 
@@ -66,7 +67,8 @@ Each escalation policy object contains:
 #### Raises
 - `ValueError`: If:
   - `policy_id` is used along with any other query parameters (`query`, `user_ids`, `team_ids`, or `limit`).
-  - `current_user_context` is False and neither `user_ids` nor `team_ids` are provided (including when exclusive ID filter parameters were passed but cleaned to empty).
+  - `current_user_context` is False and neither `user_ids` nor `team_ids` are provided.
+  - Exclusive `user_ids` / `team_ids` parameters were passed but contained only blank IDs after cleanup.
 
 #### Example Response
 When listing escalation policies:
@@ -226,7 +228,8 @@ Additional fields present when optional parameters are used:
 #### Raises
 - `ValueError`: If:
   - `incident_id` is used along with any other query parameters (Note: `include_past_incidents`, `include_related_incidents`, and `include_notes` are allowed with `incident_id`).
-  - `current_user_context` is False, `all_visible` is False, and neither `service_ids` nor `team_ids` are provided (and `incident_id` is not provided), including when exclusive ID filter parameters were passed but cleaned to empty.
+  - `current_user_context` is False, `all_visible` is False, and neither `service_ids` nor `team_ids` are provided (and `incident_id` is not provided).
+  - Exclusive `service_ids` / `team_ids` parameters were passed but contained only blank IDs after cleanup.
   - `all_visible` is True and `service_ids` or `team_ids` are provided (and `incident_id` is not provided).
   - `current_user_context` is True, `all_visible` is False, no exclusive ID filters are present, and the current user belongs to no teams (and `incident_id` is not provided).
   - `statuses` contains invalid values (must be one of: `triggered`, `acknowledged`, `resolved`) or is not a list of strings (and `incident_id` is not provided).
@@ -516,6 +519,7 @@ Each on-call object contains:
 - `ValueError`: If:
   - `current_user_context` is True (no exclusive `user_ids` / `escalation_policy_ids`), the current user is not a target of any escalation policy, and no `schedule_ids` are provided.
   - `current_user_context` is False and none of `schedule_ids`, `user_ids`, or `escalation_policy_ids` are provided.
+  - Exclusive `user_ids` / `escalation_policy_ids` parameters were passed but contained only blank IDs after cleanup (even if `schedule_ids` is also set).
 
 #### Example Response
 ```json
@@ -836,7 +840,8 @@ Each service object contains:
 #### Raises
 - `ValueError`: If:
   - `service_id` is used along with any other query parameters (`team_ids`, `query`, or `limit`).
-  - `current_user_context` is False and `team_ids` is not provided (including when `team_ids` was passed but cleaned to empty). Name `query` alone is not enough in False mode.
+  - `current_user_context` is False and `team_ids` is not provided. Name `query` alone is not enough in False mode.
+  - `team_ids` was passed but contained only blank IDs after cleanup.
   - `current_user_context` is True, no `team_ids` parameter was provided, and the current user belongs to no teams.
 
 #### Example Response
@@ -1075,7 +1080,8 @@ Each user object contains:
 #### Raises
 - `ValueError`: If:
   - `user_id` is used along with any other query parameters (`team_ids`, `query`, or `limit`).
-  - `current_user_context` is False and `team_ids` is not provided (including when `team_ids` was passed but cleaned to empty). Name `query` alone is not enough in False mode.
+  - `current_user_context` is False and `team_ids` is not provided. Name `query` alone is not enough in False mode.
+  - `team_ids` was passed but contained only blank IDs after cleanup.
   - `current_user_context` is True, no `team_ids` parameter was provided, and the current user belongs to no teams.
 
 #### Example Queries

@@ -35,7 +35,7 @@ REQUIRED READING: You MUST read all tool documentation using the resource `docs:
 
 Scoped list tools (`get_incidents`, `get_services`, `get_users`, `get_escalation_policies`, `get_oncalls`) have two modes:
 1. Default `current_user_context=True`: omit team/service/user ID filters (and omit `current_user_context=False`). Name `query` works in this mode (limited to the current user's teams/policies).
-2. Explicit filters: pass `service_ids` / `team_ids` / `user_ids` / `escalation_policy_ids` as documented per tool. Providing those exclusive filters implies `current_user_context=False` (even if True was set explicitly). Blank-only ID lists error instead of falling back to default mode.
+2. Explicit filters: pass `service_ids` / `team_ids` / `user_ids` / `escalation_policy_ids` as documented per tool. Providing those exclusive filters with real IDs implies `current_user_context=False` (even if True was set explicitly). Blank-only exclusive ID lists error (non-exclusive filters like `schedule_ids` cannot paper over them).
 Never set `current_user_context=False` with only a name `query` and no ID filters. For `get_incidents`, `include_notes` / `include_past_incidents` / `include_related_incidents` require `incident_id` (list first, then fetch details).
 """
 
@@ -99,14 +99,28 @@ def _clean_filter_ids(ids: list[str] | None, param_name: str) -> list[str] | Non
     return cleaned
 
 
-def _exclusive_filters_were_provided(*id_lists: list[str] | None) -> bool:
-    """True when the caller passed at least one exclusive ID list argument.
+def _has_explicit_scope_ids(*id_lists: list[str] | None) -> bool:
+    """True when at least one cleaned exclusive ID list is non-empty."""
+    return any(ids for ids in id_lists)
 
-    Includes blank-only lists (cleaned to `[]`). Those must not fall back to
-    default `current_user_context=True`; they force False mode so the usual
-    "Must specify at least ..." guard fires, matching #104.
+
+def _reject_blank_only_exclusive_filters(**named_lists: list[str] | None) -> None:
+    """Raise when exclusive ID filters were passed but none remain after cleanup.
+
+    Blank IDs mixed with real IDs are still dropped (#104). This only fires when
+    every provided exclusive list cleaned to empty, so a call like
+    ``get_oncalls(user_ids=[" "], schedule_ids=["S1"])`` cannot slip through via
+    a non-exclusive filter.
     """
-    return any(ids is not None for ids in id_lists)
+    provided = {name: ids for name, ids in named_lists.items() if ids is not None}
+    if not provided or any(ids for ids in provided.values()):
+        return
+    names = ", ".join(f"`{name}`" for name in provided)
+    raise ValueError(
+        f"{names} contained only blank IDs after cleanup. "
+        "Pass real PagerDuty IDs, or omit the parameter. "
+        "See `docs://tools` for more information."
+    )
 
 
 """
@@ -173,10 +187,9 @@ async def get_escalation_policies(
             policy_id=policy_id, include=include
         )
 
-    # Exclusive ID filters imply False, including overriding an explicit True.
-    # Blank-only lists also force False so we error instead of silently using
-    # the caller's own teams (same intent as #104).
-    if _exclusive_filters_were_provided(user_ids, team_ids):
+    _reject_blank_only_exclusive_filters(user_ids=user_ids, team_ids=team_ids)
+    # Non-empty exclusive filters imply False, including overriding an explicit True.
+    if _has_explicit_scope_ids(user_ids, team_ids):
         current_user_context = False
 
     if current_user_context:
@@ -283,10 +296,9 @@ async def get_incidents(
             "`include_past_incidents`, `include_related_incidents`, and `include_notes` can only be used when a specific `incident_id` is provided. See `docs://tools` for more information."
         )
 
-    # Exclusive ID filters imply False, including overriding an explicit True.
-    # Blank-only lists also force False so we error instead of silently using
-    # the caller's own teams (same intent as #104).
-    if _exclusive_filters_were_provided(service_ids, team_ids) and not all_visible:
+    _reject_blank_only_exclusive_filters(service_ids=service_ids, team_ids=team_ids)
+    # Non-empty exclusive filters imply False, including overriding an explicit True.
+    if _has_explicit_scope_ids(service_ids, team_ids) and not all_visible:
         current_user_context = False
 
     # all_visible takes precedence over current_user_context, which defaults to True.
@@ -445,9 +457,13 @@ async def get_oncalls(
     )
 
     # user_ids / escalation_policy_ids are exclusive with current-user mode;
-    # schedule_ids are not. Blank-only exclusive lists force False (see #104).
-    # Providing them also overrides an explicit True.
-    if _exclusive_filters_were_provided(user_ids, escalation_policy_ids):
+    # schedule_ids are not. Reject blank-only exclusive lists up front so a
+    # schedule_ids value cannot paper over a blank user_ids / policy list.
+    _reject_blank_only_exclusive_filters(
+        user_ids=user_ids, escalation_policy_ids=escalation_policy_ids
+    )
+    # Non-empty exclusive filters imply False, including overriding an explicit True.
+    if _has_explicit_scope_ids(user_ids, escalation_policy_ids):
         current_user_context = False
 
     if current_user_context:
@@ -592,10 +608,9 @@ async def get_services(
 
         return await services.show_service(service_id=service_id, include=include)
 
-    # Exclusive ID filters imply False, including overriding an explicit True.
-    # Blank-only lists also force False so we error instead of silently using
-    # the caller's own teams (same intent as #104).
-    if _exclusive_filters_were_provided(team_ids):
+    _reject_blank_only_exclusive_filters(team_ids=team_ids)
+    # Non-empty exclusive filters imply False, including overriding an explicit True.
+    if _has_explicit_scope_ids(team_ids):
         current_user_context = False
 
     if current_user_context:
@@ -694,10 +709,9 @@ async def get_users(
 
         return await users.show_user(user_id=user_id, include=include)
 
-    # Exclusive ID filters imply False, including overriding an explicit True.
-    # Blank-only lists also force False so we error instead of silently using
-    # the caller's own teams (same intent as #104).
-    if _exclusive_filters_were_provided(team_ids):
+    _reject_blank_only_exclusive_filters(team_ids=team_ids)
+    # Non-empty exclusive filters imply False, including overriding an explicit True.
+    if _has_explicit_scope_ids(team_ids):
         current_user_context = False
 
     if current_user_context:

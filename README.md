@@ -173,7 +173,7 @@ Common error scenarios include:
 ## User Context
 Many functions accept a `current_user_context` parameter (defaults to `True`) which automatically filters results based on this context.
 
-Providing exclusive ID filters implies `current_user_context=False`, including when `True` was set explicitly. Blank-only ID lists error instead of falling back to the caller's own teams.
+Providing exclusive ID filters with real IDs implies `current_user_context=False`, including when `True` was set explicitly. Blank-only exclusive ID lists error instead of falling back to the caller's own teams.
 
 - For incidents:
   - Passing `team_ids` and/or `service_ids` implies `current_user_context=False`

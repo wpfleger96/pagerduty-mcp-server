@@ -355,8 +355,26 @@ async def test_blank_exclusive_filters_do_not_fall_back_to_user_context(
 
     assert result.isError is True
     assert result.content
+    assert "contained only blank IDs after cleanup" in _text(result.content)
+    mocked_paginate.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+@pytest.mark.unit
+@pytest.mark.server
+async def test_get_oncalls_blank_user_ids_error_even_with_schedule_ids() -> None:
+    """Blank exclusive filters must not be papered over by schedule_ids."""
+    result, mocked_paginate = await _call_tool_as(
+        _user_context(team_ids=["T_USER"], escalation_policy_ids=["EP_USER"]),
+        "get_oncalls",
+        "pagerduty_mcp_server.oncalls",
+        {"user_ids": [" "], "schedule_ids": ["S1"]},
+    )
+
+    assert result.isError is True
+    assert result.content
     text = _text(result.content)
-    assert "Must specify at least" in text or "must specify at least one of" in text
+    assert "`user_ids` contained only blank IDs after cleanup" in text
     mocked_paginate.assert_not_awaited()
 
 
@@ -407,7 +425,7 @@ async def test_blank_exclusive_filters_do_not_fall_back_to_user_context(
 async def test_blank_filter_ids_reject_unscoped_query(
     tool_name: str, list_module: str, args: dict[str, Any]
 ) -> None:
-    """Blank IDs must not count as a filter when current_user_context is False."""
+    """Blank-only exclusive ID lists error instead of counting as a real filter."""
     result, mocked_paginate = await _call_tool_as(
         _UNUSED_USER_CONTEXT,
         tool_name,
@@ -417,7 +435,7 @@ async def test_blank_filter_ids_reject_unscoped_query(
 
     assert result.isError is True
     assert result.content
-    assert "Must specify at least" in _text(result.content)
+    assert "contained only blank IDs after cleanup" in _text(result.content)
     mocked_paginate.assert_not_awaited()
 
 
