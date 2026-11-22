@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [4.1.2](https://github.com/wpfleger96/pagerduty-mcp-server/compare/v4.1.1...v4.1.2) (2026-11-22)
+
+
+### Continuous Integration
+
+* sync shared files ([60bdfd7](https://github.com/wpfleger96/pagerduty-mcp-server/commit/60bdfd7e6f2b0c871256de3850be246895404c51))
+
 ## [4.1.1](https://github.com/wpfleger96/pagerduty-mcp-server/compare/v4.1.0...v4.1.1) (2026-11-19)
 
 
